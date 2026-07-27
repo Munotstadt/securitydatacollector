@@ -61,3 +61,11 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 53,Nasdaq Composite,24953.83203125,27.07.2026 21:19:18,Yahoo Finance (Weekday),27.07.2026 21:19:18
 55,Sunrise Communications AG,42.31999969482422,27.07.2026 21:19:18,Yahoo Finance (Weekday),27.07.2026 21:19:18
 57,CBOE Interest Rate 10 Year T Note,4.640999794006348,27.07.2026 21:19:18,Yahoo Finance (Weekday),27.07.2026 21:19:18
+8,BTC - Bitcoin,64949.421875,27.07.2026 21:20:53,Yahoo Finance (Daily),27.07.2026 21:20:53
+7,SOL - Solana,75.83000183105469,27.07.2026 21:20:53,Yahoo Finance (Daily),27.07.2026 21:20:53
+9,ETH - Ethereum,1948.75,27.07.2026 21:20:53,Yahoo Finance (Daily),27.07.2026 21:20:53
+48,GBP/CHF,1.0885599851608276,27.07.2026 21:20:53,Yahoo Finance (Daily),27.07.2026 21:20:53
+49,Gold (USD/oz),4082.300048828125,27.07.2026 21:20:53,Yahoo Finance (Daily),27.07.2026 21:20:53
+50,JPY/CHF,0.005001999903470278,27.07.2026 21:20:53,Yahoo Finance (Daily),27.07.2026 21:20:53
+54,Silver (USD/oz),58.7599983215332,27.07.2026 21:20:53,Yahoo Finance (Daily),27.07.2026 21:20:53
+58,Brent Crude Oil Last Day Financ,88.08999633789062,27.07.2026 21:20:53,Yahoo Finance (Daily),27.07.2026 21:20:53
