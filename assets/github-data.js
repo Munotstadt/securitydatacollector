@@ -153,3 +153,86 @@ function parseSwissDateTime(s) {
   const [, d, mo, y, h, mi, se] = m;
   return new Date(Number(y), Number(mo) - 1, Number(d), Number(h), Number(mi), Number(se));
 }
+
+/* Reines Datum "dd.mm.yyyy" (ohne Zeit) -> Date, z.B. für ExDate/PayDate. */
+function parseSwissDate(s) {
+  if (!s) return null;
+  const m = s.match(/(\d{2})\.(\d{2})\.(\d{4})/);
+  if (!m) return null;
+  const [, d, mo, y] = m;
+  return new Date(Number(y), Number(mo) - 1, Number(d));
+}
+
+/* Aktuelles Datum (Europe/Zurich) als "dd.mm.yyyy" (ohne Zeit). */
+function nowZurichDateString() {
+  const parts = new Intl.DateTimeFormat('de-CH', {
+    timeZone: 'Europe/Zurich',
+    day: '2-digit', month: '2-digit', year: 'numeric',
+  }).formatToParts(new Date());
+  const p = Object.fromEntries(parts.map(x => [x.type, x.value]));
+  return `${p.day}.${p.month}.${p.year}`;
+}
+
+/* Zahl mit fester Dezimalstellenzahl, de-CH Format (Punkt als Tausendertrenner-Vermeidung egal hier). */
+function fmtDecimal(n, decimals) {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  return n.toLocaleString('de-CH', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+}
+
+/* Zeitstempel als "dd.mm. HH:MM" (fix, unabhängig von Locale-Eigenheiten). */
+function fmtShortDateTime(date) {
+  const dd = String(date.getDate()).padStart(2, '0');
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const hh = String(date.getHours()).padStart(2, '0');
+  const mi = String(date.getMinutes()).padStart(2, '0');
+  return `${dd}.${mm}. ${hh}:${mi}`;
+}
+
+/* Reines Datum "dd.mm.yyyy" für Anzeige. */
+function fmtDateOnly(date) {
+  const dd = String(date.getDate()).padStart(2, '0');
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  return `${dd}.${mm}.${date.getFullYear()}`;
+}
+
+/* Findet in einer aufsteigend sortierten Liste { dt, ... } den letzten Eintrag
+ * mit dt <= date. Wird für Vortag/Woche/Monat/YTD-Referenzwerte gebraucht. */
+function findOnOrBefore(sortedAsc, date) {
+  let best = null;
+  for (const r of sortedAsc) {
+    if (r.dt <= date && (!best || r.dt > best.dt)) best = r;
+  }
+  return best;
+}
+
+function daysAgo(fromDate, n) {
+  const d = new Date(fromDate);
+  d.setDate(d.getDate() - n);
+  return d;
+}
+
+/* Baut { CCY: [ {dt, Price}, ... ] (aufsteigend sortiert) } aus Securities,
+ * deren Name dem Muster "XXX/CHF" entspricht (z.B. "USD/CHF", "EUR/CHF").
+ * `bySecurity` ist eine Map SecurityID -> [ {dt, Price}, ... ]. Damit lässt
+ * sich die CHF-Umrechnung mit den SELBST erfassten FX-Kursen machen statt
+ * mit einer externen Live-API - inkl. korrektem historischem Kurs für
+ * Vortag/Monat-Referenzen (nicht nur der aktuelle Live-Kurs). */
+function buildFxMap(master, bySecurity) {
+  const fxMap = {};
+  for (const m of master) {
+    const match = (m.SecurityName || '').trim().match(/^([A-Za-z]{3})\/CHF$/i);
+    if (!match) continue;
+    const ccy = match[1].toUpperCase();
+    const series = (bySecurity[m.SecurityID] || []).slice().sort((a, b) => a.dt - b.dt);
+    if (series.length) fxMap[ccy] = series;
+  }
+  return fxMap;
+}
+
+function fxRateOnDate(fxMap, currency, date) {
+  if (!currency || currency.toUpperCase() === 'CHF') return 1;
+  const series = fxMap[currency.toUpperCase()];
+  if (!series) return null;
+  const ref = findOnOrBefore(series, date);
+  return ref ? ref.Price : null;
+}
