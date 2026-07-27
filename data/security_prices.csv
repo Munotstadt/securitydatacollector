@@ -4,3 +4,5 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 10,iShares Swiss Dividends,193.75999450683594,27.07.2026 17:45:36,Yahoo Finance (Weekday),27.07.2026 17:45:36
 8,Bitcoin,64479.0,27.07.2026 17:59:31,Yahoo Finance (Daily),27.07.2026 17:59:31
 8,Bitcoin,64946.46875,27.07.2026 19:30:18,Yahoo Finance (Daily),27.07.2026 19:30:18
+20,Apple Inc.,336.75,27.07.2026 19:38:37,Yahoo Finance (Weekday),27.07.2026 19:38:37
+10,iShares Swiss Dividends,193.72000122070312,27.07.2026 19:38:37,Yahoo Finance (Weekday),27.07.2026 19:38:37
