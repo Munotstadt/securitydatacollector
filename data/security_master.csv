@@ -1,4 +1,4 @@
 SecurityName,SecurityID,MainID,Currency,PortfolioGruppe,PortfolioSubgruppe1,PortfolioSubgruppe2,Instrument,DataCollector,YahooTicker,Quantity,Created_at,Modified_at
-Apple Inc.,1,AAPL,USD,Shares,USA,Growth,Shares,Collector_YahooWeekday,AAPL,10,27.07.2026 09:00:00,27.07.2026 17:35:26
-Bitcoin,2,BTC-USD,USD,Alternative,Crypto,,Crypto,Collector_YahooDaily,BTC-USD,0.25,27.07.2026 09:00:00,27.07.2026 17:35:26
-Rendite Bundesobligationen Eidgenossenschaft 10 Jahre (%),3,CH-R10,CHF,Bonds,Swiss Gov,,other,Collector_Other,,0,27.07.2026 09:00:00,27.07.2026 17:35:26
+Apple Inc.,1,AAPL,USD,Shares,USA,Growth,Shares,Collector_YahooWeekday,AAPL,10,27.07.2026 09:00:00,27.07.2026 17:36:06
+Bitcoin,2,BTC-USD,USD,Alternative,Crypto,,Crypto,Collector_YahooDaily,BTC-USD,0.25,27.07.2026 09:00:00,27.07.2026 17:36:06
+Rendite Bundesobligationen Eidgenossenschaft 10 Jahre (%),3,CH-R10,CHF,Bonds,Swiss Gov,,other,Collector_Other,,0,27.07.2026 09:00:00,27.07.2026 17:36:06
