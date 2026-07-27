@@ -52,6 +52,7 @@
   <a href="portfolio.html" class="active">💼 Portfolio</a>
   <a href="master_editor.html">🗂 Stammdaten</a>
   <a href="price_editor.html">✏️ Kurse</a>
+  <a href="distribution_editor.html">💰 Ausschüttungen</a>
 </nav>
 <div class="board">
   <div class="eyebrow">
@@ -68,28 +69,14 @@
     </tr></thead>
     <tbody id="boardBody"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
   </table>
-  <p class="note">FX-Kurse (live, frankfurter.app) werden nur für die CHF-Umrechnung verwendet; die Basiswährung je Position bleibt im Master (Currency) massgebend.</p>
+  <p class="note">FX-Umrechnung nutzt die selbst erfassten Kurse der Securities "XXX/CHF" (z.B. USD/CHF, EUR/CHF) aus security_prices.csv, jeweils zum passenden Referenzdatum (Vortag/Monat) - keine externe FX-API.</p>
 </div>
 
 <script src="assets/github-data.js"></script>
 <script>
-function daysAgo(d,n){ const r=new Date(d); r.setDate(r.getDate()-n); return r; }
-function findOnOrBefore(sorted, date){ let best=null; for(const r of sorted){ if(r.dt<=date && (!best||r.dt>best.dt)) best=r; } return best; }
 function fmtPct(v){ if(v===null||v===undefined||isNaN(v)) return {text:'—',dir:'flat'}; return {text:`${v>0?'+':''}${v.toFixed(2)}%`, dir:v>0?'up':(v<0?'down':'flat')}; }
 function fmtChf(v){ return v===null||isNaN(v) ? '—' : v.toLocaleString('de-CH',{maximumFractionDigits:0}); }
-
-async function getFxRates(currencies){
-  const rates = { CHF: 1 };
-  const need = currencies.filter(c => c && c!=='CHF' && !rates[c]);
-  if(!need.length) return rates;
-  try{
-    const res = await fetch(`https://api.frankfurter.app/latest?from=CHF&to=${need.join(',')}`);
-    const j = await res.json();
-    // frankfurter liefert CHF->X; wir brauchen X->CHF = 1 / rate
-    for(const c of need){ if(j.rates[c]) rates[c] = 1 / j.rates[c]; }
-  }catch(e){ console.warn('FX-Abruf fehlgeschlagen', e); }
-  return rates;
-}
+/* daysAgo, findOnOrBefore, buildFxMap, fxRateOnDate kommen aus assets/github-data.js */
 
 async function load(){
   try{
@@ -103,7 +90,7 @@ async function load(){
     for(const p of prices) (bySecurity[p.SecurityID]=bySecurity[p.SecurityID]||[]).push(p);
     for(const id in bySecurity) bySecurity[id].sort((a,b)=>a.dt-b.dt);
 
-    const fx = await getFxRates(master.map(m=>m.Currency));
+    const fxMap = buildFxMap(master, bySecurity);
     const now = new Date();
 
     const groups = {};
@@ -116,11 +103,16 @@ async function load(){
       const last = list[list.length-1] || null;
       const prev = list.length>1 ? list[list.length-2] : null;
       const refMonth = findOnOrBefore(list, daysAgo(now,30));
-      const rate = fx[m.Currency] || null;
 
-      const valChf = (last && rate) ? qty*last.Price*rate : null;
-      const valPrevChf = (prev && rate) ? qty*prev.Price*rate : null;
-      const valMonthChf = (refMonth && rate) ? qty*refMonth.Price*rate : null;
+      // FX-Kurs jeweils zum SELBEN Zeitpunkt wie der Preis-Referenzpunkt -
+      // nicht ein einziger "Live"-Kurs für alle Perioden.
+      const rateLast = last ? fxRateOnDate(fxMap, m.Currency, last.dt) : null;
+      const ratePrev = prev ? fxRateOnDate(fxMap, m.Currency, prev.dt) : null;
+      const rateMonth = refMonth ? fxRateOnDate(fxMap, m.Currency, refMonth.dt) : null;
+
+      const valChf = (last && rateLast) ? qty*last.Price*rateLast : null;
+      const valPrevChf = (prev && ratePrev) ? qty*prev.Price*ratePrev : null;
+      const valMonthChf = (refMonth && rateMonth) ? qty*refMonth.Price*rateMonth : null;
 
       if(valChf!==null) totalChf += valChf;
       if(valPrevChf!==null) totalPrevChf += valPrevChf;
@@ -128,7 +120,7 @@ async function load(){
 
       const gruppe = m.PortfolioGruppe || 'Sonstige';
       (groups[gruppe]=groups[gruppe]||[]).push({
-        name:m.SecurityName, currency:m.Currency, qty, last, valChf, valPrevChf, valMonthChf,
+        name:m.SecurityName, secId:m.SecurityID, currency:m.Currency, qty, last, valChf, valPrevChf, valMonthChf,
       });
     }
 
@@ -165,9 +157,9 @@ function renderBoard(groups){
       const deltaPrevChf = (r.valChf!==null && r.valPrevChf!==null) ? r.valChf-r.valPrevChf : null;
       const deltaMonthChf = (r.valChf!==null && r.valMonthChf!==null) ? r.valChf-r.valMonthChf : null;
       html += `<tr>
-        <td class="name">${r.name}</td>
+        <td class="name"><a href="security.html?id=${encodeURIComponent(r.secId)}">${r.name}</a></td>
         <td class="price">${r.qty}</td>
-        <td class="price">${r.last ? r.last.Price.toFixed(2) : '—'}<span class="ccy">${r.currency}</span></td>
+        <td class="price">${fmtDecimal(r.last ? r.last.Price : null, 2)}<span class="ccy">${r.currency}</span></td>
         <td class="price">${fmtChf(r.valChf)}</td>
         <td class="chg ${dPrev.dir}">${deltaPrevChf!==null ? fmtChf(deltaPrevChf) : '—'} <span class="ccy">${dPrev.text}</span></td>
         <td class="chg ${dMonth.dir}">${deltaMonthChf!==null ? fmtChf(deltaMonthChf) : '—'} <span class="ccy">${dMonth.text}</span></td>

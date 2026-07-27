@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Security Detail</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{ --bg:#fff;--panel:#F7F8FA;--line:#E3E6EA;--text:#1A1D22;--muted:#767E8A;--accent:#E30613;--gain:#1F8A6E;--loss:#C0293D; }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;padding:32px 16px 80px;display:flex;flex-direction:column;align-items:center;}
+  .topnav{
+    display:flex;gap:4px;flex-wrap:wrap;align-items:center;
+    max-width:900px;width:100%;margin:0 auto 24px;padding:0 0 10px;
+    border-bottom:1px solid var(--line);
+    font-family:"IBM Plex Mono",monospace;font-size:12px;
+  }
+  .topnav a{ color:var(--muted);text-decoration:none;padding:6px 10px;border-radius:3px;border:1px solid transparent;white-space:nowrap; }
+  .topnav a:hover{color:var(--text);border-color:var(--line);}
+  .board{width:100%;max-width:900px;}
+  .back-link{display:inline-flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--muted);text-decoration:none;margin-bottom:18px;}
+  .back-link:hover{color:var(--text);}
+  .detail-header{padding-bottom:18px;border-bottom:2px solid var(--accent);}
+  .detail-header h2{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:24px;margin:0 0 8px;}
+  .ids{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:12px;}
+  .detail-stats{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;}
+  .detail-price{font-family:'IBM Plex Mono',monospace;font-size:30px;font-weight:600;}
+  .ccy{color:var(--muted);font-size:13px;}
+  .detail-meta{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);}
+  .returns{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;}
+  .return-box{display:flex;flex-direction:column;gap:4px;padding:10px 14px;background:var(--panel);border:1px solid var(--line);border-radius:3px;min-width:84px;}
+  .return-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);}
+  .return-value{font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;}
+  .return-value.up{color:var(--gain);} .return-value.down{color:var(--loss);} .return-value.flat{color:var(--muted);}
+
+  .section-title{font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;margin:28px 0 4px;padding-bottom:8px;border-bottom:1px solid var(--line);}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px;}
+  th{text-align:left;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:8px 6px;border-bottom:1px solid var(--line);}
+  th.num{text-align:right;}
+  td{padding:8px 6px;border-bottom:1px solid var(--line);}
+  td.num, td.price, td.time{font-family:'IBM Plex Mono',monospace;text-align:right;white-space:nowrap;}
+  td.chg{font-family:'IBM Plex Mono',monospace;text-align:right;font-size:13px;}
+  .chg.up{color:var(--gain);} .chg.down{color:var(--loss);} .chg.flat{color:var(--muted);}
+
+  .toggle-row{display:flex;gap:6px;flex-wrap:wrap;margin:18px 0 4px;}
+  .toggle-btn{background:none;border:1px solid var(--line);color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:12px;padding:6px 12px;border-radius:3px;cursor:pointer;}
+  .toggle-btn:hover{border-color:var(--muted);color:var(--text);}
+  .toggle-btn.active{background:var(--text);border-color:var(--text);color:#fff;font-weight:600;}
+  .hidden{display:none !important;}
+
+  .chart-wrap{margin:10px 0;background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:16px 12px 8px;}
+  .chart-wrap svg{display:block;width:100%;height:auto;}
+  .chart-empty{padding:30px 10px;text-align:center;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:13px;}
+  .chart-legend{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;}
+
+  .date-filter{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:10px;}
+  .date-filter label{display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);}
+  .date-filter input[type=date]{padding:6px 8px;font-family:'IBM Plex Mono',monospace;font-size:12px;border:1px solid var(--line);border-radius:3px;}
+
+  .empty,.error{padding:30px 10px;text-align:center;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:13px;}
+  .error{color:var(--loss);}
+  .table-wrap{max-height:50vh;overflow-y:auto;}
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <a href="index.html">🏠 Home</a>
+  <a href="dashboard.html">📊 Dashboard</a>
+  <a href="portfolio.html">💼 Portfolio</a>
+  <a href="master_editor.html">🗂 Stammdaten</a>
+  <a href="price_editor.html">✏️ Kurse</a>
+  <a href="distribution_editor.html">💰 Ausschüttungen</a>
+</nav>
+
+<div class="board">
+  <a class="back-link" id="backLink" href="dashboard.html">&larr; zurück zum Dashboard</a>
+
+  <div class="detail-header">
+    <h2 id="detailName">Lade…</h2>
+    <div class="ids" id="detailIds"></div>
+    <div class="detail-stats">
+      <span class="detail-price" id="detailPrice">—</span>
+      <span class="ccy" id="detailCcy"></span>
+      <span class="detail-meta" id="detailMeta"></span>
+    </div>
+    <div class="returns" id="returnsBoxes"></div>
+  </div>
+
+  <div class="section-title">Performance</div>
+  <div class="table-wrap">
+  <table id="perfTable">
+    <thead><tr>
+      <th>Zeitraum</th>
+      <th class="num" id="thPriceLc">Price Return LC</th>
+      <th class="num" id="thTotalLc">Total Return LC</th>
+      <th class="num">Price Return CHF</th>
+      <th class="num">Total Return CHF</th>
+    </tr></thead>
+    <tbody id="perfBody"><tr><td colspan="5" class="empty">Lade…</td></tr></tbody>
+  </table>
+  </div>
+  <div class="detail-meta" id="yieldNote" style="margin-top:8px;"></div>
+
+  <div class="toggle-row" id="viewToggle">
+    <button type="button" class="toggle-btn active" data-view="price">Preis</button>
+    <button type="button" class="toggle-btn" data-view="dividends">Ausschüttungen</button>
+  </div>
+  <div class="toggle-row" id="priceRangeRow">
+    <button type="button" class="toggle-btn" data-range="10D">10 Tage</button>
+    <button type="button" class="toggle-btn" data-range="30D">30 Tage</button>
+    <button type="button" class="toggle-btn" data-range="YTD">YtD</button>
+    <button type="button" class="toggle-btn active" data-range="12M">12 Monate</button>
+    <button type="button" class="toggle-btn" data-range="ALL">Alle</button>
+  </div>
+  <div class="toggle-row hidden" id="distRangeRow">
+    <button type="button" class="toggle-btn active" data-range="12M">12 Monate</button>
+    <button type="button" class="toggle-btn" data-range="ALL">Alle</button>
+  </div>
+
+  <div class="section-title" id="chartTitle">Price Chart</div>
+  <div class="chart-wrap" id="chartWrap"><div class="chart-empty">Lade Chart…</div></div>
+
+  <div id="priceHistorySection">
+    <div class="section-title">Kurshistorie</div>
+    <div class="date-filter">
+      <label>Von <input type="date" id="histFrom"></label>
+      <label>Bis <input type="date" id="histTo"></label>
+      <button type="button" class="toggle-btn" id="histReset">Zurücksetzen</button>
+    </div>
+    <div class="detail-meta" id="histCount"></div>
+    <div class="table-wrap">
+    <table id="historyTable">
+      <thead><tr><th>Datum/Zeit</th><th>Quelle</th><th class="num">Preis</th></tr></thead>
+      <tbody id="historyBody"><tr><td colspan="3" class="empty">Lade…</td></tr></tbody>
+    </table>
+    </div>
+  </div>
+
+  <div id="distHistorySection" class="hidden">
+    <div class="section-title">Ausschüttungshistorie</div>
+    <div class="detail-meta" id="distCount"></div>
+    <div class="table-wrap">
+    <table id="distTable">
+      <thead><tr><th>Ex-Date</th><th>Pay-Date</th><th class="num">Betrag</th><th>Währung</th><th>Quelle</th></tr></thead>
+      <tbody id="distBody"><tr><td colspan="5" class="empty">Lade…</td></tr></tbody>
+    </table>
+    </div>
+  </div>
+</div>
+
+<script src="assets/github-data.js"></script>
+<script>
+function fmtPct(v){ if(v===null||v===undefined||isNaN(v)) return {text:'—',dir:'flat'}; return {text:`${v>0?'+':''}${v.toFixed(2)}%`, dir:v>0?'up':(v<0?'down':'flat')}; }
+function pctChange(now, ref){ return (!ref || !ref.Price) ? null : ((now - ref.Price) / ref.Price) * 100; }
+
+function collapseToDaily(obsSortedAsc){
+  const byDay = new Map();
+  for(const o of obsSortedAsc){
+    const key = o.dt.toISOString().slice(0,10);
+    byDay.set(key, o); // letzter Wert des Tages gewinnt
+  }
+  return [...byDay.values()].sort((a,b)=>a.dt-b.dt);
+}
+
+function startOfYear(d){ return new Date(d.getFullYear(), 0, 1); }
+
+function decideDecimals(maxAbs){ return maxAbs > 5000 ? 0 : (maxAbs < 5 ? 4 : 2); }
+
+function filterByRange(daily, range){
+  if(range === 'ALL') return daily;
+  const now = new Date();
+  let cutoff;
+  if(range === '10D') cutoff = daysAgo(now, 10);
+  else if(range === '30D') cutoff = daysAgo(now, 30);
+  else if(range === 'YTD') cutoff = startOfYear(now);
+  else if(range === '12M') cutoff = daysAgo(now, 365);
+  else return daily;
+  return daily.filter(p => p.dt >= cutoff);
+}
+
+function filterDistByRange(dist, range){
+  if(range === 'ALL') return dist;
+  const cutoff = daysAgo(new Date(), 365);
+  return dist.filter(d => d.exDate >= cutoff);
+}
+
+function drawLineChart(container, points, decimals){
+  const width=800, height=240, pad={top:14,right:14,bottom:26,left:56};
+  const innerW = width-pad.left-pad.right, innerH = height-pad.top-pad.bottom;
+  if(points.length < 2){ container.innerHTML = '<div class="chart-empty">Nicht genug Datenpunkte für einen Chart.</div>'; return; }
+
+  const amounts = points.map(p=>p.Price);
+  const minY = Math.min(...amounts), maxY = Math.max(...amounts);
+  const yPad = (maxY-minY)*0.08 || maxY*0.01 || 1;
+  const yMin = minY-yPad, yMax = maxY+yPad;
+
+  const minX = points[0].dt.getTime(), maxX = points[points.length-1].dt.getTime();
+  const xSpan = (maxX-minX) || 1;
+  const xScale = t => pad.left + ((t-minX)/xSpan)*innerW;
+  const yScale = v => pad.top + innerH - ((v-yMin)/(yMax-yMin))*innerH;
+
+  const lineColor = amounts[amounts.length-1] >= amounts[0] ? '#1F8A6E' : '#C0293D';
+
+  let d = '';
+  points.forEach((p,i) => { const x=xScale(p.dt.getTime()), y=yScale(p.Price); d += (i===0?'M':'L')+x.toFixed(1)+','+y.toFixed(1)+' '; });
+  const areaD = d + `L${xScale(maxX).toFixed(1)},${(pad.top+innerH).toFixed(1)} L${xScale(minX).toFixed(1)},${(pad.top+innerH).toFixed(1)} Z`;
+
+  let grid = '';
+  for(let i=0;i<=4;i++){
+    const v = yMin + (i/4)*(yMax-yMin), y = yScale(v);
+    grid += `<line x1="${pad.left}" y1="${y.toFixed(1)}" x2="${width-pad.right}" y2="${y.toFixed(1)}" stroke="#E3E6EA" stroke-width="1"/>`;
+    grid += `<text x="${pad.left-8}" y="${(y+3).toFixed(1)}" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10" fill="#767E8A">${fmtDecimal(v,decimals)}</text>`;
+  }
+  const mid = points[Math.floor(points.length/2)];
+  const xLabels = [points[0], mid, points[points.length-1]].map(p=>{
+    const x = xScale(p.dt.getTime());
+    return `<text x="${x.toFixed(1)}" y="${height-8}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#767E8A">${fmtDateOnly(p.dt)}</text>`;
+  }).join('');
+
+  container.innerHTML = `<svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Price chart">
+    ${grid}
+    <path d="${areaD}" fill="${lineColor}" opacity="0.08" stroke="none"/>
+    <path d="${d.trim()}" fill="none" stroke="${lineColor}" stroke-width="2"/>
+    ${xLabels}
+  </svg>`;
+}
+
+function computeRolling12m(sorted){
+  return sorted.map(d => {
+    const start = daysAgo(d.exDate, 365);
+    const sum = sorted.filter(x => x.exDate > start && x.exDate <= d.exDate).reduce((s,x)=>s+x.amount,0);
+    return { exDate: d.exDate, rollingSum: sum };
+  });
+}
+
+function drawDistributionChart(container, displayDist, allDist){
+  if(!displayDist.length){ container.innerHTML = '<div class="chart-empty">Keine Ausschüttungen für diesen Zeitraum.</div>'; return; }
+  const width=800, height=240, pad={top:14,right:56,bottom:26,left:56};
+  const innerW = width-pad.left-pad.right, innerH = height-pad.top-pad.bottom;
+  const sorted = [...displayDist].sort((a,b)=>a.exDate-b.exDate);
+  const maxBar = Math.max(...sorted.map(d=>d.amount))*1.15 || 1;
+  const rolling = computeRolling12m(sorted, allDist);
+  const maxRoll = Math.max(...rolling.map(r=>r.rollingSum), 0)*1.15 || 1;
+
+  const minX = sorted[0].exDate.getTime(), maxX = sorted[sorted.length-1].exDate.getTime();
+  const xSpan = (maxX-minX) || 1;
+  const xScale = t => pad.left + ((t-minX)/xSpan)*innerW;
+  const yScaleBar = v => pad.top + innerH - (v/maxBar)*innerH;
+  const yScaleRoll = v => pad.top + innerH - (v/maxRoll)*innerH;
+  const barW = Math.max(3, Math.min(24, innerW/sorted.length - 4));
+
+  let bars = '';
+  sorted.forEach(d => {
+    const x = xScale(d.exDate.getTime()) - barW/2, y = yScaleBar(d.amount), h = (pad.top+innerH)-y;
+    bars += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${h.toFixed(1)}" fill="#1F8A6E" opacity="0.55"/>`;
+  });
+
+  let rollLine = '';
+  if(rolling.length >= 2){
+    let d = '';
+    rolling.forEach((r,i)=>{ const x=xScale(r.exDate.getTime()), y=yScaleRoll(r.rollingSum); d += (i===0?'M':'L')+x.toFixed(1)+','+y.toFixed(1)+' '; });
+    rollLine = `<path d="${d.trim()}" fill="none" stroke="#C0293D" stroke-width="2" stroke-dasharray="4 3"/>`;
+  }
+
+  let grid = '', rightLabels = '';
+  for(let i=0;i<=4;i++){
+    const v = (i/4)*maxBar, y = yScaleBar(v);
+    grid += `<line x1="${pad.left}" y1="${y.toFixed(1)}" x2="${width-pad.right}" y2="${y.toFixed(1)}" stroke="#E3E6EA" stroke-width="1"/>`;
+    grid += `<text x="${pad.left-8}" y="${(y+3).toFixed(1)}" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10" fill="#767E8A">${fmtDecimal(v,2)}</text>`;
+    const vr = (i/4)*maxRoll, yr = yScaleRoll(vr);
+    rightLabels += `<text x="${width-pad.right+8}" y="${(yr+3).toFixed(1)}" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="10" fill="#C0293D">${fmtDecimal(vr,2)}</text>`;
+  }
+  const mid = sorted[Math.floor(sorted.length/2)];
+  const xLabels = [sorted[0], mid, sorted[sorted.length-1]].map(d=>{
+    const x = xScale(d.exDate.getTime());
+    return `<text x="${x.toFixed(1)}" y="${height-8}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#767E8A">${fmtDateOnly(d.exDate)}</text>`;
+  }).join('');
+
+  container.innerHTML = `<svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Distribution chart">
+    ${grid}${bars}${rollLine}${rightLabels}${xLabels}
+  </svg>
+  <div class="chart-legend">Balken: Ausschüttung je Ex-Date (linke Achse) · Gestrichelt: rollierende 12-Monats-Summe (rechte Achse)</div>`;
+}
+
+async function load(){
+  const params = new URLSearchParams(location.search);
+  const secId = params.get('id');
+  if(!secId){
+    document.getElementById('detailName').textContent = 'Keine Security angegeben (?id=... fehlt)';
+    return;
+  }
+
+  try{
+    const [masterText, pricesText, distText] = await Promise.all([
+      ghFetchRaw('data/security_master.csv'),
+      ghFetchRaw('data/security_prices.csv'),
+      ghFetchRaw('data/security_distributions.csv'),
+    ]);
+    const master = parseCSV(masterText).rows;
+    const allPrices = parseCSV(pricesText).rows.map(r => ({
+      SecurityID: r.SecurityID, Price: parseFloat(r.Price), dt: parseSwissDateTime(r.PriceDate), Source: r.Source || '',
+    })).filter(r => r.dt && !isNaN(r.Price));
+
+    const bySecurity = {};
+    for(const p of allPrices) (bySecurity[p.SecurityID] = bySecurity[p.SecurityID] || []).push(p);
+    for(const id in bySecurity) bySecurity[id].sort((a,b)=>a.dt-b.dt);
+
+    const fxMap = buildFxMap(master, bySecurity);
+
+    const masterRow = master.find(m => m.SecurityID === secId);
+    const name = masterRow ? masterRow.SecurityName : secId;
+    const currency = masterRow ? masterRow.Currency : '';
+    const mainId = masterRow ? masterRow.MainID : '';
+    const decimals = masterRow && masterRow.Instrument === 'Currency' ? 4 : 2;
+
+    document.getElementById('detailName').textContent = name;
+    document.getElementById('detailIds').textContent = `SecurityID: ${secId} · MainID: ${mainId || '—'}`;
+    document.title = `${name} · Security Detail`;
+    document.getElementById('detailCcy').textContent = currency;
+
+    const rows = bySecurity[secId] || [];
+    const distRows = parseCSV(distText).rows
+      .filter(r => r.SecurityID === secId)
+      .map(r => ({
+        exDate: parseSwissDate(r.ExDate), payDate: parseSwissDate(r.PayDate),
+        amount: parseFloat(r.DistributionAmount), currency: r.Currency || currency, source: r.Source || '',
+      }))
+      .filter(d => d.exDate && !isNaN(d.amount))
+      .sort((a,b)=>a.exDate-b.exDate);
+
+    if(rows.length === 0){
+      document.getElementById('detailPrice').textContent = '—';
+      document.getElementById('chartWrap').innerHTML = '<div class="chart-empty">Keine Kursdaten für diese Security vorhanden.</div>';
+      document.getElementById('historyBody').innerHTML = '<tr><td colspan="3" class="empty">Keine Daten.</td></tr>';
+      document.getElementById('perfBody').innerHTML = '<tr><td colspan="5" class="empty">Keine Daten.</td></tr>';
+      return;
+    }
+
+    const daily = collapseToDaily(rows);
+    const last = daily[daily.length-1];
+    const prev = daily.length >= 2 ? daily[daily.length-2] : null;
+    const now = new Date();
+    const refWeek = findOnOrBefore(daily, daysAgo(now,7));
+    const refMonth = findOnOrBefore(daily, daysAgo(now,30));
+    const refYtd = findOnOrBefore(daily, startOfYear(now));
+    const ref1y = findOnOrBefore(daily, daysAgo(now,365));
+
+    document.getElementById('detailPrice').textContent = fmtDecimal(last.Price, decimals);
+    document.getElementById('detailMeta').textContent = `Stand ${fmtShortDateTime(last.dt)} · Quelle: ${last.Source || '—'}`;
+
+    const returns = [
+      { label:'Vortag', ref: prev }, { label:'Woche', ref: refWeek },
+      { label:'Monat', ref: refMonth }, { label:'YtD', ref: refYtd }, { label:'1 Jahr', ref: ref1y },
+    ];
+    document.getElementById('returnsBoxes').innerHTML = returns.map(r => {
+      const chg = pctChange(last.Price, r.ref);
+      const f = fmtPct(chg);
+      return `<div class="return-box"><span class="return-label">${r.label}</span><span class="return-value ${f.dir}">${f.text}</span></div>`;
+    }).join('');
+
+    // ---- Performance-Tabelle: Price/Total Return LC & CHF ----
+    document.getElementById('thPriceLc').textContent = `Price Return ${currency}`;
+    document.getElementById('thTotalLc').textContent = `Total Return ${currency}`;
+
+    function sumDist(fromDt, toDt){
+      return distRows.filter(d => d.exDate > fromDt && d.exDate <= toDt).reduce((s,d)=>s+d.amount,0);
+    }
+    function sumDistChf(fromDt, toDt){
+      return distRows.filter(d => d.exDate > fromDt && d.exDate <= toDt).reduce((s,d)=>{
+        const rate = fxRateOnDate(fxMap, d.currency, d.exDate);
+        return s + (rate!==null ? d.amount*rate : 0);
+      },0);
+    }
+    function computePeriod(ref){
+      if(!ref) return { priceLc:null, totalLc:null, priceChf:null, totalChf:null };
+      const priceLc = pctChange(last.Price, ref);
+      const distSum = sumDist(ref.dt, last.dt);
+      const totalLc = ref.Price ? ((last.Price - ref.Price + distSum) / ref.Price) * 100 : null;
+
+      const rateNow = fxRateOnDate(fxMap, currency, last.dt);
+      const rateRef = fxRateOnDate(fxMap, currency, ref.dt);
+      let priceChf = null, totalChf = null;
+      if(rateNow !== null && rateRef !== null){
+        const nowChf = last.Price*rateNow, refChf = ref.Price*rateRef;
+        priceChf = refChf ? ((nowChf-refChf)/refChf)*100 : null;
+        const distSumChf = sumDistChf(ref.dt, last.dt);
+        totalChf = refChf ? ((nowChf-refChf+distSumChf)/refChf)*100 : null;
+      }
+      return { priceLc, totalLc, priceChf, totalChf };
+    }
+
+    const periods = [
+      { label:'Vortag', ref:prev }, { label:'Woche', ref:refWeek }, { label:'Monat', ref:refMonth },
+      { label:'YtD', ref:refYtd }, { label:'1 Jahr', ref:ref1y },
+    ];
+    document.getElementById('perfBody').innerHTML = periods.map(p => {
+      const r = computePeriod(p.ref);
+      const a=fmtPct(r.priceLc), b=fmtPct(r.totalLc), c=fmtPct(r.priceChf), e=fmtPct(r.totalChf);
+      return `<tr>
+        <td>${p.label}</td>
+        <td class="chg ${a.dir}">${a.text}</td>
+        <td class="chg ${b.dir}">${b.text}</td>
+        <td class="chg ${c.dir}">${c.text}</td>
+        <td class="chg ${e.dir}">${e.text}</td>
+      </tr>`;
+    }).join('');
+
+    // ---- Ausschüttungsrendite letzte 12 Monate ----
+    const oneYearAgo = daysAgo(now, 365);
+    const dist12m = distRows.filter(d => d.exDate > oneYearAgo && d.exDate <= now).reduce((s,d)=>s+d.amount,0);
+    const yieldPct = last.Price ? (dist12m/last.Price)*100 : null;
+    document.getElementById('yieldNote').textContent = yieldPct !== null
+      ? `Ausschüttungsrendite (letzte 12 Monate vs. Kurs ${currency}): ${yieldPct.toFixed(2)}%`
+      : 'Keine Ausschüttungsdaten vorhanden.';
+
+    // ---- Toggle Preis/Dividenden + Chart ----
+    let currentView = 'price', currentPriceRange = '12M', currentDistRange = '12M';
+    const chartWrap = document.getElementById('chartWrap');
+    const chartTitle = document.getElementById('chartTitle');
+    const priceRangeRow = document.getElementById('priceRangeRow');
+    const distRangeRow = document.getElementById('distRangeRow');
+    const priceHistorySection = document.getElementById('priceHistorySection');
+    const distHistorySection = document.getElementById('distHistorySection');
+
+    function renderChart(){
+      if(currentView === 'dividends'){
+        chartTitle.textContent = 'Dividend Chart';
+        priceRangeRow.classList.add('hidden'); distRangeRow.classList.remove('hidden');
+        priceHistorySection.classList.add('hidden'); distHistorySection.classList.remove('hidden');
+        drawDistributionChart(chartWrap, filterDistByRange(distRows, currentDistRange), distRows);
+      } else {
+        chartTitle.textContent = 'Price Chart';
+        priceRangeRow.classList.remove('hidden'); distRangeRow.classList.add('hidden');
+        priceHistorySection.classList.remove('hidden'); distHistorySection.classList.add('hidden');
+        drawLineChart(chartWrap, filterByRange(daily, currentPriceRange), decimals);
+      }
+    }
+
+    document.querySelectorAll('#viewToggle .toggle-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentView = btn.dataset.view;
+        document.querySelectorAll('#viewToggle .toggle-btn').forEach(b=>b.classList.toggle('active', b===btn));
+        renderChart();
+      });
+    });
+    document.querySelectorAll('#priceRangeRow .toggle-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentPriceRange = btn.dataset.range;
+        document.querySelectorAll('#priceRangeRow .toggle-btn').forEach(b=>b.classList.toggle('active', b===btn));
+        renderChart();
+      });
+    });
+    document.querySelectorAll('#distRangeRow .toggle-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentDistRange = btn.dataset.range;
+        document.querySelectorAll('#distRangeRow .toggle-btn').forEach(b=>b.classList.toggle('active', b===btn));
+        renderChart();
+      });
+    });
+
+    renderChart();
+
+    // ---- Kurshistorie-Tabelle mit Datumsfilter ----
+    const historyBody = document.getElementById('historyBody');
+    const historyCount = document.getElementById('histCount');
+    const fromInput = document.getElementById('histFrom');
+    const toInput = document.getElementById('histTo');
+
+    function renderHistory(){
+      const fromDt = fromInput.value ? new Date(fromInput.value+'T00:00:00') : null;
+      const toDt = toInput.value ? new Date(toInput.value+'T23:59:59') : null;
+      const filtered = rows.filter(r => (!fromDt || r.dt >= fromDt) && (!toDt || r.dt <= toDt));
+      const sorted = [...filtered].sort((a,b)=>b.dt-a.dt);
+      historyCount.textContent = `${sorted.length} Datenpunkt(e)`;
+      historyBody.innerHTML = sorted.length
+        ? sorted.map(r => `<tr><td class="time">${fmtShortDateTime(r.dt)}</td><td>${r.Source||'—'}</td><td class="price">${fmtDecimal(r.Price, decimals)}</td></tr>`).join('')
+        : '<tr><td colspan="3" class="empty">Keine Daten für diesen Zeitraum.</td></tr>';
+    }
+    fromInput.addEventListener('change', renderHistory);
+    toInput.addEventListener('change', renderHistory);
+    document.getElementById('histReset').addEventListener('click', () => { fromInput.value=''; toInput.value=''; renderHistory(); });
+    renderHistory();
+
+    // ---- Ausschüttungshistorie-Tabelle ----
+    const distBody = document.getElementById('distBody');
+    const sortedDist = [...distRows].sort((a,b)=>b.exDate-a.exDate);
+    document.getElementById('distCount').textContent = `${sortedDist.length} Ausschüttung(en)`;
+    distBody.innerHTML = sortedDist.length
+      ? sortedDist.map(d => `<tr><td>${fmtDateOnly(d.exDate)}</td><td>${d.payDate ? fmtDateOnly(d.payDate) : '—'}</td><td class="price">${fmtDecimal(d.amount,2)}</td><td>${d.currency||'—'}</td><td>${d.source||'—'}</td></tr>`).join('')
+      : '<tr><td colspan="5" class="empty">Keine Ausschüttungen vorhanden.</td></tr>';
+
+  }catch(e){
+    document.getElementById('detailName').textContent = 'Fehler';
+    document.getElementById('chartWrap').innerHTML = `<div class="error">Fehler: ${e.message}</div>`;
+  }
+}
+
+load();
+</script>
+</body>
+</html>

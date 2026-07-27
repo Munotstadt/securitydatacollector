@@ -57,6 +57,7 @@
   <a href="portfolio.html">💼 Portfolio</a>
   <a href="master_editor.html">🗂 Stammdaten</a>
   <a href="price_editor.html">✏️ Kurse</a>
+  <a href="distribution_editor.html">💰 Ausschüttungen</a>
 </nav>
 <div class="board">
   <div class="eyebrow">
@@ -119,7 +120,7 @@ async function load(){
 
       const instrument = m.Instrument || 'Sonstige';
       (groups[instrument] = groups[instrument] || []).push({
-        name: m.SecurityName, currency: m.Currency, secId: m.SecurityID,
+        name: m.SecurityName, currency: m.Currency, secId: m.SecurityID, instrument,
         last, prev, refWeek, refMonth,
       });
     }
@@ -154,10 +155,11 @@ function renderBoard(groups){
       const dWeek = fmtPct(pctChange(lastAmt, r.refWeek ? r.refWeek.Price : null));
       const dMonth = fmtPct(pctChange(lastAmt, r.refMonth ? r.refMonth.Price : null));
       const dirClass = dPrev.dir;
-      const timeStr = r.last ? r.last.dt.toLocaleString('de-CH', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—';
+      const decimals = r.instrument === 'Currency' ? 4 : 2;
+      const timeStr = r.last ? fmtShortDateTime(r.last.dt) : '—';
       html += `<tr class="${dirClass}">
-        <td class="name">${r.name}</td>
-        <td class="price">${lastAmt!==null ? lastAmt.toFixed(2) : '—'}<span class="ccy">${r.currency||''}</span></td>
+        <td class="name"><a href="security.html?id=${encodeURIComponent(r.secId)}">${r.name}</a></td>
+        <td class="price">${lastAmt!==null ? fmtDecimal(lastAmt, decimals) : '—'}<span class="ccy">${r.currency||''}</span></td>
         <td class="chg ${dPrev.dir}">${dPrev.text}</td>
         <td class="chg ${dWeek.dir}">${dWeek.text}</td>
         <td class="chg ${dMonth.dir}">${dMonth.text}</td>
