@@ -1,9 +1,9 @@
-name: Yahoo Collector (Weekday)
+name: Yahoo Collector (Daily)
 
 on:
   schedule:
-    # Alle 30 Minuten, Mo-Fr, 02:00-22:00 UTC
-    - cron: '0,30 2-22 * * 1-5'
+    # Alle 30 Minuten, Mo-So, 02:00-22:00 UTC
+    - cron: '0,30 2-22 * * *'
   workflow_dispatch: {}
 
 permissions:
@@ -23,9 +23,9 @@ jobs:
         run: pip install yfinance
 
       - name: Run collector
-        run: python scripts/collect_yahoo_weekday.py
+        run: python scripts/collect_yahoo_daily.py
 
       - name: Commit & push (mit Retry bei parallelen Collector-Läufen)
         run: |
           chmod +x scripts/commit_and_push_prices.sh
-          scripts/commit_and_push_prices.sh "Yahoo Weekday Collector: neue Kurse $(date -u +'%Y-%m-%d %H:%M UTC')"
+          scripts/commit_and_push_prices.sh "Yahoo Daily Collector: neue Kurse $(date -u +'%Y-%m-%d %H:%M UTC')"

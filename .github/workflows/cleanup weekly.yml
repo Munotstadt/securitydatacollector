@@ -1,0 +1,26 @@
+name: Weekly Cleanup (Prices > 380 Tage)
+
+on:
+  schedule:
+    # Ausserhalb des 02:00-22:00 Collector-Fensters, um Überschneidungen
+    # mit laufenden Preis-Collectors zu vermeiden: Sonntag, 00:15 UTC.
+    - cron: '15 0 * * 0'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Commit & push (mit Retry, führt cleanup_old_prices.py je Versuch neu aus)
+        run: |
+          chmod +x scripts/commit_and_push_cleanup.sh
+          scripts/commit_and_push_cleanup.sh
