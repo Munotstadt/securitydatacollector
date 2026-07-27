@@ -31,9 +31,29 @@
   .settings label{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);display:block;margin-bottom:3px;}
   .note{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);margin:6px 0 16px;}
   .table-wrap{overflow-x:auto;max-height:60vh;overflow-y:auto;}
+
+  .topnav{
+    display:flex;gap:4px;flex-wrap:wrap;align-items:center;
+    max-width:960px;width:100%;margin:0 auto 24px;padding:0 0 10px;
+    border-bottom:1px solid var(--line);
+    font-family:"IBM Plex Mono",monospace;font-size:12px;
+  }
+  .topnav a{
+    color:var(--muted);text-decoration:none;padding:6px 10px;border-radius:3px;
+    border:1px solid transparent;white-space:nowrap;
+  }
+  .topnav a:hover{color:var(--text);border-color:var(--line);}
+  .topnav a.active{color:var(--text);font-weight:600;border-color:var(--accent);background:rgba(227,6,19,0.06);}
 </style>
 </head>
 <body>
+<nav class="topnav">
+  <a href="index.html">🏠 Home</a>
+  <a href="dashboard.html">📊 Dashboard</a>
+  <a href="portfolio.html">💼 Portfolio</a>
+  <a href="master_editor.html">🗂 Stammdaten</a>
+  <a href="price_editor.html" class="active">✏️ Kurse</a>
+</nav>
 <div class="wrap">
   <h1>Security Prices · Editor</h1>
   <p class="note">Collectors schreiben laufend neue Zeilen (nichts wird automatisch gelöscht, ausser durch den wöchentlichen Cleanup-Job für Einträge &gt;380 Tage). Hier können einzelne Kurse manuell korrigiert oder ergänzt werden.</p>

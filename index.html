@@ -17,9 +17,29 @@
   .card h2{font-family:'Space Grotesk',sans-serif;font-size:16px;margin:0 0 6px;}
   .card p{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);margin:0;}
   @media (max-width:560px){ .grid{grid-template-columns:1fr;} }
+
+  .topnav{
+    display:flex;gap:4px;flex-wrap:wrap;align-items:center;
+    max-width:960px;width:100%;margin:0 auto 24px;padding:0 0 10px;
+    border-bottom:1px solid var(--line);
+    font-family:"IBM Plex Mono",monospace;font-size:12px;
+  }
+  .topnav a{
+    color:var(--muted);text-decoration:none;padding:6px 10px;border-radius:3px;
+    border:1px solid transparent;white-space:nowrap;
+  }
+  .topnav a:hover{color:var(--text);border-color:var(--line);}
+  .topnav a.active{color:var(--text);font-weight:600;border-color:var(--accent);background:rgba(227,6,19,0.06);}
 </style>
 </head>
 <body>
+<nav class="topnav">
+  <a href="index.html" class="active">🏠 Home</a>
+  <a href="dashboard.html">📊 Dashboard</a>
+  <a href="portfolio.html">💼 Portfolio</a>
+  <a href="master_editor.html">🗂 Stammdaten</a>
+  <a href="price_editor.html">✏️ Kurse</a>
+</nav>
 <div class="wrap">
   <h1>securitydatacollector</h1>
   <div class="grid">
