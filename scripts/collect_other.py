@@ -14,7 +14,7 @@ Läuft mit derselben Cadence wie der Weekday-Collector (siehe Workflow).
 import re
 import urllib.request
 
-from collect_yahoo_common import append_prices, now_zurich_str, read_master
+from collect_yahoo_common import write_pending_rows, now_zurich_str, read_master
 
 # ---------------------------------------------------------------------------
 # Registry: SecurityName -> Funktion, die (price, currency_or_None) zurückgibt
@@ -69,8 +69,8 @@ def run():
             errors += 1
 
     if new_rows:
-        append_prices(new_rows)
-        print(f"{len(new_rows)} neue Preiszeile(n) an security_prices.csv angehängt.")
+        write_pending_rows(new_rows)
+        print(f"{len(new_rows)} neue Preiszeile(n) für den Commit vorbereitet.")
     if errors:
         print(f"{errors} Quelle(n) konnten nicht abgerufen werden.")
 

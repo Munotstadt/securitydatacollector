@@ -21,6 +21,13 @@ MASTER_PATH = os.path.join(REPO_ROOT, "data", "security_master.csv")
 PRICES_PATH = os.path.join(REPO_ROOT, "data", "security_prices.csv")
 PRICES_HEADER = ["SecurityID", "SecurityName", "Price", "PriceDate", "Source", "Created_at"]
 
+# Ablage für neu ermittelte Preiszeilen dieses Laufs. Bewusst AUSSERHALB des
+# Repos (RUNNER_TEMP bzw. /tmp), damit git status sauber bleibt. Das
+# Commit/Push-Skript (commit_and_push_prices.sh) liest diese Datei und hängt
+# die Zeilen mit Retry-Logik an - siehe dort für den Grund (Vermeidung von
+# Merge-Konflikten bei zeitgleich laufenden Collectors).
+PENDING_PATH = os.path.join(os.environ.get("RUNNER_TEMP", "/tmp"), "pending_prices.csv")
+
 
 def read_master():
     with open(MASTER_PATH, newline="", encoding="utf-8") as f:
@@ -31,13 +38,14 @@ def now_zurich_str():
     return datetime.now(ZURICH).strftime("%d.%m.%Y %H:%M:%S")
 
 
-def append_prices(new_rows):
-    """Hängt neue Preiszeilen an die CSV an. Legt Header an, falls Datei/Datei-Inhalt fehlt."""
-    file_exists = os.path.exists(PRICES_PATH) and os.path.getsize(PRICES_PATH) > 0
-    with open(PRICES_PATH, "a", newline="", encoding="utf-8") as f:
+def write_pending_rows(new_rows):
+    """Schreibt neu ermittelte Preiszeilen in eine temporäre Datei (nicht ins
+    Repo!). Das eigentliche Anhängen an security_prices.csv + Commit/Push
+    übernimmt scripts/commit_and_push_prices.sh mit Retry-Logik, um
+    Merge-Konflikte bei zeitgleich laufenden Collector-Workflows zu vermeiden."""
+    with open(PENDING_PATH, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=PRICES_HEADER)
-        if not file_exists:
-            writer.writeheader()
+        writer.writeheader()
         for row in new_rows:
             writer.writerow(row)
 
@@ -96,8 +104,8 @@ def run_collector(flag_value, source_label):
             errors += 1
 
     if new_rows:
-        append_prices(new_rows)
-        print(f"{len(new_rows)} neue Preiszeile(n) an security_prices.csv angehängt.")
+        write_pending_rows(new_rows)
+        print(f"{len(new_rows)} neue Preiszeile(n) für den Commit vorbereitet ({PENDING_PATH}).")
 
     if errors:
         print(f"{errors} von {len(active)} Securities konnten nicht abgerufen werden.")
