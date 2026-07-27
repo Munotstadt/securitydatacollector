@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portfolio Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{ --bg:#fff;--panel:#F7F8FA;--line:#E3E6EA;--text:#1A1D22;--muted:#767E8A;--accent:#E30613;--gain:#1F8A6E;--loss:#C0293D; }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;padding:40px 16px 80px;display:flex;flex-direction:column;align-items:center;}
+  .board{width:100%;max-width:960px;}
+  .eyebrow{display:flex;align-items:center;justify-content:space-between;padding-bottom:16px;border-bottom:2px solid var(--accent);}
+  .brand h1{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:20px;text-transform:uppercase;letter-spacing:.02em;margin:0;}
+  .status{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);}
+  .summary{display:flex;gap:24px;flex-wrap:wrap;margin:20px 0;}
+  .summary-box{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:14px 18px;min-width:150px;}
+  .summary-label{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);}
+  .summary-value{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;margin-top:4px;}
+  table{width:100%;border-collapse:collapse;margin-top:4px;}
+  thead th{text-align:left;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:12px 8px 8px;border-bottom:1px solid var(--line);}
+  thead th.num{text-align:right;}
+  tbody td{padding:12px 8px;border-bottom:1px solid var(--line);font-size:14px;}
+  tbody tr.section-row td{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);padding:20px 8px 6px;font-weight:600;}
+  .name{font-weight:500;}
+  .price,.time{font-family:'IBM Plex Mono',monospace;text-align:right;white-space:nowrap;}
+  .chg{font-family:'IBM Plex Mono',monospace;text-align:right;font-size:13px;white-space:nowrap;}
+  .chg.up{color:var(--gain);} .chg.down{color:var(--loss);} .chg.flat{color:var(--muted);}
+  .ccy{color:var(--muted);font-size:11px;margin-left:4px;}
+  .empty,.error{padding:40px 10px;text-align:center;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:13px;}
+  .error{color:var(--loss);}
+  .note{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);margin-top:10px;}
+</style>
+</head>
+<body>
+<div class="board">
+  <div class="eyebrow">
+    <div class="brand"><h1>Portfolio Dashboard</h1></div>
+    <div class="status" id="statusText">lädt…</div>
+  </div>
+
+  <div class="summary" id="summaryBoxes"></div>
+
+  <table id="boardTable">
+    <thead><tr>
+      <th>Position</th><th class="num">Quantity</th><th class="num">Kurs</th>
+      <th class="num">Wert CHF</th><th class="num">Δ Vortag CHF</th><th class="num">Δ Monat CHF</th>
+    </tr></thead>
+    <tbody id="boardBody"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
+  </table>
+  <p class="note">FX-Kurse (live, frankfurter.app) werden nur für die CHF-Umrechnung verwendet; die Basiswährung je Position bleibt im Master (Currency) massgebend.</p>
+</div>
+
+<script src="assets/github-data.js"></script>
+<script>
+function daysAgo(d,n){ const r=new Date(d); r.setDate(r.getDate()-n); return r; }
+function findOnOrBefore(sorted, date){ let best=null; for(const r of sorted){ if(r.dt<=date && (!best||r.dt>best.dt)) best=r; } return best; }
+function fmtPct(v){ if(v===null||v===undefined||isNaN(v)) return {text:'—',dir:'flat'}; return {text:`${v>0?'+':''}${v.toFixed(2)}%`, dir:v>0?'up':(v<0?'down':'flat')}; }
+function fmtChf(v){ return v===null||isNaN(v) ? '—' : v.toLocaleString('de-CH',{maximumFractionDigits:0}); }
+
+async function getFxRates(currencies){
+  const rates = { CHF: 1 };
+  const need = currencies.filter(c => c && c!=='CHF' && !rates[c]);
+  if(!need.length) return rates;
+  try{
+    const res = await fetch(`https://api.frankfurter.app/latest?from=CHF&to=${need.join(',')}`);
+    const j = await res.json();
+    // frankfurter liefert CHF->X; wir brauchen X->CHF = 1 / rate
+    for(const c of need){ if(j.rates[c]) rates[c] = 1 / j.rates[c]; }
+  }catch(e){ console.warn('FX-Abruf fehlgeschlagen', e); }
+  return rates;
+}
+
+async function load(){
+  try{
+    const [masterText, pricesText] = await Promise.all([ghFetchRaw('data/security_master.csv'), ghFetchRaw('data/security_prices.csv')]);
+    const master = parseCSV(masterText).rows;
+    const prices = parseCSV(pricesText).rows.map(r => ({
+      SecurityID:r.SecurityID, Price:parseFloat(r.Price), dt:parseSwissDateTime(r.PriceDate),
+    })).filter(r=>r.dt && !isNaN(r.Price));
+
+    const bySecurity = {};
+    for(const p of prices) (bySecurity[p.SecurityID]=bySecurity[p.SecurityID]||[]).push(p);
+    for(const id in bySecurity) bySecurity[id].sort((a,b)=>a.dt-b.dt);
+
+    const fx = await getFxRates(master.map(m=>m.Currency));
+    const now = new Date();
+
+    const groups = {};
+    let totalChf = 0, totalPrevChf = 0, totalMonthChf = 0;
+
+    for(const m of master){
+      const qty = parseFloat(m.Quantity)||0;
+      if(qty === 0) continue; // nur tatsächliche Positionen
+      const list = bySecurity[m.SecurityID] || [];
+      const last = list[list.length-1] || null;
+      const prev = list.length>1 ? list[list.length-2] : null;
+      const refMonth = findOnOrBefore(list, daysAgo(now,30));
+      const rate = fx[m.Currency] || null;
+
+      const valChf = (last && rate) ? qty*last.Price*rate : null;
+      const valPrevChf = (prev && rate) ? qty*prev.Price*rate : null;
+      const valMonthChf = (refMonth && rate) ? qty*refMonth.Price*rate : null;
+
+      if(valChf!==null) totalChf += valChf;
+      if(valPrevChf!==null) totalPrevChf += valPrevChf;
+      if(valMonthChf!==null) totalMonthChf += valMonthChf;
+
+      const gruppe = m.PortfolioGruppe || 'Sonstige';
+      (groups[gruppe]=groups[gruppe]||[]).push({
+        name:m.SecurityName, currency:m.Currency, qty, last, valChf, valPrevChf, valMonthChf,
+      });
+    }
+
+    renderSummary(totalChf, totalPrevChf, totalMonthChf);
+    renderBoard(groups);
+    document.getElementById('statusText').textContent = 'live · ' + new Date().toLocaleTimeString('de-CH');
+  }catch(e){
+    document.getElementById('boardBody').innerHTML = `<tr><td colspan="6" class="error">Fehler: ${e.message}</td></tr>`;
+    document.getElementById('statusText').textContent = 'Fehler';
+  }
+}
+
+function renderSummary(total, prevTotal, monthTotal){
+  const dPrev = fmtPct((total && prevTotal) ? ((total-prevTotal)/prevTotal)*100 : null);
+  const dMonth = fmtPct((total && monthTotal) ? ((total-monthTotal)/monthTotal)*100 : null);
+  document.getElementById('summaryBoxes').innerHTML = `
+    <div class="summary-box"><div class="summary-label">Gesamtwert CHF</div><div class="summary-value">${fmtChf(total)}</div></div>
+    <div class="summary-box"><div class="summary-label">Δ Vortag</div><div class="summary-value chg ${dPrev.dir}">${dPrev.text}</div></div>
+    <div class="summary-box"><div class="summary-label">Δ Monat</div><div class="summary-value chg ${dMonth.dir}">${dMonth.text}</div></div>
+  `;
+}
+
+function renderBoard(groups){
+  const body = document.getElementById('boardBody');
+  let html = '';
+  const names = Object.keys(groups).sort();
+  if(!names.length){ body.innerHTML = '<tr><td colspan="6" class="empty">Keine Positionen mit Quantity &gt; 0 gefunden.</td></tr>'; return; }
+
+  for(const gruppe of names){
+    html += `<tr class="section-row"><td colspan="6">${gruppe}</td></tr>`;
+    for(const r of groups[gruppe]){
+      const dPrev = fmtPct((r.valChf && r.valPrevChf) ? ((r.valChf-r.valPrevChf)/r.valPrevChf)*100 : null);
+      const dMonth = fmtPct((r.valChf && r.valMonthChf) ? ((r.valChf-r.valMonthChf)/r.valMonthChf)*100 : null);
+      const deltaPrevChf = (r.valChf!==null && r.valPrevChf!==null) ? r.valChf-r.valPrevChf : null;
+      const deltaMonthChf = (r.valChf!==null && r.valMonthChf!==null) ? r.valChf-r.valMonthChf : null;
+      html += `<tr>
+        <td class="name">${r.name}</td>
+        <td class="price">${r.qty}</td>
+        <td class="price">${r.last ? r.last.Price.toFixed(2) : '—'}<span class="ccy">${r.currency}</span></td>
+        <td class="price">${fmtChf(r.valChf)}</td>
+        <td class="chg ${dPrev.dir}">${deltaPrevChf!==null ? fmtChf(deltaPrevChf) : '—'} <span class="ccy">${dPrev.text}</span></td>
+        <td class="chg ${dMonth.dir}">${deltaMonthChf!==null ? fmtChf(deltaMonthChf) : '—'} <span class="ccy">${dMonth.text}</span></td>
+      </tr>`;
+    }
+  }
+  body.innerHTML = html;
+}
+
+load();
+</script>
+</body>
+</html>

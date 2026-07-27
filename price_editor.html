@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Security Prices - Editor</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{ --bg:#fff;--panel:#F7F8FA;--line:#E3E6EA;--text:#1A1D22;--muted:#767E8A;--accent:#E30613; }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;padding:32px 16px 80px;}
+  .wrap{max-width:1100px;margin:0 auto;}
+  h1{font-family:'Space Grotesk',sans-serif;font-size:20px;text-transform:uppercase;letter-spacing:.02em;border-bottom:2px solid var(--accent);padding-bottom:14px;}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:16px 0;}
+  input[type=text], select, input[type=number]{
+    font-family:'IBM Plex Mono',monospace;font-size:13px;padding:7px 9px;border:1px solid var(--line);border-radius:3px;background:var(--bg);color:var(--text);
+  }
+  #filterSecurity{min-width:260px;}
+  button{font-family:'IBM Plex Mono',monospace;font-size:12px;padding:8px 14px;border-radius:3px;border:1px solid var(--line);background:none;cursor:pointer;color:var(--text);}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
+  button:hover{border-color:var(--text);}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{text-align:left;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:8px 6px;border-bottom:1px solid var(--line);background:var(--panel);}
+  td{padding:6px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  td input{width:100%;}
+  .status{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);margin-top:10px;}
+  .status.error{color:#C0293D;}
+  .status.ok{color:#1F8A6E;}
+  .settings{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:14px;margin-bottom:16px;display:none;gap:8px;}
+  .settings.show{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;}
+  .settings label{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);display:block;margin-bottom:3px;}
+  .note{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);margin:6px 0 16px;}
+  .table-wrap{overflow-x:auto;max-height:60vh;overflow-y:auto;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Security Prices · Editor</h1>
+  <p class="note">Collectors schreiben laufend neue Zeilen (nichts wird automatisch gelöscht, ausser durch den wöchentlichen Cleanup-Job für Einträge &gt;380 Tage). Hier können einzelne Kurse manuell korrigiert oder ergänzt werden.</p>
+
+  <div class="toolbar">
+    <select id="filterSecurity"><option value="">Alle Securities…</option></select>
+    <button id="settingsBtn">⚙ Repo/Token</button>
+    <button id="addBtn">+ Neuer Preis</button>
+    <button id="saveBtn" class="primary">Speichern</button>
+  </div>
+
+  <div class="settings" id="settingsPanel">
+    <div><label>GitHub Owner</label><input type="text" id="cfgOwner"></div>
+    <div><label>Repo</label><input type="text" id="cfgRepo"></div>
+    <div><label>Branch</label><input type="text" id="cfgBranch" placeholder="main"></div>
+    <div><label>Personal Access Token (repo-Scope)</label><input type="text" id="cfgToken" placeholder="ghp_…"></div>
+    <div style="align-self:end;"><button id="cfgSave" class="primary">Übernehmen</button></div>
+  </div>
+
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>SecurityID</th><th>SecurityName</th><th>Price</th><th>PriceDate</th><th>Source</th><th>Created_at</th><th></th></tr></thead>
+    <tbody id="body"><tr><td colspan="7">Lade…</td></tr></tbody>
+  </table>
+  </div>
+
+  <div class="status" id="status"></div>
+</div>
+
+<script src="assets/github-data.js"></script>
+<script>
+let header = [];
+let rows = [];
+let masterRows = [];
+let fileSha = null;
+const PATH = 'data/security_prices.csv';
+const MASTER_PATH = 'data/security_master.csv';
+
+function renderRow(row, idx) {
+  return `<tr data-idx="${idx}">
+    <td><input type="text" data-field="SecurityID" value="${row.SecurityID||''}" style="width:70px"></td>
+    <td><input type="text" data-field="SecurityName" value="${row.SecurityName||''}"></td>
+    <td><input type="number" step="any" data-field="Price" value="${row.Price||''}" style="width:100px"></td>
+    <td><input type="text" data-field="PriceDate" value="${row.PriceDate||''}" placeholder="dd.mm.yyyy hh:mm:ss" style="width:150px"></td>
+    <td><input type="text" data-field="Source" value="${row.Source||''}"></td>
+    <td><input type="text" data-field="Created_at" value="${row.Created_at||''}" style="width:150px"></td>
+    <td><button data-del="${idx}">✕</button></td>
+  </tr>`;
+}
+
+function renderAll(filterSecId='') {
+  const body = document.getElementById('body');
+  const filtered = rows.map((r,i)=>({r,i}))
+    .filter(({r}) => !filterSecId || r.SecurityID === filterSecId)
+    .sort((a,b) => (parseSwissDateTime(b.r.PriceDate)||0) - (parseSwissDateTime(a.r.PriceDate)||0));
+  body.innerHTML = filtered.length
+    ? filtered.slice(0,300).map(({r,i}) => renderRow(r, i)).join('')
+    : '<tr><td colspan="7">Keine Einträge.</td></tr>';
+
+  body.querySelectorAll('input').forEach(el => {
+    el.addEventListener('change', () => {
+      const idx = Number(el.closest('tr').dataset.idx);
+      rows[idx][el.dataset.field] = el.value;
+    });
+  });
+  body.querySelectorAll('[data-del]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = Number(btn.dataset.del);
+      if (confirm('Preis-Eintrag wirklich löschen?')) { rows.splice(idx,1); renderAll(document.getElementById('filterSecurity').value); }
+    });
+  });
+}
+
+async function loadCSVFlexible(path) {
+  if (ghConfigured()) {
+    const f = await ghGetFile(path);
+    return { text: f.content, sha: f.sha };
+  }
+  return { text: await ghFetchRaw(path), sha: null };
+}
+
+async function load() {
+  header = ['SecurityID','SecurityName','Price','PriceDate','Source','Created_at'];
+  try {
+    const [pricesF, masterF] = await Promise.all([loadCSVFlexible(PATH), loadCSVFlexible(MASTER_PATH)]);
+    const parsed = parseCSV(pricesF.text);
+    header = parsed.header.length ? parsed.header : header;
+    rows = parsed.rows;
+    fileSha = pricesF.sha;
+
+    masterRows = parseCSV(masterF.text).rows;
+    const sel = document.getElementById('filterSecurity');
+    sel.innerHTML = '<option value="">Alle Securities…</option>' + masterRows
+      .map(m => `<option value="${m.SecurityID}">${m.SecurityID} · ${m.SecurityName}</option>`).join('');
+
+    renderAll();
+    setStatus(`${rows.length} Preis-Einträge geladen.`, 'ok');
+  } catch (e) {
+    document.getElementById('body').innerHTML = `<tr><td colspan="7">Fehler: ${e.message}</td></tr>`;
+  }
+}
+
+function setStatus(msg, cls) {
+  const s = document.getElementById('status');
+  s.textContent = msg; s.className = 'status ' + (cls||'');
+}
+
+document.getElementById('filterSecurity').addEventListener('change', (e) => renderAll(e.target.value));
+
+document.getElementById('addBtn').addEventListener('click', () => {
+  const secId = document.getElementById('filterSecurity').value;
+  const master = masterRows.find(m => m.SecurityID === secId);
+  const now = nowZurichString();
+  rows.push({
+    SecurityID: secId || '', SecurityName: master ? master.SecurityName : '',
+    Price: '', PriceDate: now, Source: 'manual', Created_at: now,
+  });
+  renderAll(secId);
+});
+
+document.getElementById('saveBtn').addEventListener('click', async () => {
+  if (!ghConfigured() || !GH.token) {
+    setStatus('Bitte zuerst Repo + Token unter ⚙ Repo/Token hinterlegen.', 'error');
+    document.getElementById('settingsPanel').classList.add('show');
+    return;
+  }
+  const csv = toCSV(header, rows);
+  try {
+    setStatus('Speichere…');
+    const result = await ghPutFile(PATH, csv, `price_editor: manuelle Anpassung security_prices.csv (${nowZurichString()})`, fileSha);
+    fileSha = result.content.sha;
+    setStatus('Gespeichert ✓ ' + nowZurichString(), 'ok');
+  } catch (e) {
+    setStatus('Fehler beim Speichern: ' + e.message, 'error');
+  }
+});
+
+document.getElementById('settingsBtn').addEventListener('click', () => {
+  document.getElementById('cfgOwner').value = GH.owner;
+  document.getElementById('cfgRepo').value = GH.repo;
+  document.getElementById('cfgBranch').value = GH.branch;
+  document.getElementById('cfgToken').value = GH.token;
+  document.getElementById('settingsPanel').classList.toggle('show');
+});
+document.getElementById('cfgSave').addEventListener('click', () => {
+  ghSaveConfig({
+    owner: document.getElementById('cfgOwner').value.trim(),
+    repo: document.getElementById('cfgRepo').value.trim(),
+    branch: document.getElementById('cfgBranch').value.trim() || 'main',
+    token: document.getElementById('cfgToken').value.trim(),
+  });
+  document.getElementById('settingsPanel').classList.remove('show');
+  load();
+});
+
+load();
+</script>
+</body>
+</html>

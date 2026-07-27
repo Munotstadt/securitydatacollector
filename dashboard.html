@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Securities Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{ --bg:#fff;--panel:#F7F8FA;--line:#E3E6EA;--text:#1A1D22;--muted:#767E8A;--accent:#E30613;--gain:#1F8A6E;--loss:#C0293D; }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;padding:40px 16px 80px;display:flex;flex-direction:column;align-items:center;}
+  .board{width:100%;max-width:900px;}
+  .eyebrow{display:flex;align-items:center;justify-content:space-between;padding-bottom:16px;border-bottom:2px solid var(--accent);}
+  .brand h1{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:20px;text-transform:uppercase;letter-spacing:.02em;margin:0;}
+  .brand span{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);}
+  .status{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);}
+  .search-input{width:100%;padding:9px 12px;margin:16px 0 4px;font-family:'IBM Plex Mono',monospace;font-size:13px;border:1px solid var(--line);border-radius:3px;}
+  table{width:100%;border-collapse:collapse;margin-top:4px;}
+  thead th{text-align:left;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:12px 8px 8px;border-bottom:1px solid var(--line);}
+  thead th.num{text-align:right;}
+  tbody td{padding:12px 8px;border-bottom:1px solid var(--line);font-size:14px;}
+  tbody tr.section-row td{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);padding:20px 8px 6px;font-weight:600;border-bottom:1px solid var(--line);}
+  .name{font-weight:500;border-left:3px solid transparent;padding-left:10px !important;}
+  tr.up .name{border-left-color:var(--gain);}
+  tr.down .name{border-left-color:var(--loss);}
+  .price,.time{font-family:'IBM Plex Mono',monospace;text-align:right;white-space:nowrap;}
+  .time{color:var(--muted);font-size:12px;}
+  .chg{font-family:'IBM Plex Mono',monospace;text-align:right;font-size:13px;white-space:nowrap;}
+  .chg.up{color:var(--gain);} .chg.down{color:var(--loss);} .chg.flat{color:var(--muted);}
+  .ccy{color:var(--muted);font-size:11px;margin-left:4px;}
+  .empty,.error{padding:40px 10px;text-align:center;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:13px;}
+  .error{color:var(--loss);}
+  .footer{margin-top:20px;display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);}
+  .footer button{background:none;border:1px solid var(--line);color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:12px;padding:6px 12px;border-radius:3px;cursor:pointer;}
+  @media (max-width:700px){
+    #boardTable thead th:nth-child(4), #boardTable tbody td:nth-child(4){display:none;}
+  }
+</style>
+</head>
+<body>
+<div class="board">
+  <div class="eyebrow">
+    <div class="brand"><h1>Securities Dashboard</h1><span> securitydatacollector</span></div>
+    <div class="status" id="statusText">lädt…</div>
+  </div>
+  <input type="text" id="search" class="search-input" placeholder="Wertschrift suchen…">
+  <table id="boardTable">
+    <thead><tr>
+      <th>Security</th><th class="num">Last</th><th class="num">Δ Vortag</th>
+      <th class="num">Δ Woche</th><th class="num">Δ Monat</th><th class="num">Zeit</th>
+    </tr></thead>
+    <tbody id="boardBody"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
+  </table>
+  <div class="footer">
+    <span id="lastSynced">—</span>
+    <button id="refreshBtn">Refresh</button>
+  </div>
+</div>
+
+<script src="assets/github-data.js"></script>
+<script>
+const REFRESH_MS = 5 * 60 * 1000;
+
+function daysAgo(d, n){ const r = new Date(d); r.setDate(r.getDate()-n); return r; }
+function startOfYear(d){ return new Date(d.getFullYear(),0,1); }
+function pctChange(now, ref){ return (ref===0||ref==null||now==null) ? null : ((now-ref)/ref)*100; }
+function fmtPct(v){
+  if (v===null||v===undefined||isNaN(v)) return {text:'—',dir:'flat'};
+  return {text:`${v>0?'+':''}${v.toFixed(2)}%`, dir: v>0?'up':(v<0?'down':'flat')};
+}
+function findOnOrBefore(sorted, date){
+  let best=null;
+  for(const r of sorted){ if(r.dt<=date && (!best||r.dt>best.dt)) best=r; }
+  return best;
+}
+
+async function load(){
+  try{
+    const [masterText, pricesText] = await Promise.all([ghFetchRaw('data/security_master.csv'), ghFetchRaw('data/security_prices.csv')]);
+    const master = parseCSV(masterText).rows;
+    const prices = parseCSV(pricesText).rows.map(r => ({
+      SecurityID: r.SecurityID, Price: parseFloat(r.Price), dt: parseSwissDateTime(r.PriceDate),
+    })).filter(r => r.dt && !isNaN(r.Price));
+
+    const bySecurity = {};
+    for(const p of prices){
+      (bySecurity[p.SecurityID] = bySecurity[p.SecurityID] || []).push(p);
+    }
+    for(const id in bySecurity) bySecurity[id].sort((a,b)=>a.dt-b.dt);
+
+    const now = new Date();
+    const groups = {};
+    for(const m of master){
+      const list = bySecurity[m.SecurityID] || [];
+      const last = list[list.length-1] || null;
+      const prev = list.length>1 ? list[list.length-2] : null;
+      const refWeek = findOnOrBefore(list, daysAgo(now,7));
+      const refMonth = findOnOrBefore(list, daysAgo(now,30));
+
+      const instrument = m.Instrument || 'Sonstige';
+      (groups[instrument] = groups[instrument] || []).push({
+        name: m.SecurityName, currency: m.Currency, secId: m.SecurityID,
+        last, prev, refWeek, refMonth,
+      });
+    }
+
+    renderBoard(groups);
+    document.getElementById('statusText').textContent = 'live';
+    document.getElementById('lastSynced').textContent = 'Zuletzt geladen: ' + new Date().toLocaleTimeString('de-CH');
+  }catch(e){
+    document.getElementById('boardBody').innerHTML = `<tr><td colspan="6" class="error">Fehler: ${e.message}</td></tr>`;
+    document.getElementById('statusText').textContent = 'Fehler';
+  }
+}
+
+let currentGroups = {};
+
+function renderBoard(groups){
+  currentGroups = groups;
+  const filter = document.getElementById('search').value.toLowerCase();
+  const body = document.getElementById('boardBody');
+  let html = '';
+  const instrumentNames = Object.keys(groups).sort();
+  let any = false;
+
+  for(const instrument of instrumentNames){
+    const rows = groups[instrument].filter(r => !filter || r.name.toLowerCase().includes(filter));
+    if(!rows.length) continue;
+    any = true;
+    html += `<tr class="section-row"><td colspan="6">${instrument}</td></tr>`;
+    for(const r of rows){
+      const lastAmt = r.last ? r.last.Price : null;
+      const dPrev = fmtPct(pctChange(lastAmt, r.prev ? r.prev.Price : null));
+      const dWeek = fmtPct(pctChange(lastAmt, r.refWeek ? r.refWeek.Price : null));
+      const dMonth = fmtPct(pctChange(lastAmt, r.refMonth ? r.refMonth.Price : null));
+      const dirClass = dPrev.dir;
+      const timeStr = r.last ? r.last.dt.toLocaleString('de-CH', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—';
+      html += `<tr class="${dirClass}">
+        <td class="name">${r.name}</td>
+        <td class="price">${lastAmt!==null ? lastAmt.toFixed(2) : '—'}<span class="ccy">${r.currency||''}</span></td>
+        <td class="chg ${dPrev.dir}">${dPrev.text}</td>
+        <td class="chg ${dWeek.dir}">${dWeek.text}</td>
+        <td class="chg ${dMonth.dir}">${dMonth.text}</td>
+        <td class="time">${timeStr}</td>
+      </tr>`;
+    }
+  }
+  body.innerHTML = any ? html : '<tr><td colspan="6" class="empty">Keine Treffer.</td></tr>';
+}
+
+document.getElementById('search').addEventListener('input', () => renderBoard(currentGroups));
+document.getElementById('refreshBtn').addEventListener('click', load);
+load();
+setInterval(load, REFRESH_MS);
+</script>
+</body>
+</html>

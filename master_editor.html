@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Security Master - Editor</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{ --bg:#fff;--panel:#F7F8FA;--line:#E3E6EA;--text:#1A1D22;--muted:#767E8A;--accent:#E30613; }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;padding:32px 16px 80px;}
+  .wrap{max-width:1200px;margin:0 auto;}
+  h1{font-family:'Space Grotesk',sans-serif;font-size:20px;text-transform:uppercase;letter-spacing:.02em;border-bottom:2px solid var(--accent);padding-bottom:14px;}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:16px 0;}
+  input[type=text], select, input[type=number]{
+    font-family:'IBM Plex Mono',monospace;font-size:13px;padding:7px 9px;border:1px solid var(--line);border-radius:3px;background:var(--bg);color:var(--text);
+  }
+  #search{flex:1;min-width:220px;}
+  button{font-family:'IBM Plex Mono',monospace;font-size:12px;padding:8px 14px;border-radius:3px;border:1px solid var(--line);background:none;cursor:pointer;color:var(--text);}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
+  button:hover{border-color:var(--text);}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{text-align:left;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:8px 6px;border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:0;}
+  td{padding:6px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  td input, td select{width:100%;min-width:80px;}
+  .row-actions button{padding:4px 8px;}
+  .status{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);margin-top:10px;}
+  .status.error{color:#C0293D;}
+  .status.ok{color:#1F8A6E;}
+  .settings{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:14px;margin-bottom:16px;display:none;gap:8px;}
+  .settings.show{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;}
+  .settings label{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);display:block;margin-bottom:3px;}
+  .table-wrap{overflow-x:auto;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Security Master · Editor</h1>
+
+  <div class="toolbar">
+    <input type="text" id="search" placeholder="Wertschrift suchen (Name, SecurityID, MainID, Ticker)…">
+    <button id="settingsBtn">⚙ Repo/Token</button>
+    <button id="addBtn">+ Neue Zeile</button>
+    <button id="saveBtn" class="primary">Speichern</button>
+  </div>
+
+  <div class="settings" id="settingsPanel">
+    <div><label>GitHub Owner</label><input type="text" id="cfgOwner"></div>
+    <div><label>Repo</label><input type="text" id="cfgRepo"></div>
+    <div><label>Branch</label><input type="text" id="cfgBranch" placeholder="main"></div>
+    <div><label>Personal Access Token (repo-Scope)</label><input type="text" id="cfgToken" placeholder="ghp_…"></div>
+    <div style="align-self:end;"><button id="cfgSave" class="primary">Übernehmen</button></div>
+  </div>
+
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th><th>SecurityID</th><th>MainID</th><th>Currency</th>
+        <th>PortfolioGruppe</th><th>Subgruppe1</th><th>Subgruppe2</th>
+        <th>Instrument</th><th>DataCollector</th><th>YahooTicker</th><th>Quantity</th><th></th>
+      </tr>
+    </thead>
+    <tbody id="body"><tr><td colspan="12">Lade…</td></tr></tbody>
+  </table>
+  </div>
+
+  <div class="status" id="status"></div>
+</div>
+
+<script src="assets/github-data.js"></script>
+<script>
+const CURRENCY_OPTS = ['CHF','EUR','USD','GBP','JPY','other'];
+const GRUPPE_OPTS = ['Shares','Bonds','Alternative'];
+const INSTRUMENT_OPTS = ['Index','Shares','ETF/Funds','Crypto','Currency','other'];
+const COLLECTOR_OPTS = ['Collector_YahooWeekday','Collector_YahooDaily','Collector_Other','none'];
+
+let header = [];
+let rows = [];
+let fileSha = null;
+const PATH = 'data/security_master.csv';
+
+function sel(name, value, options) {
+  const opts = options.map(o => `<option value="${o}" ${o===value?'selected':''}>${o}</option>`).join('');
+  return `<select data-field="${name}">${opts}</select>`;
+}
+
+function renderRow(row, idx) {
+  return `<tr data-idx="${idx}">
+    <td><input type="text" data-field="SecurityName" value="${row.SecurityName||''}"></td>
+    <td><input type="text" data-field="SecurityID" value="${row.SecurityID||''}" style="width:60px"></td>
+    <td><input type="text" data-field="MainID" value="${row.MainID||''}"></td>
+    <td>${sel('Currency', row.Currency, CURRENCY_OPTS)}</td>
+    <td>${sel('PortfolioGruppe', row.PortfolioGruppe, GRUPPE_OPTS)}</td>
+    <td><input type="text" data-field="PortfolioSubgruppe1" value="${row.PortfolioSubgruppe1||''}"></td>
+    <td><input type="text" data-field="PortfolioSubgruppe2" value="${row.PortfolioSubgruppe2||''}"></td>
+    <td>${sel('Instrument', row.Instrument, INSTRUMENT_OPTS)}</td>
+    <td>${sel('DataCollector', row.DataCollector, COLLECTOR_OPTS)}</td>
+    <td><input type="text" data-field="YahooTicker" value="${row.YahooTicker||''}"></td>
+    <td><input type="number" step="any" data-field="Quantity" value="${row.Quantity||0}" style="width:70px"></td>
+    <td class="row-actions"><button data-del="${idx}">✕</button></td>
+  </tr>`;
+}
+
+function renderAll(filter='') {
+  const body = document.getElementById('body');
+  const f = filter.toLowerCase();
+  const filtered = rows.map((r,i)=>({r,i})).filter(({r}) => !f ||
+    (r.SecurityName||'').toLowerCase().includes(f) ||
+    (r.SecurityID||'').toLowerCase().includes(f) ||
+    (r.MainID||'').toLowerCase().includes(f) ||
+    (r.YahooTicker||'').toLowerCase().includes(f));
+  body.innerHTML = filtered.length
+    ? filtered.map(({r,i}) => renderRow(r, i)).join('')
+    : '<tr><td colspan="12">Keine Treffer.</td></tr>';
+
+  body.querySelectorAll('input,select').forEach(el => {
+    el.addEventListener('change', () => {
+      const idx = Number(el.closest('tr').dataset.idx);
+      rows[idx][el.dataset.field] = el.value;
+    });
+  });
+  body.querySelectorAll('[data-del]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = Number(btn.dataset.del);
+      if (confirm('Zeile wirklich löschen?')) { rows.splice(idx,1); renderAll(document.getElementById('search').value); }
+    });
+  });
+}
+
+async function load() {
+  header = ['SecurityName','SecurityID','MainID','Currency','PortfolioGruppe','PortfolioSubgruppe1','PortfolioSubgruppe2','Instrument','DataCollector','YahooTicker','Quantity','Created_at','Modified_at'];
+  try {
+    let text, sha;
+    if (ghConfigured()) {
+      const f = await ghGetFile(PATH);
+      text = f.content; sha = f.sha;
+    } else {
+      text = await ghFetchRaw(PATH);
+    }
+    const parsed = parseCSV(text);
+    header = parsed.header.length ? parsed.header : header;
+    rows = parsed.rows;
+    fileSha = sha || null;
+    renderAll();
+    setStatus(`${rows.length} Wertschriften geladen.`, 'ok');
+  } catch (e) {
+    document.getElementById('body').innerHTML = `<tr><td colspan="12">Fehler: ${e.message}</td></tr>`;
+  }
+}
+
+function setStatus(msg, cls) {
+  const s = document.getElementById('status');
+  s.textContent = msg; s.className = 'status ' + (cls||'');
+}
+
+document.getElementById('search').addEventListener('input', (e) => renderAll(e.target.value));
+
+document.getElementById('addBtn').addEventListener('click', () => {
+  const now = nowZurichString();
+  rows.push({SecurityName:'',SecurityID:'',MainID:'',Currency:'CHF',PortfolioGruppe:'Shares',
+    PortfolioSubgruppe1:'',PortfolioSubgruppe2:'',Instrument:'Shares',DataCollector:'none',
+    YahooTicker:'',Quantity:'0',Created_at:now,Modified_at:now});
+  renderAll(document.getElementById('search').value);
+});
+
+document.getElementById('saveBtn').addEventListener('click', async () => {
+  if (!ghConfigured() || !GH.token) {
+    setStatus('Bitte zuerst Repo + Token unter ⚙ Repo/Token hinterlegen.', 'error');
+    document.getElementById('settingsPanel').classList.add('show');
+    return;
+  }
+  const now = nowZurichString();
+  rows.forEach(r => { r.Modified_at = now; if (!r.Created_at) r.Created_at = now; });
+  const csv = toCSV(header, rows);
+  try {
+    setStatus('Speichere…');
+    const result = await ghPutFile(PATH, csv, `master_editor: update security_master.csv (${now})`, fileSha);
+    fileSha = result.content.sha;
+    setStatus('Gespeichert ✓ ' + now, 'ok');
+  } catch (e) {
+    setStatus('Fehler beim Speichern: ' + e.message, 'error');
+  }
+});
+
+document.getElementById('settingsBtn').addEventListener('click', () => {
+  document.getElementById('cfgOwner').value = GH.owner;
+  document.getElementById('cfgRepo').value = GH.repo;
+  document.getElementById('cfgBranch').value = GH.branch;
+  document.getElementById('cfgToken').value = GH.token;
+  document.getElementById('settingsPanel').classList.toggle('show');
+});
+document.getElementById('cfgSave').addEventListener('click', () => {
+  ghSaveConfig({
+    owner: document.getElementById('cfgOwner').value.trim(),
+    repo: document.getElementById('cfgRepo').value.trim(),
+    branch: document.getElementById('cfgBranch').value.trim() || 'main',
+    token: document.getElementById('cfgToken').value.trim(),
+  });
+  document.getElementById('settingsPanel').classList.remove('show');
+  load();
+});
+
+load();
+</script>
+</body>
+</html>
