@@ -4,20 +4,35 @@ geflaggt sind und deren Kurs nicht über Yahoo Finance bezogen werden kann
 (z.B. SNB-Zinssätze, Bank-APIs, HTML-Scraping-Quellen).
 
 Da diese Quellen sehr heterogen sind (unterschiedliche APIs/Formate je Security),
-wird hier - analog zum bestehenden collect_others_prices.py Vorbild - pro
-SecurityName eine eigene Fetch-Funktion registriert. Neue "Other"-Securities
-im Master brauchen zusätzlich einen Eintrag in FETCHERS unten.
+wird hier pro SecurityName eine eigene Fetch-Funktion registriert. Neue
+"Other"-Securities im Master brauchen zusätzlich einen Eintrag in FETCHERS unten.
 
 Läuft mit derselben Cadence wie der Weekday-Collector (siehe Workflow).
 """
 
+import json
 import re
 import urllib.request
+from datetime import datetime
 
 from collect_yahoo_common import write_pending_rows, now_zurich_str, read_master
 
+DEFAULT_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+}
+
+
+def strip_html(html: str) -> str:
+    text = re.sub(r"<script[^>]*>.*?</script>", " ", html, flags=re.DOTALL | re.IGNORECASE)
+    text = re.sub(r"<style[^>]*>.*?</style>", " ", text, flags=re.DOTALL | re.IGNORECASE)
+    text = re.sub(r"<[^>]+>", "\n", text)
+    text = re.sub(r"&amp;", "&", text)
+    text = re.sub(r"[ \t]+", " ", text)
+    return text
+
+
 # ---------------------------------------------------------------------------
-# Registry: SecurityName -> Funktion, die (price, currency_or_None) zurückgibt
+# Quelle 1: SNB RSS-Feed (R10 - Rendite Bundesobligationen 10J)
 # ---------------------------------------------------------------------------
 
 def fetch_snb_r10():
@@ -32,10 +47,161 @@ def fetch_snb_r10():
     raise ValueError("R10 nicht im SNB RSS-Feed gefunden")
 
 
-# Beispiel-Registry - bei Bedarf um weitere Quellen ergänzen (Raiffeisen API,
-# onvista, HTML-Scraping etc., siehe bestehendes collect_others_prices.py als Vorbild).
+# ---------------------------------------------------------------------------
+# Quelle 2: Raiffeisen API (Hypothekarzinsen Winterthur)
+# ---------------------------------------------------------------------------
+
+RAIFFEISEN_API_URL = "https://api.raiffeisen.ch/loan-product-service/v1/products"
+RAIFFEISEN_BANK_CODE = "1485"
+
+RAIFFEISEN_DURATION_MAP = {
+    12: "Raiffeisen Winterthur Hypothek 1 Jahr Zinssatz",
+    60: "Raiffeisen Winterthur Hypothek 5 Jahr Zinssatz",
+    120: "Raiffeisen Winterthur Hypothek 10 Jahr Zinssatz",
+    180: "Raiffeisen Winterthur Hypothek 15 Jahr Zinssatz",
+}
+
+_raiffeisen_rates_cache = None  # Cache pro Skript-Lauf: 1 API-Call statt 4
+
+
+def _get_raiffeisen_rates():
+    global _raiffeisen_rates_cache
+    if _raiffeisen_rates_cache is not None:
+        return _raiffeisen_rates_cache
+    req = urllib.request.Request(RAIFFEISEN_API_URL, headers={
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "x-rai-bankcode": RAIFFEISEN_BANK_CODE,
+        "x-rai-channel": "INFORMATION",
+        "User-Agent": "Mozilla/5.0",
+        "Referer": "https://www.raiffeisen.ch/winterthur/de/privatkunden/"
+                   "wohnen-und-hypotheken/hypothekarzinsen.html",
+    })
+    with urllib.request.urlopen(req, timeout=15) as resp:
+        data = json.loads(resp.read())
+    fixed = next(p for p in data if p.get("type") == "FIXED")
+    rates_by_months = {
+        v["durationInMonths"]: v["rate"]
+        for v in fixed["variants"]
+        if v["durationInMonths"] in RAIFFEISEN_DURATION_MAP
+    }
+    _raiffeisen_rates_cache = {
+        name: rates_by_months[months]
+        for months, name in RAIFFEISEN_DURATION_MAP.items()
+        if months in rates_by_months
+    }
+    return _raiffeisen_rates_cache
+
+
+def _make_raiffeisen_rate_fetcher(security_name):
+    def _fetch():
+        rates = _get_raiffeisen_rates()
+        if security_name not in rates:
+            raise ValueError(f"'{security_name}' nicht in Raiffeisen-API-Antwort enthalten")
+        return rates[security_name], None
+    return _fetch
+
+
+# ---------------------------------------------------------------------------
+# Quelle 3: onvista (STOXX Europe 600 EUR NR)
+# ---------------------------------------------------------------------------
+
+ONVISTA_API_URL = "https://api.onvista.de/api/v1/instruments/INDEX/1544657/quote?idNotation=&range=D1"
+
+
+def fetch_onvista_stoxx():
+    req = urllib.request.Request(ONVISTA_API_URL, headers={
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+        "Accept": "application/json",
+    })
+    with urllib.request.urlopen(req, timeout=15) as r:
+        d = json.loads(r.read())
+    price = float(d.get("last") or d.get("previousLast"))
+    return price, "EUR"
+
+
+# ---------------------------------------------------------------------------
+# Quelle 4: Raiffeisen Futura II Fonds (boerse.raiffeisen.ch, HTML-Scraping)
+# ---------------------------------------------------------------------------
+# CAUTION: kein dokumentiertes JSON-API für diese Fonds - die Seite rendert
+# NAV direkt im HTML. Falls Raiffeisen das Seitenlayout ändert, muss der
+# Regex unten evtl. angepasst werden.
+
+def _make_raiffeisen_futura_fetcher(fund_id):
+    def _fetch():
+        url = f"https://boerse.raiffeisen.ch/fonds/detail/{fund_id}?exchangeid=393"
+        req = urllib.request.Request(url, headers=DEFAULT_HEADERS)
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            html = resp.read().decode("utf-8", errors="replace")
+        text = strip_html(html)
+
+        # Preis: direkt nach der "CHF"-Überschrift am Seitenanfang, z.B.
+        # "CHF\n\n135.30\n\n+0.84% (+1.13) 24.06.2026"
+        price_match = re.search(r"\bCHF\s*\n+\s*([\d']+[.,]\d+)", text)
+        if not price_match:
+            raise ValueError(
+                f"Preis-Muster auf der Raiffeisen-Fondsseite (fund_id={fund_id}) "
+                "nicht gefunden - Seitenlayout hat sich evtl. geändert."
+            )
+        price = float(price_match.group(1).replace("'", "").replace(",", "."))
+        if price <= 0:
+            raise ValueError(f"Unplausibler Preis für fund_id={fund_id}.")
+        return price, "CHF"
+    return _fetch
+
+
+# ---------------------------------------------------------------------------
+# Quelle 5: Raiffeisen Börse - Goldvreneli 20 Fr. (Ankaufspreis)
+# ---------------------------------------------------------------------------
+# CAUTION: Münzen-Übersichtsseite ohne eigene IDs/API - reines HTML-Scraping.
+
+RAIFFEISEN_EDELMETALLE_URL = "https://boerse.raiffeisen.ch/edelmetalle"
+
+
+def fetch_raiffeisen_vreneli_ankauf():
+    req = urllib.request.Request(RAIFFEISEN_EDELMETALLE_URL, headers=DEFAULT_HEADERS)
+    with urllib.request.urlopen(req, timeout=20) as resp:
+        html = resp.read().decode("utf-8", errors="replace")
+    text = strip_html(html)
+
+    # Nach "20 Fr. Vreneli" folgen (nicht-gierig, über Zeilenumbrüche hinweg)
+    # zwei Preise: Ankauf, dann Verkauf.
+    match = re.search(
+        r"20 Fr\.\s*Vreneli.*?([\d']+[.,]\d+)\s*\n+\s*([\d']+[.,]\d+)",
+        text, re.DOTALL,
+    )
+    if not match:
+        raise ValueError(
+            "Preis-Muster für '20 Fr. Vreneli' auf boerse.raiffeisen.ch/edelmetalle "
+            "nicht gefunden - Seitenlayout hat sich evtl. geändert."
+        )
+    ankauf = float(match.group(1).replace("'", "").replace(",", "."))
+    if ankauf <= 0:
+        raise ValueError("Unplausibler Ankaufspreis - Extraktion vermutlich fehlgeschlagen.")
+    return ankauf, "CHF"
+
+
+# ---------------------------------------------------------------------------
+# Registry: SecurityName -> (Fetch-Funktion, Source-Label)
+# Fetch-Funktion liefert (price, currency_or_None).
+# ---------------------------------------------------------------------------
+
 FETCHERS = {
     "Rendite Bundesobligationen Eidgenossenschaft 10 Jahre (%)": (fetch_snb_r10, "SNB"),
+    "STOXX Europe 600 EUR NR": (fetch_onvista_stoxx, "onvista"),
+    "Raiffeisen Winterthur Hypothek 1 Jahr Zinssatz": (
+        _make_raiffeisen_rate_fetcher("Raiffeisen Winterthur Hypothek 1 Jahr Zinssatz"), "RB Winterthur"),
+    "Raiffeisen Winterthur Hypothek 5 Jahr Zinssatz": (
+        _make_raiffeisen_rate_fetcher("Raiffeisen Winterthur Hypothek 5 Jahr Zinssatz"), "RB Winterthur"),
+    "Raiffeisen Winterthur Hypothek 10 Jahr Zinssatz": (
+        _make_raiffeisen_rate_fetcher("Raiffeisen Winterthur Hypothek 10 Jahr Zinssatz"), "RB Winterthur"),
+    "Raiffeisen Winterthur Hypothek 15 Jahr Zinssatz": (
+        _make_raiffeisen_rate_fetcher("Raiffeisen Winterthur Hypothek 15 Jahr Zinssatz"), "RB Winterthur"),
+    "Raiffeisen Futura II - Systematic Invest Equity (Vorsorge)": (
+        _make_raiffeisen_futura_fetcher("114426954"), "Raiffeisen Börse"),
+    "Raiffeisen Futura II - Systematic Invest Equity B (Samantha)": (
+        _make_raiffeisen_futura_fetcher("114426952"), "Raiffeisen Börse"),
+    "Gold Vreneli (CHF 20)": (fetch_raiffeisen_vreneli_ankauf, "Raiffeisen Börse"),
 }
 
 
