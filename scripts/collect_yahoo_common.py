@@ -13,8 +13,6 @@ import os
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-import yfinance as yf
-
 ZURICH = ZoneInfo("Europe/Zurich")
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MASTER_PATH = os.path.join(REPO_ROOT, "data", "security_master.csv")
@@ -51,6 +49,8 @@ def write_pending_rows(new_rows):
 
 
 def get_price_and_currency(ticker_symbol):
+    import yfinance as yf  # lazy import: nur Weekday/Daily-Collector brauchen yfinance,
+                            # Other-Collector soll ohne diese Abhängigkeit laufen können
     t = yf.Ticker(ticker_symbol)
     data = t.history(period="1d", interval="1m")
     if data.empty:
