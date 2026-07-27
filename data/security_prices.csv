@@ -15,3 +15,4 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 54,Silver (USD/oz),58.54999923706055,27.07.2026 20:56:17,Yahoo Finance (Daily),27.07.2026 20:56:17
 58,Brent Crude Oil Last Day Financ,88.0999984741211,27.07.2026 20:56:17,Yahoo Finance (Daily),27.07.2026 20:56:17
 43,Rendite Bundesobligationen Eidgenossenschaft 10 Jahre (%),0.492,27.07.2026 21:03:18,SNB,27.07.2026 21:03:18
+28,Raiffeisen Anteilsschein,1,27.07.2026 21:03:55,manual,27.07.2026 21:03:55
