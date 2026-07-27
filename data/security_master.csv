@@ -1,7 +1,7 @@
 SecurityName,SecurityID,MainID,Currency,PortfolioGruppe,PortfolioSubgruppe1,PortfolioSubgruppe2,Instrument,DataCollector,YahooTicker,Quantity,Created_at,Modified_at
-Apple Inc.,1,AAPL,USD,Shares,USA,Growth,Shares,Collector_YahooWeekday,AAPL,10,27.07.2026 09:00:00,27.07.2026 17:45:25
-Bitcoin,2,BTC-USD,USD,Alternative,Crypto,,Crypto,Collector_YahooDaily,BTC-USD,0.25,27.07.2026 09:00:00,27.07.2026 17:45:25
-Rendite Bundesobligationen Eidgenossenschaft 10 Jahre (%),3,CH-R10,CHF,Bonds,Swiss Gov,,other,Collector_Other,,0,27.07.2026 09:00:00,27.07.2026 17:45:25
-EUR/CHF,4,1,CHF,Shares,,,Currency,Collector_YahooWeekday,EUR/CHF=X,0,27.07.2026 17:43:02,27.07.2026 17:45:25
-USD/CHF,5,1,CHF,Shares,,,Shares,Collector_YahooWeekday,USD/CHF=X,0,27.07.2026 17:43:37,27.07.2026 17:45:25
-iShares Swiss Dividends,6,1,CHF,Shares,Switzerland,Core,Shares,Collector_YahooWeekday,CHDVD.SW,270,27.07.2026 17:44:00,27.07.2026 17:45:25
+Apple Inc.,20,908440,USD,Shares,USA,Growth,Shares,Collector_YahooWeekday,AAPL,10,27.07.2026 09:00:00,27.07.2026 18:05:26
+Bitcoin,8,18789194,USD,Alternative,Crypto,,Crypto,Collector_YahooDaily,BTC-USD,0.25,27.07.2026 09:00:00,27.07.2026 18:05:26
+Rendite Bundesobligationen Eidgenossenschaft 10 Jahre (%),43,PENDING1,CHF,Bonds,Swiss Gov,,other,Collector_Other,,0,27.07.2026 09:00:00,27.07.2026 18:05:26
+EUR/CHF,3,897789,CHF,Shares,,,Currency,Collector_YahooWeekday,EUR/CHF=X,0,27.07.2026 17:43:02,27.07.2026 18:05:26
+USD/CHF,2,275000,CHF,Shares,,,Shares,Collector_YahooWeekday,USD/CHF=X,0,27.07.2026 17:43:37,27.07.2026 18:05:26
+iShares Swiss Dividends,10,23793563,CHF,Shares,Switzerland,Core,Shares,Collector_YahooWeekday,CHDVD.SW,270,27.07.2026 17:44:00,27.07.2026 18:05:26
