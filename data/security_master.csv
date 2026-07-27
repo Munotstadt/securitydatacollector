@@ -1,59 +1,59 @@
 SecurityName,SecurityID,MainID,Currency,PortfolioGruppe,PortfolioSubgruppe1,PortfolioSubgruppe2,Instrument,DataCollector,YahooTicker,Quantity,Created_at,Modified_at
-Apple Inc.,20,908440,USD,Shares,USA,Growth,Shares,Collector_YahooWeekday,AAPL,10,27.07.2026 09:00:00,27.07.2026 21:04:17
-BTC - Bitcoin,8,18789194,USD,Alternative,Crypto,,Crypto,Collector_YahooDaily,BTC-USD,0.0249,27.07.2026 09:00:00,27.07.2026 21:04:17
-Rendite Bundesobligationen Eidgenossenschaft 10 Jahre (%),43,PENDING1,CHF,Bonds,Swiss Gov,,other,Collector_Other,,0,27.07.2026 09:00:00,27.07.2026 21:04:17
-EUR/CHF,3,897789,CHF,Shares,,,Currency,Collector_YahooWeekday,EUR/CHF=X,0,27.07.2026 17:43:02,27.07.2026 21:04:17
-USD/CHF,2,275000,CHF,Shares,,,Currency,Collector_YahooWeekday,USD/CHF=X,0,27.07.2026 17:43:37,27.07.2026 21:04:17
-iShares Swiss Dividends,10,23793563,CHF,Shares,Switzerland,Core,Shares,Collector_YahooWeekday,CHDVD.SW,315,27.07.2026 17:44:00,27.07.2026 21:04:17
-STOXX Europe 600 EUR NR,4,31008,EUR,Shares,Europe Equity,,Index,Collector_Other,,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-Raiffeisen Futura II - Systematic Invest Equity B (Samantha),41,114426952,CHF,Shares,Fund,Samantha,ETF/Funds,Collector_Other,,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-Raiffeisen Futura II - Systematic Invest Equity (Vorsorge),42,114426954,CHF,Shares,Fund,Vorsorge,ETF/Funds,Collector_Other,,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-Raiffeisen Winterthur Hypothek 1 Jahr Zinssatz,44,pending44,CHF,Bonds,Hypothek,1 Jahr,other,Collector_Other,,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-Raiffeisen Winterthur Hypothek 5 Jahr Zinssatz,45,pending45,CHF,Bonds,Hypothek,5 Jahr,other,Collector_Other,,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-Raiffeisen Winterthur Hypothek 10 Jahr Zinssatz,46,pending46,CHF,Bonds,Hypothek,10 Jahr,other,Collector_Other,,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-Raiffeisen Winterthur Hypothek 15 Jahr Zinssatz,47,pending47,CHF,Bonds,Hypothek,15 Jahr,other,Collector_Other,,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-Raiffeisen Anteilsschein,28,12161,CHF,Bonds,,,other,Collector_Other,,2,27.07.2026 20:50:11,27.07.2026 21:04:17
-Gold Vreneli (CHF 20),29,281383,CHF,Alternative,Precious Metals,Gold Coin,other,Collector_Other,,1,27.07.2026 20:50:11,27.07.2026 21:04:17
-Nestlé SA,1,3886335,CHF,Shares,Swiss Equity,Consumer,Shares,Collector_YahooWeekday,NESN.SW,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-S&P 500 Total Return,5,12007,USD,Shares,US Equity,Index,Index,Collector_YahooWeekday,^SP500TR,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-SMI Total Return,6,222130,CHF,Shares,Swiss Equity,Index,Index,Collector_YahooWeekday,SMIC.SW,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-SOL - Solana,7,22000,USD,Alternative,Crypto,,Crypto,Collector_YahooDaily,SOL-USD,21.356,27.07.2026 20:50:11,27.07.2026 21:04:17
-ETH - Ethereum,9,40149561,USD,Alternative,Crypto,,Crypto,Collector_YahooDaily,ETH-USD,0.901,27.07.2026 20:50:11,27.07.2026 21:04:17
-iShares Core MSCI EM IMI UCITS ETF (EIMI),11,24209517,USD,Shares,Emerging Markets,,ETF/Funds,Collector_YahooWeekday,EIMI.L,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-UBS ETF (CH) SMIM,12,11176253,CHF,Shares,Swiss Mid Cap,,ETF/Funds,Collector_YahooWeekday,SMMCHA.SW,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-Vanguard S&P 500 UCITS ETF (VUAA),13,18575508,USD,Shares,US Equity,,ETF/Funds,Collector_YahooWeekday,VUAA.L,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-Xtrackers S&P 500 Equal Weight UCITS ETF (XDEW),14,24514626,USD,Shares,US Equity,Equal Weight,ETF/Funds,Collector_YahooWeekday,XDEW.L,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-VanEck S&P Global Mining UCITS ETF (GDIG),15,41125207,USD,Shares,Mining,,ETF/Funds,Collector_YahooWeekday,GDIG.L,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-UBS Gold ETF (AUUSI),16,10602719,USD,Alternative,Commodities,,ETF/Funds,Collector_YahooWeekday,AUUSI-USD.SW,175,27.07.2026 20:50:11,27.07.2026 21:04:17
-iShares Core MSCI Japan IMI UCITS ETF (SJPA/IJPA),17,10608419,JPY,Shares,Japan Equity,,ETF/Funds,Collector_YahooWeekday,IJPA.L,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-iShares MSCI EMU Small Cap ETF (CSEMUS),18,10192176,EUR,Shares,Europe Small Cap,,ETF/Funds,Collector_YahooWeekday,CSEMUS.MI,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-Amazon,19,10152,USD,Shares,US Equity,Tech,Shares,Collector_YahooWeekday,AMZN,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-Microsoft,21,951692,USD,Shares,US Equity,Tech,Shares,Collector_YahooWeekday,MSFT,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-Nvidia,22,994529,USD,Shares,US Equity,Tech,Shares,Collector_YahooWeekday,NVDA,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-Lonza Group AG,23,1384101,CHF,Shares,Swiss Equity,Healthcare,Shares,Collector_YahooWeekday,LONN.SW,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-UBS Group AG,24,24476758,CHF,Shares,Swiss Equity,Financials,Shares,Collector_YahooWeekday,UBSG.SW,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-Vonovia,25,21644750,EUR,Shares,German Equity,Real Estate,Shares,Collector_YahooWeekday,VNA.DE,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-Alphabet (Google Class C),26,29798540,USD,Shares,US Equity,Tech,Shares,Collector_YahooWeekday,GOOG,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-SpaceX,27,156888148,USD,Shares,US Equity,Private,Shares,Collector_YahooWeekday,SPCX,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-Partners Group Holding AG,30,2460882,CHF,Shares,Swiss Equity,Financials,Shares,Collector_YahooWeekday,PGHN.SW,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-iShares Core MSCI Europe UCITS ETF EUR Dist,31,3246398,EUR,Shares,Europe Equity,,ETF/Funds,Collector_YahooWeekday,IMEU.AS,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-iShares Core MSCI Pacific ex Japan,32,10737120,USD,Shares,Asia Pacific Equity,,ETF/Funds,Collector_YahooWeekday,CPXJ.L,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-iShares Core FTSE 100,33,10737489,GBP,Shares,UK Equity,,ETF/Funds,Collector_YahooWeekday,ISF.L,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-iShares Core MSCI EMU UCITS ETF,34,10737587,EUR,Shares,Eurozone Equity,,ETF/Funds,Collector_YahooWeekday,CSEMU.MI,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-SWC (CH) REF Rsp Swiss Commercial FA CHF,35,11195919,CHF,Alternative,Real Estate,,ETF/Funds,Collector_YahooWeekday,SWRESC.SW,231,27.07.2026 20:50:11,27.07.2026 21:04:17
-SPDR S&P Euro Dividend Aristocrats ETF,36,14969376,EUR,Shares,Europe Equity,Dividend,ETF/Funds,Collector_YahooWeekday,EUDV.SW,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-Richemont SA,37,21048333,CHF,Shares,Swiss Equity,Luxury,Shares,Collector_YahooWeekday,CFR.SW,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-Sika Ltd,38,41879292,CHF,Shares,Swiss Equity,Industrial,Shares,Collector_YahooWeekday,SIKA.SW,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-Alcon AG,39,43249246,CHF,Shares,Swiss Equity,Healthcare,Shares,Collector_YahooWeekday,ALC.SW,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-Helvetia Baloise Holding AG,40,46664220,CHF,Shares,Swiss Equity,Insurance,Shares,Collector_YahooWeekday,HBAN.SW,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-GBP/CHF,48,pending48,CHF,Alternative,FX,,Currency,Collector_YahooDaily,GBPCHF=X,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-Gold (USD/oz),49,pending49,USD,Alternative,Commodities,,other,Collector_YahooDaily,GC=F,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-JPY/CHF,50,pending50,CHF,Alternative,FX,,Currency,Collector_YahooDaily,JPYCHF=X,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-MSCI ACWI - Emerging Markets (USD),51,Pending51,USD,Shares,Emerging Markets,,Index,none,,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-MSCI World,52,Pending52,USD,Shares,Global Equity,Index,Index,none,,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-Nasdaq Composite,53,Pending53,USD,Shares,US Equity,Index,Index,Collector_YahooWeekday,^IXIC,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-Silver (USD/oz),54,pending54,USD,Alternative,Commodities,,other,Collector_YahooDaily,SI=F,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-Sunrise Communications AG,55,pending55,CHF,Shares,Swiss Equity,Telecom,Shares,Collector_YahooWeekday,SUNN.SW,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-Swiss Performance Index (SPI),56,pending56,CHF,Shares,Swiss Equity,Index,Index,none,,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-CBOE Interest Rate 10 Year T Note,57,pending57,USD,Bonds,US Rates,,other,Collector_YahooWeekday,^TNX,0,27.07.2026 20:50:11,27.07.2026 21:04:17
-Brent Crude Oil Last Day Financ,58,pending58,USD,Alternative,Commodities,,other,Collector_YahooDaily,BZ=F,0,27.07.2026 20:50:11,27.07.2026 21:04:17
+Apple Inc.,20,908440,USD,Shares,USA,Growth,Shares,Collector_YahooWeekday,AAPL,10,27.07.2026 09:00:00,27.07.2026 21:14:39
+BTC - Bitcoin,8,18789194,USD,Alternative,Crypto,,Crypto,Collector_YahooDaily,BTC-USD,0.0249,27.07.2026 09:00:00,27.07.2026 21:14:39
+Rendite Bundesobligationen Eidgenossenschaft 10 Jahre (%),43,PENDING1,CHF,Bonds,Swiss Gov,,other,Collector_Other,,0,27.07.2026 09:00:00,27.07.2026 21:14:39
+EUR/CHF,3,897789,CHF,Shares,,,Currency,Collector_YahooWeekday,EUR/CHF=X,0,27.07.2026 17:43:02,27.07.2026 21:14:39
+USD/CHF,2,275000,CHF,Shares,,,Currency,Collector_YahooWeekday,USD/CHF=X,0,27.07.2026 17:43:37,27.07.2026 21:14:39
+iShares Swiss Dividends,10,23793563,CHF,Shares,Switzerland,Core,Shares,Collector_YahooWeekday,CHDVD.SW,315,27.07.2026 17:44:00,27.07.2026 21:14:39
+STOXX Europe 600 EUR NR,4,31008,EUR,Shares,Europe Equity,,Index,Collector_Other,,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+Raiffeisen Futura II - Systematic Invest Equity B (Samantha),41,114426952,CHF,Shares,Fund,Samantha,ETF/Funds,Collector_Other,,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+Raiffeisen Futura II - Systematic Invest Equity (Vorsorge),42,114426954,CHF,Shares,Fund,Vorsorge,ETF/Funds,Collector_Other,,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+Raiffeisen Winterthur Hypothek 1 Jahr Zinssatz,44,pending44,CHF,Bonds,Hypothek,1 Jahr,other,Collector_Other,,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+Raiffeisen Winterthur Hypothek 5 Jahr Zinssatz,45,pending45,CHF,Bonds,Hypothek,5 Jahr,other,Collector_Other,,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+Raiffeisen Winterthur Hypothek 10 Jahr Zinssatz,46,pending46,CHF,Bonds,Hypothek,10 Jahr,other,Collector_Other,,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+Raiffeisen Winterthur Hypothek 15 Jahr Zinssatz,47,pending47,CHF,Bonds,Hypothek,15 Jahr,other,Collector_Other,,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+Raiffeisen Anteilsschein,28,12161,CHF,Bonds,,,other,Collector_Other,,2,27.07.2026 20:50:11,27.07.2026 21:14:39
+Gold Vreneli (CHF 20),29,281383,CHF,Alternative,Precious Metals,Gold Coin,other,Collector_Other,,1,27.07.2026 20:50:11,27.07.2026 21:14:39
+Nestlé SA,1,3886335,CHF,Shares,Swiss Equity,Consumer,Shares,Collector_YahooWeekday,NESN.SW,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+S&P 500 Total Return,5,12007,USD,Shares,US Equity,Index,Index,Collector_YahooWeekday,^SP500TR,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+SMI Total Return,6,222130,CHF,Shares,Swiss Equity,Index,Index,Collector_YahooWeekday,SMIC.SW,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+SOL - Solana,7,22000,USD,Alternative,Crypto,,Crypto,Collector_YahooDaily,SOL-USD,21.356,27.07.2026 20:50:11,27.07.2026 21:14:39
+ETH - Ethereum,9,40149561,USD,Alternative,Crypto,,Crypto,Collector_YahooDaily,ETH-USD,0.901,27.07.2026 20:50:11,27.07.2026 21:14:39
+iShares Core MSCI EM IMI UCITS ETF (EIMI),11,24209517,USD,Shares,Emerging Markets,,ETF/Funds,Collector_YahooWeekday,EIMI.L,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+UBS ETF (CH) SMIM,12,11176253,CHF,Shares,Swiss Mid Cap,,ETF/Funds,Collector_YahooWeekday,SMMCHA.SW,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+Vanguard S&P 500 UCITS ETF (VUAA),13,18575508,USD,Shares,US Equity,,ETF/Funds,Collector_YahooWeekday,VUAA.L,190,27.07.2026 20:50:11,27.07.2026 21:14:39
+Xtrackers S&P 500 Equal Weight UCITS ETF (XDEW),14,24514626,USD,Shares,US Equity,Equal Weight,ETF/Funds,Collector_YahooWeekday,XDEW.L,411,27.07.2026 20:50:11,27.07.2026 21:14:39
+VanEck S&P Global Mining UCITS ETF (GDIG),15,41125207,USD,Shares,Mining,,ETF/Funds,Collector_YahooWeekday,GDIG.L,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+UBS Gold ETF (AUUSI),16,10602719,USD,Alternative,Commodities,,ETF/Funds,Collector_YahooWeekday,AUUSI-USD.SW,175,27.07.2026 20:50:11,27.07.2026 21:14:39
+iShares Core MSCI Japan IMI UCITS ETF (SJPA/IJPA),17,10608419,JPY,Shares,Japan Equity,,ETF/Funds,Collector_YahooWeekday,IJPA.L,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+iShares MSCI EMU Small Cap ETF (CSEMUS),18,10192176,EUR,Shares,Europe Small Cap,,ETF/Funds,Collector_YahooWeekday,CSEMUS.MI,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+Amazon,19,10152,USD,Shares,US Equity,Tech,Shares,Collector_YahooWeekday,AMZN,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+Microsoft,21,951692,USD,Shares,US Equity,Tech,Shares,Collector_YahooWeekday,MSFT,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+Nvidia,22,994529,USD,Shares,US Equity,Tech,Shares,Collector_YahooWeekday,NVDA,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+Lonza Group AG,23,1384101,CHF,Shares,Swiss Equity,Healthcare,Shares,Collector_YahooWeekday,LONN.SW,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+UBS Group AG,24,24476758,CHF,Shares,Swiss Equity,Financials,Shares,Collector_YahooWeekday,UBSG.SW,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+Vonovia,25,21644750,EUR,Shares,German Equity,Real Estate,Shares,Collector_YahooWeekday,VNA.DE,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+Alphabet (Google Class C),26,29798540,USD,Shares,US Equity,Tech,Shares,Collector_YahooWeekday,GOOG,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+SpaceX,27,156888148,USD,Shares,US Equity,Private,Shares,Collector_YahooWeekday,SPCX,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+Partners Group Holding AG,30,2460882,CHF,Shares,Swiss Equity,Financials,Shares,Collector_YahooWeekday,PGHN.SW,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+iShares Core MSCI Europe UCITS ETF EUR Dist,31,3246398,EUR,Shares,Europe Equity,,ETF/Funds,Collector_YahooWeekday,IMEU.AS,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+iShares Core MSCI Pacific ex Japan,32,10737120,USD,Shares,Asia Pacific Equity,,ETF/Funds,Collector_YahooWeekday,CPXJ.L,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+iShares Core FTSE 100,33,10737489,GBP,Shares,UK Equity,,ETF/Funds,Collector_YahooWeekday,ISF.L,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+iShares Core MSCI EMU UCITS ETF,34,10737587,EUR,Shares,Eurozone Equity,,ETF/Funds,Collector_YahooWeekday,CSEMU.MI,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+SWC (CH) REF Rsp Swiss Commercial FA CHF,35,11195919,CHF,Alternative,Real Estate,,ETF/Funds,Collector_YahooWeekday,SWRESC.SW,231,27.07.2026 20:50:11,27.07.2026 21:14:39
+SPDR S&P Euro Dividend Aristocrats ETF,36,14969376,EUR,Shares,Europe Equity,Dividend,ETF/Funds,Collector_YahooWeekday,EUDV.SW,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+Richemont SA,37,21048333,CHF,Shares,Swiss Equity,Luxury,Shares,Collector_YahooWeekday,CFR.SW,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+Sika Ltd,38,41879292,CHF,Shares,Swiss Equity,Industrial,Shares,Collector_YahooWeekday,SIKA.SW,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+Alcon AG,39,43249246,CHF,Shares,Swiss Equity,Healthcare,Shares,Collector_YahooWeekday,ALC.SW,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+Helvetia Baloise Holding AG,40,46664220,CHF,Shares,Swiss Equity,Insurance,Shares,Collector_YahooWeekday,HBAN.SW,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+GBP/CHF,48,pending48,CHF,Alternative,FX,,Currency,Collector_YahooDaily,GBPCHF=X,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+Gold (USD/oz),49,pending49,USD,Alternative,Commodities,,other,Collector_YahooDaily,GC=F,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+JPY/CHF,50,pending50,CHF,Alternative,FX,,Currency,Collector_YahooDaily,JPYCHF=X,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+MSCI ACWI - Emerging Markets (USD),51,Pending51,USD,Shares,Emerging Markets,,Index,none,,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+MSCI World,52,Pending52,USD,Shares,Global Equity,Index,Index,none,,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+Nasdaq Composite,53,Pending53,USD,Shares,US Equity,Index,Index,Collector_YahooWeekday,^IXIC,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+Silver (USD/oz),54,pending54,USD,Alternative,Commodities,,other,Collector_YahooDaily,SI=F,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+Sunrise Communications AG,55,pending55,CHF,Shares,Swiss Equity,Telecom,Shares,Collector_YahooWeekday,SUNN.SW,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+Swiss Performance Index (SPI),56,pending56,CHF,Shares,Swiss Equity,Index,Index,none,,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+CBOE Interest Rate 10 Year T Note,57,pending57,USD,Bonds,US Rates,,other,Collector_YahooWeekday,^TNX,0,27.07.2026 20:50:11,27.07.2026 21:14:39
+Brent Crude Oil Last Day Financ,58,pending58,USD,Alternative,Commodities,,other,Collector_YahooDaily,BZ=F,0,27.07.2026 20:50:11,27.07.2026 21:14:39
