@@ -80,12 +80,21 @@ def obs_to_json(obs):
     return {"price": obs["price"], "date": obs["dt"].isoformat(), "source": obs["source"]}
 
 
+def end_of_day(d):
+    """23:59:59.999999 desselben Kalendertags - stellt sicher, dass 'letzter
+    Kurs von diesem Tag' gefunden wird, unabhängig davon, zu welcher Uhrzeit
+    der Generator gerade läuft. Ohne das würde ein FX-Kurs, der später am
+    selben Tag erfasst wurde als der Cutoff-Zeitpunkt, fälschlich als 'nicht
+    vorhanden' gelten."""
+    return d.replace(hour=23, minute=59, second=59, microsecond=999999)
+
+
 def build_entry(observations, now):
     last = observations[-1] if observations else None
     entry = {"last": obs_to_json(last)}
 
     for key, offset_days in REFERENCE_OFFSETS_DAYS.items():
-        cutoff = now - timedelta(days=offset_days)
+        cutoff = end_of_day(now - timedelta(days=offset_days))
         entry[key] = obs_to_json(find_on_or_before(observations, cutoff))
 
     last_365d = [o for o in observations if o["dt"] >= now - timedelta(days=365)]
