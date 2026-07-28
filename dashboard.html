@@ -99,37 +99,33 @@ function findOnOrBefore(sorted, date){
 
 async function load(){
   try{
-    const [masterText, pricesText] = await Promise.all([ghFetchRaw('data/security_master.csv'), ghFetchRaw('data/security_prices.csv')]);
+    const [masterText, pricesJsonText] = await Promise.all([ghFetchRaw('data/security_master.csv'), ghFetchRaw('data/latest_prices.json')]);
     const master = parseCSV(masterText).rows;
-    const prices = parseCSV(pricesText).rows.map(r => ({
-      SecurityID: r.SecurityID, Price: parseFloat(r.Price), dt: parseSwissDateTime(r.PriceDate),
-    })).filter(r => r.dt && !isNaN(r.Price));
+    const pricesJson = JSON.parse(pricesJsonText);
+    const bySecurity = pricesJson.securities || {};
 
-    const bySecurity = {};
-    for(const p of prices){
-      (bySecurity[p.SecurityID] = bySecurity[p.SecurityID] || []).push(p);
-    }
-    for(const id in bySecurity) bySecurity[id].sort((a,b)=>a.dt-b.dt);
+    // JSON liefert ISO-Datumsstrings -> in echte Date-Objekte umwandeln
+    function toObs(o){ return o ? { Price: o.price, dt: new Date(o.date), Source: o.source } : null; }
 
-    const now = new Date();
     const groups = {};
     for(const m of master){
-      const list = bySecurity[m.SecurityID] || [];
-      const last = list[list.length-1] || null;
-      const prev = list.length>1 ? list[list.length-2] : null;
-      const refWeek = findOnOrBefore(list, daysAgo(now,7));
-      const refMonth = findOnOrBefore(list, daysAgo(now,30));
+      const entry = bySecurity[m.SecurityID];
+      const last = entry ? toObs(entry.last) : null;
+      const day = entry ? toObs(entry.day) : null;
+      const refWeek = entry ? toObs(entry.week) : null;
+      const refMonth = entry ? toObs(entry.month) : null;
 
       const instrument = m.Instrument || 'Sonstige';
       (groups[instrument] = groups[instrument] || []).push({
         name: m.SecurityName, currency: m.Currency, secId: m.SecurityID, instrument,
-        last, prev, refWeek, refMonth,
+        last, prev: day, refWeek, refMonth,
       });
     }
 
     renderBoard(groups);
     document.getElementById('statusText').textContent = 'live';
-    document.getElementById('lastSynced').textContent = 'Zuletzt geladen: ' + new Date().toLocaleTimeString('de-CH');
+    const genAt = pricesJson.generated_at ? fmtShortDateTime(new Date(pricesJson.generated_at)) : '—';
+    document.getElementById('lastSynced').textContent = `Zuletzt aktualisiert (Collector): ${genAt} · geladen: ` + new Date().toLocaleTimeString('de-CH');
   }catch(e){
     document.getElementById('boardBody').innerHTML = `<tr><td colspan="6" class="error">Fehler: ${e.message}</td></tr>`;
     document.getElementById('statusText').textContent = 'Fehler';

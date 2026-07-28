@@ -124,12 +124,6 @@ const GROUP_ORDER = ['Shares', 'Bonds', 'Alternative'];
 // Für diese Gruppen wird zusätzlich nach PortfolioSubgruppe1 aufgeteilt/subtotalisiert.
 const SUBGROUP_ENABLED = new Set(['Shares', 'Alternative']);
 
-function computeValueAtRef(qty, priceRef, fxMap, currency){
-  if(!priceRef) return null;
-  const rate = fxRateOnDate(fxMap, currency, priceRef.dt);
-  return rate!==null ? qty*priceRef.Price*rate : null;
-}
-
 /* Bildet für ein Feld (z.B. 'valDayChf') die gepaarte Summe: nur Positionen,
  * die SOWOHL einen aktuellen Wert ALS AUCH einen Wert am Referenzpunkt haben,
  * fliessen in beide Summen ein. So bleiben aktueller Wert und Referenzwert
@@ -154,19 +148,31 @@ function deltaFromPaired(positions, refField){
 
 async function load(){
   try{
-    const [masterText, pricesText] = await Promise.all([ghFetchRaw('data/security_master.csv'), ghFetchRaw('data/security_prices.csv')]);
+    const [masterText, pricesJsonText] = await Promise.all([ghFetchRaw('data/security_master.csv'), ghFetchRaw('data/latest_prices.json')]);
     const master = parseCSV(masterText).rows;
-    const prices = parseCSV(pricesText).rows.map(r => ({
-      SecurityID:r.SecurityID, Price:parseFloat(r.Price), dt:parseSwissDateTime(r.PriceDate),
-    })).filter(r=>r.dt && !isNaN(r.Price));
+    const pricesJson = JSON.parse(pricesJsonText);
+    const bySecurity = pricesJson.securities || {};
 
-    const bySecurity = {};
-    for(const p of prices) (bySecurity[p.SecurityID]=bySecurity[p.SecurityID]||[]).push(p);
-    for(const id in bySecurity) bySecurity[id].sort((a,b)=>a.dt-b.dt);
-
-    const fxMap = buildFxMap(master, bySecurity);
-    const now = new Date();
-    const refDay = daysAgo(now,1), refWeek = daysAgo(now,7), refTen = daysAgo(now,10), refMonth = daysAgo(now,30);
+    // FX-Securities ("XXX/CHF") aus dem JSON herausziehen: pro Periode
+    // (last/day/week/ten_day/month) steht der jeweils passende Kurs bereit -
+    // kein Datums-Scan mehr nötig, da das JSON die Perioden schon vorberechnet.
+    const fxByCurrency = {};
+    for(const m of master){
+      const match = (m.SecurityName||'').trim().match(/^([A-Za-z]{3})\/CHF$/i);
+      if(!match) continue;
+      const entry = bySecurity[m.SecurityID];
+      if(entry) fxByCurrency[match[1].toUpperCase()] = entry;
+    }
+    function fxRate(currency, periodKey){
+      if(!currency || currency.toUpperCase()==='CHF') return 1;
+      const fx = fxByCurrency[currency.toUpperCase()];
+      return (fx && fx[periodKey]) ? fx[periodKey].price : null;
+    }
+    function valueAt(qty, entry, periodKey, currency){
+      if(!entry || !entry[periodKey]) return null;
+      const rate = fxRate(currency, periodKey);
+      return rate!==null ? qty*entry[periodKey].price*rate : null;
+    }
 
     const positions = [];
     let totalChf = 0;
@@ -175,20 +181,15 @@ async function load(){
     for(const m of master){
       const qty = parseFloat(m.Quantity)||0;
       if(qty === 0) continue;
-      const list = bySecurity[m.SecurityID] || [];
-      if(!list.length) continue;
-      const last = list[list.length-1];
+      const entry = bySecurity[m.SecurityID];
+      if(!entry || !entry.last) continue;
 
-      const priceDay = findOnOrBefore(list, refDay);
-      const priceWeek = findOnOrBefore(list, refWeek);
-      const priceTen = findOnOrBefore(list, refTen);
-      const priceMonth = findOnOrBefore(list, refMonth);
-
-      const valChf = computeValueAtRef(qty, last, fxMap, m.Currency);
-      const valDayChf = computeValueAtRef(qty, priceDay, fxMap, m.Currency);
-      const valWeekChf = computeValueAtRef(qty, priceWeek, fxMap, m.Currency);
-      const valTenChf = computeValueAtRef(qty, priceTen, fxMap, m.Currency);
-      const valMonthChf = computeValueAtRef(qty, priceMonth, fxMap, m.Currency);
+      const last = { Price: entry.last.price };
+      const valChf = valueAt(qty, entry, 'last', m.Currency);
+      const valDayChf = valueAt(qty, entry, 'day', m.Currency);
+      const valWeekChf = valueAt(qty, entry, 'week', m.Currency);
+      const valTenChf = valueAt(qty, entry, 'ten_day', m.Currency);
+      const valMonthChf = valueAt(qty, entry, 'month', m.Currency);
 
       if(valChf!==null){
         totalChf += valChf;
