@@ -8,3 +8,4 @@ SecurityID,SecurityName,DistributionAmount,Currency,ExDate,PayDate,Source,Create
 10,iShares Swiss Dividends,0.8,CHF,12.03.2026,16.03.2026,manual,28.07.2026 08:00:25
 10,iShares Swiss Dividends,0.78,CHF,10.03.2026,12.03.2026,manual,28.07.2026 08:00:44
 10,iShares Swiss Dividends,0.74,CHF,15.07.2025,17.07.2025,manual,28.07.2026 08:01:02
+31,iShares Core MSCI Europe UCITS ETF EUR Dist,0.4272,EUR,21.05.2026,29.05.2026,manual,28.07.2026 08:29:46
