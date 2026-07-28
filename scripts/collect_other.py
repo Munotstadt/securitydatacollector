@@ -226,7 +226,7 @@ def run():
         try:
             price, _currency = fetch_fn()
             new_rows.append({
-                "SecurityID": sec_id, "SecurityName": name, "Price": price,
+                "SecurityID": sec_id, "SecurityName": name, "Price": round(price, 5),
                 "PriceDate": now_str, "Source": source_label, "Created_at": now_str,
             })
             print(f"[OK] {name}: {price}")

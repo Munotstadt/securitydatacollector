@@ -93,7 +93,7 @@ def run_collector(flag_value, source_label):
             new_rows.append({
                 "SecurityID": sec_id,
                 "SecurityName": name,
-                "Price": price,
+                "Price": round(price, 5),
                 "PriceDate": now_str,
                 "Source": source_label,
                 "Created_at": now_str,
