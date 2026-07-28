@@ -13,7 +13,14 @@
   h1{font-family:'Space Grotesk',sans-serif;font-size:20px;text-transform:uppercase;letter-spacing:.02em;border-bottom:2px solid var(--accent);padding-bottom:14px;}
   .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:16px 0;}
   input[type=text], select, input[type=number]{
-    font-family:'IBM Plex Mono',monospace;font-size:13px;padding:7px 9px;border:1px solid var(--line);border-radius:3px;background:var(--bg);color:var(--text);
+    font-family:'Inter',sans-serif;font-size:14px;color:var(--text);background:var(--panel);
+    border:1px solid var(--line);border-radius:3px;padding:9px 10px;outline:none;transition:border-color .15s;
+  }
+  input[type=text]:focus, select:focus, input[type=number]:focus{ border-color:var(--accent); }
+  select{
+    cursor:pointer; appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23767E8A'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 10px center; padding-right:28px;
   }
   #search{flex:1;min-width:220px;}
   button{font-family:'IBM Plex Mono',monospace;font-size:12px;padding:8px 14px;border-radius:3px;border:1px solid var(--line);background:none;cursor:pointer;color:var(--text);}
@@ -21,7 +28,7 @@
   button:hover{border-color:var(--text);}
   table{width:100%;border-collapse:collapse;font-size:13px;}
   th{text-align:left;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:8px 6px;border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:0;}
-  td{padding:6px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  td{padding:6px;border-bottom:1px solid var(--line);vertical-align:top;}
   td input, td select{width:100%;min-width:80px;}
   .row-actions button{padding:4px 8px;}
   .status{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);margin-top:10px;}
@@ -31,6 +38,11 @@
   .settings.show{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;}
   .settings label{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);display:block;margin-bottom:3px;}
   .table-wrap{overflow-x:auto;}
+
+  /* Dropdown + "Other" Freitext-Reveal, analog Accounting-Formular */
+  .otherWrap{ margin-top:6px; display:none; }
+  .otherWrap.show{ display:block; }
+  .otherWrap input{ width:100%; }
 
   .topnav{
     display:flex;gap:4px;flex-wrap:wrap;align-items:center;
@@ -91,9 +103,13 @@
 
 <script src="assets/github-data.js"></script>
 <script>
-const CURRENCY_OPTS = ['CHF','EUR','USD','GBP','JPY','other'];
+// Currency und Instrument erlauben zusätzlich Freitext ("Other…"), wie im
+// ursprünglichen Spec vorgesehen. PortfolioGruppe und DataCollector sind
+// strikte Enums (DataCollector wird von den Collector-Skripten exakt
+// abgeglichen) und bekommen daher KEINE "Other"-Option.
+const CURRENCY_OPTS = ['CHF','EUR','USD','GBP','JPY'];
 const GRUPPE_OPTS = ['Shares','Bonds','Alternative'];
-const INSTRUMENT_OPTS = ['Index','Shares','ETF/Funds','Crypto','Currency','other'];
+const INSTRUMENT_OPTS = ['Index','Shares','ETF/Funds','Crypto','Currency'];
 const COLLECTOR_OPTS = ['Collector_YahooWeekday','Collector_YahooDaily','Collector_Other','none'];
 
 let header = [];
@@ -106,16 +122,28 @@ function sel(name, value, options) {
   return `<select data-field="${name}">${opts}</select>`;
 }
 
+/* Dropdown mit "Other…"-Option: ist der aktuelle Wert nicht in der Liste der
+ * bekannten Optionen enthalten, wird automatisch "Other…" vorausgewählt und
+ * das Freitextfeld direkt mit dem bestehenden Wert befüllt/eingeblendet. */
+function selWithOther(name, value, options) {
+  const isKnown = options.includes(value);
+  const isOther = !isKnown && (value || '') !== '';
+  const opts = options.map(o => `<option value="${o}" ${o===value?'selected':''}>${o}</option>`).join('')
+    + `<option value="__other__" ${isOther?'selected':''}>Other…</option>`;
+  return `<select class="other-select" data-field="${name}">${opts}</select>
+    <div class="otherWrap ${isOther?'show':''}"><input type="text" class="other-input" data-field="${name}" value="${isOther?(value||''):''}" placeholder="custom value..."></div>`;
+}
+
 function renderRow(row, idx) {
   return `<tr data-idx="${idx}">
     <td><input type="text" data-field="SecurityName" value="${row.SecurityName||''}"></td>
     <td><input type="text" data-field="SecurityID" value="${row.SecurityID||''}" style="width:60px"></td>
     <td><input type="text" data-field="MainID" value="${row.MainID||''}"></td>
-    <td>${sel('Currency', row.Currency, CURRENCY_OPTS)}</td>
+    <td>${selWithOther('Currency', row.Currency, CURRENCY_OPTS)}</td>
     <td>${sel('PortfolioGruppe', row.PortfolioGruppe, GRUPPE_OPTS)}</td>
     <td><input type="text" data-field="PortfolioSubgruppe1" value="${row.PortfolioSubgruppe1||''}"></td>
     <td><input type="text" data-field="PortfolioSubgruppe2" value="${row.PortfolioSubgruppe2||''}"></td>
-    <td>${sel('Instrument', row.Instrument, INSTRUMENT_OPTS)}</td>
+    <td>${selWithOther('Instrument', row.Instrument, INSTRUMENT_OPTS)}</td>
     <td>${sel('DataCollector', row.DataCollector, COLLECTOR_OPTS)}</td>
     <td><input type="text" data-field="YahooTicker" value="${row.YahooTicker||''}"></td>
     <td><input type="number" step="any" data-field="Quantity" value="${row.Quantity||0}" style="width:70px"></td>
@@ -135,12 +163,35 @@ function renderAll(filter='') {
     ? filtered.map(({r,i}) => renderRow(r, i)).join('')
     : '<tr><td colspan="12">Keine Treffer.</td></tr>';
 
-  body.querySelectorAll('input,select').forEach(el => {
+  // Normale Felder (Text/Number/reine Enum-Selects ohne Other-Option)
+  body.querySelectorAll('input:not(.other-input), select:not(.other-select)').forEach(el => {
     el.addEventListener('change', () => {
       const idx = Number(el.closest('tr').dataset.idx);
       rows[idx][el.dataset.field] = el.value;
     });
   });
+
+  // Dropdown+Other Felder (Currency, Instrument)
+  body.querySelectorAll('select.other-select').forEach(selEl => {
+    const wrap = selEl.nextElementSibling;
+    const otherInput = wrap.querySelector('.other-input');
+    selEl.addEventListener('change', () => {
+      const idx = Number(selEl.closest('tr').dataset.idx);
+      if (selEl.value === '__other__') {
+        wrap.classList.add('show');
+        otherInput.focus();
+        rows[idx][selEl.dataset.field] = otherInput.value;
+      } else {
+        wrap.classList.remove('show');
+        rows[idx][selEl.dataset.field] = selEl.value;
+      }
+    });
+    otherInput.addEventListener('input', () => {
+      const idx = Number(otherInput.closest('tr').dataset.idx);
+      rows[idx][otherInput.dataset.field] = otherInput.value;
+    });
+  });
+
   body.querySelectorAll('[data-del]').forEach(btn => {
     btn.addEventListener('click', () => {
       const idx = Number(btn.dataset.del);
@@ -182,7 +233,17 @@ document.getElementById('addBtn').addEventListener('click', () => {
   rows.push({SecurityName:'',SecurityID:'',MainID:'',Currency:'CHF',PortfolioGruppe:'Shares',
     PortfolioSubgruppe1:'',PortfolioSubgruppe2:'',Instrument:'Shares',DataCollector:'none',
     YahooTicker:'',Quantity:'0',Created_at:now,Modified_at:now});
-  renderAll(document.getElementById('search').value);
+  // WICHTIG: Suchfeld leeren, sonst wird die neue (noch leere) Zeile vom
+  // aktiven Filter sofort wieder ausgeblendet -> "es passiert nichts".
+  document.getElementById('search').value = '';
+  renderAll('');
+  // Neue Zeile sichtbar machen und Fokus auf das erste Feld setzen.
+  const lastRow = document.querySelector('#body tr:last-child');
+  if (lastRow) {
+    lastRow.scrollIntoView({ behavior:'smooth', block:'center' });
+    const firstInput = lastRow.querySelector('input');
+    if (firstInput) firstInput.focus();
+  }
 });
 
 document.getElementById('saveBtn').addEventListener('click', async () => {

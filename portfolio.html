@@ -9,27 +9,51 @@
   :root{ --bg:#fff;--panel:#F7F8FA;--line:#E3E6EA;--text:#1A1D22;--muted:#767E8A;--accent:#E30613;--gain:#1F8A6E;--loss:#C0293D; }
   *{box-sizing:border-box;}
   body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;padding:40px 16px 80px;display:flex;flex-direction:column;align-items:center;}
-  .board{width:100%;max-width:960px;}
+  .board{width:100%;max-width:1080px;}
   .eyebrow{display:flex;align-items:center;justify-content:space-between;padding-bottom:16px;border-bottom:2px solid var(--accent);}
   .brand h1{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:20px;text-transform:uppercase;letter-spacing:.02em;margin:0;}
   .status{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);}
-  .summary{display:flex;gap:24px;flex-wrap:wrap;margin:20px 0;}
-  .summary-box{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:14px 18px;min-width:150px;}
+
+  .summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:20px 0;}
+  .summary-box{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:12px 14px;}
   .summary-label{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);}
-  .summary-value{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;margin-top:4px;}
+  .summary-value{font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:600;margin-top:4px;}
+  .summary-pct{font-family:'IBM Plex Mono',monospace;font-size:11px;margin-top:2px;}
+
+  .section-title{font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;margin:28px 0 4px;padding-bottom:8px;border-bottom:1px solid var(--line);}
+
+  .ccy-chart{margin-top:10px;display:flex;flex-direction:column;gap:8px;}
+  .ccy-row{display:grid;grid-template-columns:50px 1fr 90px;gap:10px;align-items:center;font-family:'IBM Plex Mono',monospace;font-size:12px;}
+  .ccy-bar-wrap{background:var(--panel);border-radius:3px;overflow:hidden;height:16px;}
+  .ccy-bar{background:var(--accent);height:100%;}
+
+  .perf-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:10px;}
+  .perf-col h3{font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:14px 0 6px;}
+  .perf-col h3:first-child{margin-top:0;}
+  .perf-list{list-style:none;padding:0;margin:0;font-size:13px;}
+  .perf-list li{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px solid var(--line);}
+  .perf-list li span.n{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  @media (max-width:700px){ .perf-grid{grid-template-columns:1fr;} }
+
   table{width:100%;border-collapse:collapse;margin-top:4px;}
   thead th{text-align:left;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:12px 8px 8px;border-bottom:1px solid var(--line);}
   thead th.num{text-align:right;}
-  tbody td{padding:12px 8px;border-bottom:1px solid var(--line);font-size:14px;}
+  tbody td{padding:10px 8px;border-bottom:1px solid var(--line);font-size:13px;}
   tbody tr.section-row td{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);padding:20px 8px 6px;font-weight:600;}
+  tbody tr.subtotal-row td{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--text);background:var(--panel);font-weight:600;border-top:1px solid var(--line);}
   .name{font-weight:500;}
+  .name a{color:var(--text);text-decoration:none;border-bottom:1px dotted var(--muted);}
+  .name a:hover{color:var(--accent);border-bottom-color:var(--accent);}
   .price,.time{font-family:'IBM Plex Mono',monospace;text-align:right;white-space:nowrap;}
-  .chg{font-family:'IBM Plex Mono',monospace;text-align:right;font-size:13px;white-space:nowrap;}
+  .chg{font-family:'IBM Plex Mono',monospace;text-align:right;font-size:12px;white-space:nowrap;}
+  .chg .pct{display:block;font-size:10px;color:var(--muted);}
   .chg.up{color:var(--gain);} .chg.down{color:var(--loss);} .chg.flat{color:var(--muted);}
   .ccy{color:var(--muted);font-size:11px;margin-left:4px;}
   .empty,.error{padding:40px 10px;text-align:center;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:13px;}
   .error{color:var(--loss);}
   .note{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);margin-top:10px;}
+  .table-wrap{overflow-x:auto;}
+  #boardTable{min-width:840px;}
 
   .topnav{
     display:flex;gap:4px;flex-wrap:wrap;align-items:center;
@@ -62,14 +86,24 @@
 
   <div class="summary" id="summaryBoxes"></div>
 
+  <div class="section-title">Nach Währung</div>
+  <div class="ccy-chart" id="ccyChart"></div>
+
+  <div class="section-title">Top / Bottom Performer</div>
+  <div class="perf-grid" id="perfGrid"></div>
+
+  <div class="section-title">Positionen</div>
+  <div class="table-wrap">
   <table id="boardTable">
     <thead><tr>
-      <th>Position</th><th class="num">Quantity</th><th class="num">Kurs</th>
-      <th class="num">Wert CHF</th><th class="num">Δ Vortag CHF</th><th class="num">Δ Monat CHF</th>
+      <th>Position</th><th class="num">Quantity</th><th class="num">Kurs</th><th class="num">% PF</th>
+      <th class="num">Wert CHF</th><th class="num">Δ Vortag</th><th class="num">Δ Woche</th>
+      <th class="num">Δ 10 Tage</th><th class="num">Δ Monat</th>
     </tr></thead>
-    <tbody id="boardBody"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
+    <tbody id="boardBody"><tr><td colspan="9" class="empty">Loading…</td></tr></tbody>
   </table>
-  <p class="note">FX-Umrechnung nutzt die selbst erfassten Kurse der Securities "XXX/CHF" (z.B. USD/CHF, EUR/CHF) aus security_prices.csv, jeweils zum passenden Referenzdatum (Vortag/Monat) - keine externe FX-API.</p>
+  </div>
+  <p class="note">FX-Umrechnung nutzt die selbst erfassten Kurse der Securities "XXX/CHF" (z.B. USD/CHF, EUR/CHF) aus security_prices.csv, jeweils zum passenden Referenzdatum - keine externe FX-API.</p>
 </div>
 
 <script src="assets/github-data.js"></script>
@@ -77,6 +111,12 @@
 function fmtPct(v){ if(v===null||v===undefined||isNaN(v)) return {text:'—',dir:'flat'}; return {text:`${v>0?'+':''}${v.toFixed(2)}%`, dir:v>0?'up':(v<0?'down':'flat')}; }
 function fmtChf(v){ return v===null||isNaN(v) ? '—' : v.toLocaleString('de-CH',{maximumFractionDigits:0}); }
 /* daysAgo, findOnOrBefore, buildFxMap, fxRateOnDate kommen aus assets/github-data.js */
+
+function computeValueAtRef(qty, priceRef, fxMap, currency){
+  if(!priceRef) return null;
+  const rate = fxRateOnDate(fxMap, currency, priceRef.dt);
+  return rate!==null ? qty*priceRef.Price*rate : null;
+}
 
 async function load(){
   try{
@@ -92,79 +132,187 @@ async function load(){
 
     const fxMap = buildFxMap(master, bySecurity);
     const now = new Date();
+    const refDay = daysAgo(now,1), refWeek = daysAgo(now,7), refTen = daysAgo(now,10), refMonth = daysAgo(now,30);
 
-    const groups = {};
-    let totalChf = 0, totalPrevChf = 0, totalMonthChf = 0;
+    const positions = [];
+    let totalChf=0, totalDayChf=0, totalWeekChf=0, totalTenChf=0, totalMonthChf=0;
+    const byCurrency = {};
 
     for(const m of master){
       const qty = parseFloat(m.Quantity)||0;
-      if(qty === 0) continue; // nur tatsächliche Positionen
+      if(qty === 0) continue;
       const list = bySecurity[m.SecurityID] || [];
-      const last = list[list.length-1] || null;
-      const prev = list.length>1 ? list[list.length-2] : null;
-      const refMonth = findOnOrBefore(list, daysAgo(now,30));
+      if(!list.length) continue;
+      const last = list[list.length-1];
 
-      // FX-Kurs jeweils zum SELBEN Zeitpunkt wie der Preis-Referenzpunkt -
-      // nicht ein einziger "Live"-Kurs für alle Perioden.
-      const rateLast = last ? fxRateOnDate(fxMap, m.Currency, last.dt) : null;
-      const ratePrev = prev ? fxRateOnDate(fxMap, m.Currency, prev.dt) : null;
-      const rateMonth = refMonth ? fxRateOnDate(fxMap, m.Currency, refMonth.dt) : null;
+      const priceDay = findOnOrBefore(list, refDay);
+      const priceWeek = findOnOrBefore(list, refWeek);
+      const priceTen = findOnOrBefore(list, refTen);
+      const priceMonth = findOnOrBefore(list, refMonth);
 
-      const valChf = (last && rateLast) ? qty*last.Price*rateLast : null;
-      const valPrevChf = (prev && ratePrev) ? qty*prev.Price*ratePrev : null;
-      const valMonthChf = (refMonth && rateMonth) ? qty*refMonth.Price*rateMonth : null;
+      const valChf = computeValueAtRef(qty, last, fxMap, m.Currency);
+      const valDayChf = computeValueAtRef(qty, priceDay, fxMap, m.Currency);
+      const valWeekChf = computeValueAtRef(qty, priceWeek, fxMap, m.Currency);
+      const valTenChf = computeValueAtRef(qty, priceTen, fxMap, m.Currency);
+      const valMonthChf = computeValueAtRef(qty, priceMonth, fxMap, m.Currency);
 
       if(valChf!==null) totalChf += valChf;
-      if(valPrevChf!==null) totalPrevChf += valPrevChf;
+      if(valDayChf!==null) totalDayChf += valDayChf;
+      if(valWeekChf!==null) totalWeekChf += valWeekChf;
+      if(valTenChf!==null) totalTenChf += valTenChf;
       if(valMonthChf!==null) totalMonthChf += valMonthChf;
 
+      if(valChf!==null){
+        const ccy = m.Currency || '—';
+        byCurrency[ccy] = (byCurrency[ccy]||0) + valChf;
+      }
+
       const gruppe = m.PortfolioGruppe || 'Sonstige';
-      (groups[gruppe]=groups[gruppe]||[]).push({
-        name:m.SecurityName, secId:m.SecurityID, currency:m.Currency, qty, last, valChf, valPrevChf, valMonthChf,
+      positions.push({
+        name:m.SecurityName, secId:m.SecurityID, currency:m.Currency, qty, last, gruppe,
+        valChf, valDayChf, valWeekChf, valTenChf, valMonthChf,
       });
     }
 
-    renderSummary(totalChf, totalPrevChf, totalMonthChf);
-    renderBoard(groups);
+    renderSummary(totalChf, totalDayChf, totalWeekChf, totalTenChf, totalMonthChf, positions.length);
+    renderCurrencyChart(byCurrency, totalChf);
+    renderPerformers(positions);
+    renderBoard(positions, totalChf);
+
     document.getElementById('statusText').textContent = 'live · ' + new Date().toLocaleTimeString('de-CH');
   }catch(e){
-    document.getElementById('boardBody').innerHTML = `<tr><td colspan="6" class="error">Fehler: ${e.message}</td></tr>`;
+    document.getElementById('boardBody').innerHTML = `<tr><td colspan="9" class="error">Fehler: ${e.message}</td></tr>`;
     document.getElementById('statusText').textContent = 'Fehler';
   }
 }
 
-function renderSummary(total, prevTotal, monthTotal){
-  const dPrev = fmtPct((total && prevTotal) ? ((total-prevTotal)/prevTotal)*100 : null);
-  const dMonth = fmtPct((total && monthTotal) ? ((total-monthTotal)/monthTotal)*100 : null);
-  document.getElementById('summaryBoxes').innerHTML = `
-    <div class="summary-box"><div class="summary-label">Gesamtwert CHF</div><div class="summary-value">${fmtChf(total)}</div></div>
-    <div class="summary-box"><div class="summary-label">Δ Vortag</div><div class="summary-value chg ${dPrev.dir}">${dPrev.text}</div></div>
-    <div class="summary-box"><div class="summary-label">Δ Monat</div><div class="summary-value chg ${dMonth.dir}">${dMonth.text}</div></div>
-  `;
+function summaryTile(label, valueChf, refChf){
+  const delta = (valueChf!==null && refChf!==null && refChf!==undefined) ? valueChf-refChf : null;
+  const pct = (delta!==null && refChf) ? (delta/refChf)*100 : null;
+  const f = fmtPct(pct);
+  return `<div class="summary-box">
+    <div class="summary-label">${label}</div>
+    <div class="summary-value ${delta!==null?f.dir:''}">${delta!==null?fmtChf(delta):'—'}</div>
+    <div class="summary-pct ${f.dir}">${f.text}</div>
+  </div>`;
 }
 
-function renderBoard(groups){
-  const body = document.getElementById('boardBody');
-  let html = '';
-  const names = Object.keys(groups).sort();
-  if(!names.length){ body.innerHTML = '<tr><td colspan="6" class="empty">Keine Positionen mit Quantity &gt; 0 gefunden.</td></tr>'; return; }
+function renderSummary(total, dayTotal, weekTotal, tenTotal, monthTotal, posCount){
+  const html = `
+    <div class="summary-box">
+      <div class="summary-label">Portfoliowert</div>
+      <div class="summary-value">${fmtChf(total)} CHF</div>
+    </div>
+    ${summaryTile('Δ Vortag', total, dayTotal)}
+    ${summaryTile('Δ Woche', total, weekTotal)}
+    ${summaryTile('Δ 10 Tage', total, tenTotal)}
+    ${summaryTile('Δ Monat', total, monthTotal)}
+    <div class="summary-box">
+      <div class="summary-label">Anzahl Positionen</div>
+      <div class="summary-value">${posCount}</div>
+    </div>
+  `;
+  document.getElementById('summaryBoxes').innerHTML = html;
+}
 
+function renderCurrencyChart(byCurrency, total){
+  const el = document.getElementById('ccyChart');
+  const entries = Object.entries(byCurrency).sort((a,b)=>b[1]-a[1]);
+  if(!entries.length || !total){ el.innerHTML = '<div class="empty">Keine Daten.</div>'; return; }
+  el.innerHTML = entries.map(([ccy,val]) => {
+    const pct = (val/total)*100;
+    return `<div class="ccy-row">
+      <span>${ccy}</span>
+      <span class="ccy-bar-wrap"><span class="ccy-bar" style="width:${pct.toFixed(1)}%"></span></span>
+      <span>${fmtChf(val)} (${pct.toFixed(1)}%)</span>
+    </div>`;
+  }).join('');
+}
+
+function renderPerformers(positions){
+  function pctOf(p, field){
+    return (p.valChf!==null && p[field]) ? ((p.valChf-p[field])/p[field])*100 : null;
+  }
+  function rankedList(field, top){
+    return positions
+      .map(p => ({ name:p.name, secId:p.secId, pct: pctOf(p, field) }))
+      .filter(p => p.pct !== null)
+      .sort((a,b) => top ? b.pct-a.pct : a.pct-b.pct)
+      .slice(0,5);
+  }
+  function listHtml(items){
+    if(!items.length) return '<li class="empty" style="border:none;">Keine Daten.</li>';
+    return items.map(p => {
+      const f = fmtPct(p.pct);
+      return `<li><span class="n"><a href="security.html?id=${encodeURIComponent(p.secId)}" style="color:inherit;text-decoration:none;">${p.name}</a></span><span class="chg ${f.dir}">${f.text}</span></li>`;
+    }).join('');
+  }
+
+  const col1 = `
+    <div class="perf-col">
+      <h3>Top 5 · Tag</h3><ul class="perf-list">${listHtml(rankedList('valDayChf', true))}</ul>
+      <h3>Bottom 5 · Tag</h3><ul class="perf-list">${listHtml(rankedList('valDayChf', false))}</ul>
+    </div>`;
+  const col2 = `
+    <div class="perf-col">
+      <h3>Top 5 · Woche</h3><ul class="perf-list">${listHtml(rankedList('valWeekChf', true))}</ul>
+      <h3>Bottom 5 · Woche</h3><ul class="perf-list">${listHtml(rankedList('valWeekChf', false))}</ul>
+    </div>`;
+  document.getElementById('perfGrid').innerHTML = col1 + col2;
+}
+
+function deltaCell(valChf, refChf){
+  const delta = (valChf!==null && refChf!==null) ? valChf-refChf : null;
+  const pct = (delta!==null && refChf) ? (delta/refChf)*100 : null;
+  const f = fmtPct(pct);
+  return `<td class="chg ${f.dir}">${delta!==null?fmtChf(delta):'—'}<span class="pct">${f.text}</span></td>`;
+}
+
+function renderBoard(positions, total){
+  const body = document.getElementById('boardBody');
+  if(!positions.length){ body.innerHTML = '<tr><td colspan="9" class="empty">Keine Positionen mit Quantity &gt; 0 gefunden.</td></tr>'; return; }
+
+  const groups = {};
+  for(const p of positions) (groups[p.gruppe]=groups[p.gruppe]||[]).push(p);
+  const names = Object.keys(groups).sort();
+
+  let html = '';
   for(const gruppe of names){
-    html += `<tr class="section-row"><td colspan="6">${gruppe}</td></tr>`;
-    for(const r of groups[gruppe]){
-      const dPrev = fmtPct((r.valChf && r.valPrevChf) ? ((r.valChf-r.valPrevChf)/r.valPrevChf)*100 : null);
-      const dMonth = fmtPct((r.valChf && r.valMonthChf) ? ((r.valChf-r.valMonthChf)/r.valMonthChf)*100 : null);
-      const deltaPrevChf = (r.valChf!==null && r.valPrevChf!==null) ? r.valChf-r.valPrevChf : null;
-      const deltaMonthChf = (r.valChf!==null && r.valMonthChf!==null) ? r.valChf-r.valMonthChf : null;
+    html += `<tr class="section-row"><td colspan="9">${gruppe}</td></tr>`;
+    let subtotalChf=0, subtotalDayChf=0, subtotalWeekChf=0, subtotalTenChf=0, subtotalMonthChf=0, subtotalPct=0;
+
+    const rowsSorted = [...groups[gruppe]].sort((a,b) => (b.valChf||0)-(a.valChf||0));
+    for(const r of rowsSorted){
+      const pctPf = (r.valChf!==null && total) ? (r.valChf/total)*100 : null;
+      if(r.valChf!==null) subtotalChf += r.valChf;
+      if(r.valDayChf!==null) subtotalDayChf += r.valDayChf;
+      if(r.valWeekChf!==null) subtotalWeekChf += r.valWeekChf;
+      if(r.valTenChf!==null) subtotalTenChf += r.valTenChf;
+      if(r.valMonthChf!==null) subtotalMonthChf += r.valMonthChf;
+      if(pctPf!==null) subtotalPct += pctPf;
+
       html += `<tr>
         <td class="name"><a href="security.html?id=${encodeURIComponent(r.secId)}">${r.name}</a></td>
         <td class="price">${r.qty}</td>
         <td class="price">${fmtDecimal(r.last ? r.last.Price : null, 2)}<span class="ccy">${r.currency}</span></td>
+        <td class="price">${pctPf!==null?pctPf.toFixed(1)+'%':'—'}</td>
         <td class="price">${fmtChf(r.valChf)}</td>
-        <td class="chg ${dPrev.dir}">${deltaPrevChf!==null ? fmtChf(deltaPrevChf) : '—'} <span class="ccy">${dPrev.text}</span></td>
-        <td class="chg ${dMonth.dir}">${deltaMonthChf!==null ? fmtChf(deltaMonthChf) : '—'} <span class="ccy">${dMonth.text}</span></td>
+        ${deltaCell(r.valChf, r.valDayChf)}
+        ${deltaCell(r.valChf, r.valWeekChf)}
+        ${deltaCell(r.valChf, r.valTenChf)}
+        ${deltaCell(r.valChf, r.valMonthChf)}
       </tr>`;
     }
+
+    html += `<tr class="subtotal-row">
+      <td>Zwischentotal ${gruppe}</td><td></td><td></td>
+      <td class="price">${subtotalPct.toFixed(1)}%</td>
+      <td class="price">${fmtChf(subtotalChf)}</td>
+      ${deltaCell(subtotalChf, subtotalDayChf)}
+      ${deltaCell(subtotalChf, subtotalWeekChf)}
+      ${deltaCell(subtotalChf, subtotalTenChf)}
+      ${deltaCell(subtotalChf, subtotalMonthChf)}
+    </tr>`;
   }
   body.innerHTML = html;
 }
