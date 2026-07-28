@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,12 +18,9 @@
   .topnav a{ color:var(--muted);text-decoration:none;padding:6px 10px;border-radius:3px;border:1px solid transparent;white-space:nowrap; }
   .topnav a:hover{color:var(--text);border-color:var(--line);}
   .board{width:100%;max-width:900px;}
-  .toprow{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:8px;}
-  .back-link{display:inline-flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--muted);text-decoration:none;}
-  .back-link:hover{color:var(--text);}
+  .toprow{display:flex;justify-content:flex-end;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;}
   .detail-header{padding-bottom:18px;border-bottom:2px solid var(--accent);}
-  .detail-header h2{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:24px;margin:0 0 8px;}
-  .ids{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:12px;}
+  .detail-header h2{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:24px;margin:0 0 12px;}
   .detail-stats{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;}
   .detail-price{font-family:'IBM Plex Mono',monospace;font-size:30px;font-weight:600;}
   .ccy{color:var(--muted);font-size:13px;}
@@ -32,6 +29,7 @@
   .return-box{display:flex;flex-direction:column;gap:4px;padding:10px 14px;background:var(--panel);border:1px solid var(--line);border-radius:3px;min-width:84px;}
   .return-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);}
   .return-value{font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;}
+  .return-date{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);}
   .return-value.up{color:var(--gain);} .return-value.down{color:var(--loss);} .return-value.flat{color:var(--muted);}
 
   .section-title{font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;margin:28px 0 4px;padding-bottom:8px;border-bottom:1px solid var(--line);}
@@ -50,26 +48,34 @@
   .toggle-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
   .hidden{display:none !important;}
 
-  .chart-wrap{margin:10px 0;background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:16px 12px 8px;}
+  .chart-wrap{margin:10px 0;background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:16px 12px 8px;position:relative;}
   .chart-wrap svg{display:block;width:100%;height:auto;}
   .chart-empty{padding:30px 10px;text-align:center;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:13px;}
   .chart-legend{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;}
+  .chart-tooltip{
+    position:absolute;pointer-events:none;background:var(--text);color:#fff;
+    font-family:'IBM Plex Mono',monospace;font-size:11px;padding:5px 8px;border-radius:3px;
+    white-space:nowrap;transform:translate(-50%,-115%);display:none;z-index:5;
+  }
+  .chart-point{cursor:pointer;}
 
   .history-links{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;}
 
-  .quick-form{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:14px;margin-top:8px;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;align-items:end;}
+  .quick-form{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:14px;margin-top:8px;}
+  .quick-form .fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;}
   .quick-form .field label{display:block;font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:4px;}
   .quick-form input, .quick-form select{
     width:100%;font-family:'Inter',sans-serif;font-size:14px;color:var(--text);background:var(--bg);
     border:1px solid var(--line);border-radius:3px;padding:8px 9px;outline:none;
   }
   .quick-form input:focus, .quick-form select:focus{border-color:var(--accent);}
+  .quick-form .actions{display:flex;justify-content:flex-end;align-items:center;gap:12px;margin-top:12px;}
   .quick-form button{
     font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:12px;letter-spacing:.04em;text-transform:uppercase;
-    background:var(--accent);color:#fff;border:none;border-radius:3px;padding:10px 16px;cursor:pointer;
+    background:var(--accent);color:#fff;border:none;border-radius:3px;padding:10px 18px;cursor:pointer;
   }
   .quick-form button:hover{background:#b8050f;}
-  .quick-status{grid-column:1/-1;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);}
+  .quick-status{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);}
   .quick-status.ok{color:var(--gain);}
   .quick-status.err{color:var(--loss);}
 
@@ -78,12 +84,13 @@
   .settings label{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);display:block;margin-bottom:3px;}
   .settings input{width:100%;font-family:'Inter',sans-serif;font-size:14px;padding:8px 9px;border:1px solid var(--line);border-radius:3px;background:var(--bg);color:var(--text);}
 
-  .master-form{margin-top:8px;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;}
+  .master-form{margin-top:8px;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;}
   .master-form .field label{display:block;font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:4px;}
   .master-form input, .master-form select{
     width:100%;font-family:'Inter',sans-serif;font-size:14px;color:var(--text);background:var(--panel);
-    border:1px solid var(--line);border-radius:3px;padding:8px 9px;outline:none;
+    border:1px solid var(--line);border-radius:3px;padding:9px 10px;outline:none;
   }
+  .master-form input:disabled{color:var(--muted);background:#EFF1F4;}
   .master-form input:focus, .master-form select:focus{border-color:var(--accent);}
   .otherWrap{margin-top:6px;display:none;}
   .otherWrap.show{display:block;}
@@ -105,7 +112,6 @@
 
 <div class="board">
   <div class="toprow">
-    <a class="back-link" id="backLink" href="dashboard.html">&larr; zurück zum Dashboard</a>
     <button type="button" class="toggle-btn" id="settingsBtn">⚙ Repo/Token</button>
   </div>
 
@@ -113,13 +119,12 @@
     <div><label>GitHub Owner</label><input type="text" id="cfgOwner"></div>
     <div><label>Repo</label><input type="text" id="cfgRepo"></div>
     <div><label>Branch</label><input type="text" id="cfgBranch" placeholder="main"></div>
-    <div><label>Personal Access Token (repo-Scope)</label><input type="text" id="cfgToken" placeholder="ghp_…"></div>
-    <div style="align-self:end;"><button type="button" class="toggle-btn primary" id="cfgSave">Übernehmen</button></div>
+    <div><label>Personal Access Token (repo scope)</label><input type="text" id="cfgToken" placeholder="ghp_…"></div>
+    <div style="align-self:end;"><button type="button" class="toggle-btn primary" id="cfgSave">Apply</button></div>
   </div>
 
   <div class="detail-header">
-    <h2 id="detailName">Lade…</h2>
-    <div class="ids" id="detailIds"></div>
+    <h2 id="detailName">Loading…</h2>
     <div class="detail-stats">
       <span class="detail-price" id="detailPrice">—</span>
       <span class="ccy" id="detailCcy"></span>
@@ -132,73 +137,80 @@
   <div class="table-wrap">
   <table id="perfTable">
     <thead><tr>
-      <th>Zeitraum</th>
+      <th>Period</th>
       <th class="num" id="thPriceLc">Price Return LC</th>
       <th class="num" id="thTotalLc">Total Return LC</th>
       <th class="num">Price Return CHF</th>
       <th class="num">Total Return CHF</th>
     </tr></thead>
-    <tbody id="perfBody"><tr><td colspan="5" class="empty">Lade…</td></tr></tbody>
+    <tbody id="perfBody"><tr><td colspan="5" class="empty">Loading…</td></tr></tbody>
   </table>
   </div>
   <div class="detail-meta" id="yieldNote" style="margin-top:8px;"></div>
+  <div class="detail-meta" id="pointCountNote" style="margin-top:2px;"></div>
 
   <div class="toggle-row" id="viewToggle">
-    <button type="button" class="toggle-btn active" data-view="price">Preis</button>
-    <button type="button" class="toggle-btn" data-view="dividends">Ausschüttungen</button>
+    <button type="button" class="toggle-btn active" data-view="price">Price</button>
+    <button type="button" class="toggle-btn" data-view="dividends">Dividends</button>
   </div>
   <div class="toggle-row" id="priceRangeRow">
-    <button type="button" class="toggle-btn" data-range="10D">10 Tage</button>
-    <button type="button" class="toggle-btn" data-range="30D">30 Tage</button>
-    <button type="button" class="toggle-btn" data-range="YTD">YtD</button>
-    <button type="button" class="toggle-btn active" data-range="12M">12 Monate</button>
-    <button type="button" class="toggle-btn" data-range="ALL">Alle</button>
+    <button type="button" class="toggle-btn" data-range="10D">10 Days</button>
+    <button type="button" class="toggle-btn" data-range="30D">30 Days</button>
+    <button type="button" class="toggle-btn" data-range="YTD">YTD</button>
+    <button type="button" class="toggle-btn active" data-range="12M">12 Months</button>
+    <button type="button" class="toggle-btn" data-range="ALL">All</button>
   </div>
   <div class="toggle-row hidden" id="distRangeRow">
-    <button type="button" class="toggle-btn active" data-range="12M">12 Monate</button>
-    <button type="button" class="toggle-btn" data-range="ALL">Alle</button>
+    <button type="button" class="toggle-btn active" data-range="12M">12 Months</button>
+    <button type="button" class="toggle-btn" data-range="ALL">All</button>
   </div>
 
   <div class="section-title" id="chartTitle">Price Chart</div>
-  <div class="chart-wrap" id="chartWrap"><div class="chart-empty">Lade Chart…</div></div>
+  <div class="chart-wrap" id="chartWrap">
+    <div class="chart-empty">Loading chart…</div>
+    <div class="chart-tooltip" id="chartTooltip"></div>
+  </div>
 
   <div class="history-links">
     <a class="toggle-btn" id="linkPriceHistory" href="price_editor.html">📈 View Price History</a>
     <a class="toggle-btn" id="linkDividendHistory" href="distribution_editor.html">💰 View Dividend History</a>
   </div>
 
-  <div class="section-title">Preis erfassen</div>
+  <div class="section-title">Add Price</div>
   <div class="quick-form" id="quickPriceForm">
-    <div class="field"><label>Preis</label><input type="number" step="any" id="qpPrice"></div>
-    <div class="field"><label>Datum/Zeit</label><input type="datetime-local" id="qpDate"></div>
-    <div class="field"><label>Quelle</label><input type="text" id="qpSource" value="manual"></div>
-    <div class="field"><button type="button" id="qpSave">Preis speichern</button></div>
-    <div class="quick-status" id="qpStatus"></div>
+    <div class="fields">
+      <div class="field"><label>Price</label><input type="number" step="any" id="qpPrice"></div>
+      <div class="field"><label>Date/Time</label><input type="datetime-local" id="qpDate"></div>
+      <div class="field"><label>Source</label><input type="text" id="qpSource" value="manual"></div>
+    </div>
+    <div class="actions"><span class="quick-status" id="qpStatus"></span><button type="button" id="qpSave">Save Price</button></div>
   </div>
 
-  <div class="section-title">Ausschüttung erfassen</div>
+  <div class="section-title">Add Dividend</div>
   <div class="quick-form" id="quickDistForm">
-    <div class="field"><label>Betrag</label><input type="number" step="any" id="qdAmount"></div>
-    <div class="field"><label>Währung</label><input type="text" id="qdCurrency"></div>
-    <div class="field"><label>Ex-Date</label><input type="date" id="qdExDate"></div>
-    <div class="field"><label>Pay-Date</label><input type="date" id="qdPayDate"></div>
-    <div class="field"><label>Quelle</label><input type="text" id="qdSource" value="manual"></div>
-    <div class="field"><button type="button" id="qdSave">Ausschüttung speichern</button></div>
-    <div class="quick-status" id="qdStatus"></div>
+    <div class="fields">
+      <div class="field"><label>Amount</label><input type="number" step="any" id="qdAmount"></div>
+      <div class="field"><label>Currency</label><input type="text" id="qdCurrency"></div>
+      <div class="field"><label>Ex-Date</label><input type="date" id="qdExDate"></div>
+      <div class="field"><label>Pay-Date</label><input type="date" id="qdPayDate"></div>
+      <div class="field"><label>Source</label><input type="text" id="qdSource" value="manual"></div>
+    </div>
+    <div class="actions"><span class="quick-status" id="qdStatus"></span><button type="button" id="qdSave">Save Dividend</button></div>
   </div>
 
-  <div class="section-title">Stammdaten</div>
-  <div class="master-form" id="masterForm"></div>
-  <div class="quick-form" style="margin-top:10px;">
-    <div class="field"><button type="button" id="masterSave">Stammdaten speichern</button></div>
-    <div class="quick-status" id="masterStatus"></div>
+  <div class="section-title">Master Data</div>
+  <div class="quick-form">
+    <div class="master-form" id="masterForm"></div>
+    <div class="actions">
+      <button type="button" class="toggle-btn" id="settingsBtn2" style="background:none;color:var(--muted);">⚙ Repo/Token</button>
+      <span class="quick-status" id="masterStatus"></span>
+      <button type="button" id="masterSave">Save Master Data</button>
+    </div>
   </div>
 </div>
 
 <script src="assets/github-data.js"></script>
 <script>
-// Fix Punkt 5: 0.00% (nach Rundung auf 2 Dezimalstellen) ist immer neutral -
-// nie rot/grün, auch wenn der ungerundete Wert eine winzige Abweichung von 0 hat.
 function fmtPct(v){
   if(v===null||v===undefined||isNaN(v)) return {text:'—',dir:'flat'};
   const r = Math.round(v*100)/100;
@@ -236,10 +248,20 @@ function filterDistByRange(dist, range){
   return dist.filter(d => d.exDate >= cutoff);
 }
 
-function drawLineChart(container, points, decimals){
+function showTooltip(evt, wrap, tooltip, html){
+  const rect = wrap.getBoundingClientRect();
+  const x = (evt.touches ? evt.touches[0].clientX : evt.clientX) - rect.left;
+  const y = (evt.touches ? evt.touches[0].clientY : evt.clientY) - rect.top;
+  tooltip.style.left = x + 'px';
+  tooltip.style.top = y + 'px';
+  tooltip.innerHTML = html;
+  tooltip.style.display = 'block';
+}
+
+function drawLineChart(container, tooltip, points, decimals, currency){
   const width=800, height=240, pad={top:14,right:14,bottom:26,left:56};
   const innerW = width-pad.left-pad.right, innerH = height-pad.top-pad.bottom;
-  if(points.length < 2){ container.innerHTML = '<div class="chart-empty">Nicht genug Datenpunkte für einen Chart.</div>'; return; }
+  if(points.length < 2){ container.innerHTML = '<div class="chart-empty">Not enough data points for a chart.</div>'; return; }
   const amounts = points.map(p=>p.Price);
   const minY = Math.min(...amounts), maxY = Math.max(...amounts);
   const yPad = (maxY-minY)*0.08 || maxY*0.01 || 1;
@@ -263,12 +285,34 @@ function drawLineChart(container, points, decimals){
     const x = xScale(p.dt.getTime());
     return `<text x="${x.toFixed(1)}" y="${height-8}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#767E8A">${fmtDateOnly(p.dt)}</text>`;
   }).join('');
+
+  // Punkt 7: antippbare/hoverbare Datenpunkte mit Tooltip (Datum + Preis) -
+  // hilft insbesondere, einzelne Ausreisser-Datenpunkte in der Historie zu
+  // identifizieren, wenn der Chart-Massstab unerwartet wirkt.
+  let dots = '';
+  points.forEach(p => {
+    const x = xScale(p.dt.getTime()), y = yScale(p.Price);
+    dots += `<circle class="chart-point" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="7" fill="transparent" data-date="${fmtDateOnly(p.dt)}" data-price="${fmtDecimal(p.Price,decimals)}"/>`;
+  });
+
   container.innerHTML = `<svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Price chart">
     ${grid}
     <path d="${areaD}" fill="${lineColor}" opacity="0.08" stroke="none"/>
     <path d="${d.trim()}" fill="none" stroke="${lineColor}" stroke-width="2"/>
+    ${dots}
     ${xLabels}
   </svg>`;
+  container.appendChild(tooltip);
+
+  const svgEl = container.querySelector('svg');
+  svgEl.querySelectorAll('.chart-point').forEach(dot => {
+    const show = (evt) => { evt.preventDefault(); showTooltip(evt, container, tooltip, `${dot.dataset.date}: ${dot.dataset.price} ${currency||''}`); };
+    dot.addEventListener('mouseenter', show);
+    dot.addEventListener('mousemove', show);
+    dot.addEventListener('touchstart', show, {passive:false});
+    dot.addEventListener('mouseleave', () => tooltip.style.display='none');
+  });
+  svgEl.addEventListener('touchend', () => setTimeout(()=>{ tooltip.style.display='none'; }, 1500));
 }
 
 function computeRolling12m(sorted){
@@ -279,8 +323,8 @@ function computeRolling12m(sorted){
   });
 }
 
-function drawDistributionChart(container, displayDist, allDist){
-  if(!displayDist.length){ container.innerHTML = '<div class="chart-empty">Keine Ausschüttungen für diesen Zeitraum.</div>'; return; }
+function drawDistributionChart(container, tooltip, displayDist, allDist, currency){
+  if(!displayDist.length){ container.innerHTML = '<div class="chart-empty">No dividends for this period.</div>'; return; }
   const width=800, height=240, pad={top:14,right:56,bottom:26,left:56};
   const innerW = width-pad.left-pad.right, innerH = height-pad.top-pad.bottom;
   const sorted = [...displayDist].sort((a,b)=>a.exDate-b.exDate);
@@ -289,21 +333,29 @@ function drawDistributionChart(container, displayDist, allDist){
   const maxRoll = Math.max(...rolling.map(r=>r.rollingSum), 0)*1.15 || 1;
   const minX = sorted[0].exDate.getTime(), maxX = sorted[sorted.length-1].exDate.getTime();
   const xSpan = (maxX-minX) || 1;
-  const xScale = t => pad.left + ((t-minX)/xSpan)*innerW;
+
+  // Punkt 10: schmalere Balken + seitliches Innenpolster, damit die äusseren
+  // Balken nicht mit der Y-Achse/dem Plotrand verschmelzen.
+  const barW = Math.max(3, Math.min(14, innerW/Math.max(sorted.length,1) - 10));
+  const xPad = Math.max(barW * 1.5, 16);
+  const xScale = t => pad.left + xPad/2 + ((t-minX)/xSpan)*(innerW-xPad);
+
   const yScaleBar = v => pad.top + innerH - (v/maxBar)*innerH;
   const yScaleRoll = v => pad.top + innerH - (v/maxRoll)*innerH;
-  const barW = Math.max(3, Math.min(24, innerW/sorted.length - 4));
+
   let bars = '';
   sorted.forEach(d => {
     const x = xScale(d.exDate.getTime()) - barW/2, y = yScaleBar(d.amount), h = (pad.top+innerH)-y;
-    bars += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${h.toFixed(1)}" fill="#1F8A6E" opacity="0.55"/>`;
+    bars += `<rect class="chart-point" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${h.toFixed(1)}" fill="#1F8A6E" opacity="0.55" data-date="${fmtDateOnly(d.exDate)}" data-amount="${fmtDecimal(d.amount,2)}"/>`;
   });
+
   let rollLine = '';
   if(rolling.length >= 2){
     let d = '';
     rolling.forEach((r,i)=>{ const x=xScale(r.exDate.getTime()), y=yScaleRoll(r.rollingSum); d += (i===0?'M':'L')+x.toFixed(1)+','+y.toFixed(1)+' '; });
     rollLine = `<path d="${d.trim()}" fill="none" stroke="#C0293D" stroke-width="2" stroke-dasharray="4 3"/>`;
   }
+
   let grid = '', rightLabels = '';
   for(let i=0;i<=4;i++){
     const v = (i/4)*maxBar, y = yScaleBar(v);
@@ -317,13 +369,24 @@ function drawDistributionChart(container, displayDist, allDist){
     const x = xScale(d.exDate.getTime());
     return `<text x="${x.toFixed(1)}" y="${height-8}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#767E8A">${fmtDateOnly(d.exDate)}</text>`;
   }).join('');
+
   container.innerHTML = `<svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Distribution chart">
     ${grid}${bars}${rollLine}${rightLabels}${xLabels}
   </svg>
-  <div class="chart-legend">Balken: Ausschüttung je Ex-Date (linke Achse) · Gestrichelt: rollierende 12-Monats-Summe (rechte Achse)</div>`;
+  <div class="chart-legend">Bars: dividend per ex-date (left axis) · Dashed: rolling 12-month sum (right axis)</div>`;
+  container.appendChild(tooltip);
+
+  const svgEl = container.querySelector('svg');
+  svgEl.querySelectorAll('.chart-point').forEach(bar => {
+    const show = (evt) => { evt.preventDefault(); showTooltip(evt, container, tooltip, `${bar.dataset.date}: ${bar.dataset.amount} ${currency||''}`); };
+    bar.addEventListener('mouseenter', show);
+    bar.addEventListener('mousemove', show);
+    bar.addEventListener('touchstart', show, {passive:false});
+    bar.addEventListener('mouseleave', () => tooltip.style.display='none');
+  });
 }
 
-// ---- Stammdaten-Formular: gleiche Optionslisten wie master_editor.html ----
+// ---- Master data form: same option lists as master_editor.html ----
 const CURRENCY_OPTS = ['CHF','EUR','USD','GBP','JPY'];
 const GRUPPE_OPTS = ['Shares','Bonds','Alternative'];
 const INSTRUMENT_OPTS = ['Index','Shares','ETF/Funds','Crypto','Currency','Interests','Commodities','other'];
@@ -342,21 +405,21 @@ function selWithOtherHtml(id, value, options){
     <div class="otherWrap ${isOther?'show':''}"><input type="text" id="${id}Other" value="${isOther?(value||''):''}" placeholder="custom value..."></div>`;
 }
 
-let secId = null, masterRow = null, allMasterRows = [], masterHeader = [], masterSha = null;
-let pricesSha = null, distSha = null, pricesHeader = [], distHeader = [];
+let secId = null, masterRow = null, allMasterRows = [], masterHeader = [];
 
 function renderMasterForm(){
   const el = document.getElementById('masterForm');
   el.innerHTML = `
+    <div class="field"><label>Security ID</label><input type="text" id="mfSecId" value="${secId}" disabled></div>
     <div class="field"><label>Name</label><input type="text" id="mfName" value="${masterRow.SecurityName||''}"></div>
-    <div class="field"><label>MainID</label><input type="text" id="mfMainId" value="${masterRow.MainID||''}"></div>
+    <div class="field"><label>Main ID</label><input type="text" id="mfMainId" value="${masterRow.MainID||''}"></div>
     <div class="field"><label>Currency</label>${selWithOtherHtml('mfCurrency', masterRow.Currency, CURRENCY_OPTS)}</div>
-    <div class="field"><label>PortfolioGruppe</label>${selHtml('mfGruppe', masterRow.PortfolioGruppe, GRUPPE_OPTS)}</div>
-    <div class="field"><label>Subgruppe1</label><input type="text" id="mfSub1" value="${masterRow.PortfolioSubgruppe1||''}"></div>
-    <div class="field"><label>Subgruppe2</label><input type="text" id="mfSub2" value="${masterRow.PortfolioSubgruppe2||''}"></div>
+    <div class="field"><label>Portfolio Group</label>${selHtml('mfGruppe', masterRow.PortfolioGruppe, GRUPPE_OPTS)}</div>
+    <div class="field"><label>Subgroup 1</label><input type="text" id="mfSub1" value="${masterRow.PortfolioSubgruppe1||''}"></div>
+    <div class="field"><label>Subgroup 2</label><input type="text" id="mfSub2" value="${masterRow.PortfolioSubgruppe2||''}"></div>
     <div class="field"><label>Instrument</label>${selHtml('mfInstrument', masterRow.Instrument, INSTRUMENT_OPTS)}</div>
-    <div class="field"><label>DataCollector</label>${selHtml('mfCollector', masterRow.DataCollector, COLLECTOR_OPTS)}</div>
-    <div class="field"><label>YahooTicker</label><input type="text" id="mfTicker" value="${masterRow.YahooTicker||''}"></div>
+    <div class="field"><label>Data Collector</label>${selHtml('mfCollector', masterRow.DataCollector, COLLECTOR_OPTS)}</div>
+    <div class="field"><label>Yahoo Ticker</label><input type="text" id="mfTicker" value="${masterRow.YahooTicker||''}"></div>
     <div class="field"><label>Quantity</label><input type="number" step="any" id="mfQuantity" value="${masterRow.Quantity||0}"></div>
   `;
   const curSel = document.getElementById('mfCurrency');
@@ -367,7 +430,7 @@ function renderMasterForm(){
 document.getElementById('masterSave').addEventListener('click', async () => {
   const statusEl = document.getElementById('masterStatus');
   if (!ghConfigured() || !GH.token) {
-    statusEl.className='quick-status err'; statusEl.textContent='Bitte zuerst Repo + Token unter ⚙ Repo/Token hinterlegen.';
+    statusEl.className='quick-status err'; statusEl.textContent='Please set Repo + Token under ⚙ Repo/Token first.';
     document.getElementById('settingsPanel').classList.add('show');
     return;
   }
@@ -390,29 +453,28 @@ document.getElementById('masterSave').addEventListener('click', async () => {
   };
 
   try{
-    statusEl.className='quick-status'; statusEl.textContent='Speichere…';
+    statusEl.className='quick-status'; statusEl.textContent='Saving…';
     const fresh = await ghGetFile('data/security_master.csv');
     const parsed = parseCSV(fresh.content);
     const freshRows = parsed.rows.map(r => r.SecurityID === secId ? updated : r);
     const csv = toCSV(parsed.header.length?parsed.header:masterHeader, freshRows);
-    const result = await ghPutFile('data/security_master.csv', csv, `security.html: Stammdaten ${secId} aktualisiert (${nowZurichString()})`, fresh.sha);
-    masterSha = result.content.sha;
+    await ghPutFile('data/security_master.csv', csv, `security.html: master data updated for ${secId} (${nowZurichString()})`, fresh.sha);
     masterRow = updated;
-    statusEl.className='quick-status ok'; statusEl.textContent='Gespeichert ✓ ' + nowZurichString();
+    statusEl.className='quick-status ok'; statusEl.textContent='Saved ✓ ' + nowZurichString();
   }catch(e){
-    statusEl.className='quick-status err'; statusEl.textContent='Fehler: ' + e.message;
+    statusEl.className='quick-status err'; statusEl.textContent='Error: ' + e.message;
   }
 });
 
 document.getElementById('qpSave').addEventListener('click', async () => {
   const statusEl = document.getElementById('qpStatus');
   if (!ghConfigured() || !GH.token) {
-    statusEl.className='quick-status err'; statusEl.textContent='Bitte zuerst Repo + Token unter ⚙ Repo/Token hinterlegen.';
+    statusEl.className='quick-status err'; statusEl.textContent='Please set Repo + Token under ⚙ Repo/Token first.';
     document.getElementById('settingsPanel').classList.add('show');
     return;
   }
   const priceVal = document.getElementById('qpPrice').value;
-  if(!priceVal){ statusEl.className='quick-status err'; statusEl.textContent='Bitte einen Preis eingeben.'; return; }
+  if(!priceVal){ statusEl.className='quick-status err'; statusEl.textContent='Please enter a price.'; return; }
   const dtVal = document.getElementById('qpDate').value;
   const dt = dtVal ? new Date(dtVal) : new Date();
   const pad = n => String(n).padStart(2,'0');
@@ -420,38 +482,38 @@ document.getElementById('qpSave').addEventListener('click', async () => {
   const source = document.getElementById('qpSource').value || 'manual';
 
   try{
-    statusEl.className='quick-status'; statusEl.textContent='Speichere…';
+    statusEl.className='quick-status'; statusEl.textContent='Saving…';
     const fresh = await ghGetFile('data/security_prices.csv');
     const parsed = parseCSV(fresh.content);
     const header = parsed.header.length ? parsed.header : ['SecurityID','SecurityName','Price','PriceDate','Source','Created_at'];
     const newRow = { SecurityID: secId, SecurityName: masterRow.SecurityName, Price: priceVal, PriceDate: priceDate, Source: source, Created_at: nowZurichString() };
     const newRows = [...parsed.rows, newRow];
     const csv = toCSV(header, newRows);
-    await ghPutFile('data/security_prices.csv', csv, `security.html: Preis erfasst für ${secId} (${nowZurichString()})`, fresh.sha);
-    statusEl.className='quick-status ok'; statusEl.textContent='Gespeichert ✓ ' + nowZurichString();
+    await ghPutFile('data/security_prices.csv', csv, `security.html: price added for ${secId} (${nowZurichString()})`, fresh.sha);
+    statusEl.className='quick-status ok'; statusEl.textContent='Saved ✓ ' + nowZurichString();
     document.getElementById('qpPrice').value = '';
   }catch(e){
-    statusEl.className='quick-status err'; statusEl.textContent='Fehler: ' + e.message;
+    statusEl.className='quick-status err'; statusEl.textContent='Error: ' + e.message;
   }
 });
 
 document.getElementById('qdSave').addEventListener('click', async () => {
   const statusEl = document.getElementById('qdStatus');
   if (!ghConfigured() || !GH.token) {
-    statusEl.className='quick-status err'; statusEl.textContent='Bitte zuerst Repo + Token unter ⚙ Repo/Token hinterlegen.';
+    statusEl.className='quick-status err'; statusEl.textContent='Please set Repo + Token under ⚙ Repo/Token first.';
     document.getElementById('settingsPanel').classList.add('show');
     return;
   }
   const amount = document.getElementById('qdAmount').value;
   const exDateIso = document.getElementById('qdExDate').value;
-  if(!amount || !exDateIso){ statusEl.className='quick-status err'; statusEl.textContent='Bitte Betrag und Ex-Date angeben.'; return; }
+  if(!amount || !exDateIso){ statusEl.className='quick-status err'; statusEl.textContent='Please provide amount and Ex-Date.'; return; }
   const payDateIso = document.getElementById('qdPayDate').value;
   const isoToSwiss = iso => { const [y,m,d]=iso.split('-'); return `${d}.${m}.${y}`; };
   const currency = document.getElementById('qdCurrency').value || masterRow.Currency || '';
   const source = document.getElementById('qdSource').value || 'manual';
 
   try{
-    statusEl.className='quick-status'; statusEl.textContent='Speichere…';
+    statusEl.className='quick-status'; statusEl.textContent='Saving…';
     const fresh = await ghGetFile('data/security_distributions.csv');
     const parsed = parseCSV(fresh.content);
     const header = parsed.header.length ? parsed.header : ['SecurityID','SecurityName','DistributionAmount','Currency','ExDate','PayDate','Source','Created_at'];
@@ -461,21 +523,26 @@ document.getElementById('qdSave').addEventListener('click', async () => {
     };
     const newRows = [...parsed.rows, newRow];
     const csv = toCSV(header, newRows);
-    await ghPutFile('data/security_distributions.csv', csv, `security.html: Ausschüttung erfasst für ${secId} (${nowZurichString()})`, fresh.sha);
-    statusEl.className='quick-status ok'; statusEl.textContent='Gespeichert ✓ ' + nowZurichString();
+    await ghPutFile('data/security_distributions.csv', csv, `security.html: dividend added for ${secId} (${nowZurichString()})`, fresh.sha);
+    statusEl.className='quick-status ok'; statusEl.textContent='Saved ✓ ' + nowZurichString();
     document.getElementById('qdAmount').value = ''; document.getElementById('qdExDate').value=''; document.getElementById('qdPayDate').value='';
   }catch(e){
-    statusEl.className='quick-status err'; statusEl.textContent='Fehler: ' + e.message;
+    statusEl.className='quick-status err'; statusEl.textContent='Error: ' + e.message;
   }
 });
 
-document.getElementById('settingsBtn').addEventListener('click', () => {
+function toggleSettings(){
   document.getElementById('cfgOwner').value = GH.owner;
   document.getElementById('cfgRepo').value = GH.repo;
   document.getElementById('cfgBranch').value = GH.branch;
   document.getElementById('cfgToken').value = GH.token;
   document.getElementById('settingsPanel').classList.toggle('show');
-});
+  if(document.getElementById('settingsPanel').classList.contains('show')){
+    document.getElementById('settingsPanel').scrollIntoView({behavior:'smooth', block:'center'});
+  }
+}
+document.getElementById('settingsBtn').addEventListener('click', toggleSettings);
+document.getElementById('settingsBtn2').addEventListener('click', toggleSettings);
 document.getElementById('cfgSave').addEventListener('click', () => {
   ghSaveConfig({
     owner: document.getElementById('cfgOwner').value.trim(),
@@ -490,7 +557,7 @@ async function load(){
   const params = new URLSearchParams(location.search);
   secId = params.get('id');
   if(!secId){
-    document.getElementById('detailName').textContent = 'Keine Security angegeben (?id=... fehlt)';
+    document.getElementById('detailName').textContent = 'No security specified (?id=... missing)';
     return;
   }
 
@@ -520,17 +587,15 @@ async function load(){
     masterRow = allMasterRows.find(m => m.SecurityID === secId);
     const name = masterRow ? masterRow.SecurityName : secId;
     const currency = masterRow ? masterRow.Currency : '';
-    const mainId = masterRow ? masterRow.MainID : '';
     const decimals = masterRow && masterRow.Instrument === 'Currency' ? 4 : 2;
 
     document.getElementById('detailName').textContent = name;
-    document.getElementById('detailIds').textContent = `SecurityID: ${secId} · MainID: ${mainId || '—'}`;
     document.title = `${name} · Security Detail`;
     document.getElementById('detailCcy').textContent = currency;
     document.getElementById('qdCurrency').value = currency;
 
     if(masterRow) renderMasterForm();
-    else document.getElementById('masterForm').innerHTML = '<div class="empty">Keine Stammdaten für diese SecurityID gefunden.</div>';
+    else document.getElementById('masterForm').innerHTML = '<div class="empty">No master data found for this Security ID.</div>';
 
     const rows = bySecurity[secId] || [];
     const distRows = parseCSV(distText).rows
@@ -542,10 +607,12 @@ async function load(){
       .filter(d => d.exDate && !isNaN(d.amount))
       .sort((a,b)=>a.exDate-b.exDate);
 
+    document.getElementById('pointCountNote').textContent = `${rows.length} price point(s) · ${distRows.length} dividend point(s)`;
+
     if(rows.length === 0){
       document.getElementById('detailPrice').textContent = '—';
-      document.getElementById('chartWrap').innerHTML = '<div class="chart-empty">Keine Kursdaten für diese Security vorhanden.</div>';
-      document.getElementById('perfBody').innerHTML = '<tr><td colspan="5" class="empty">Keine Daten.</td></tr>';
+      document.getElementById('chartWrap').innerHTML = '<div class="chart-empty">No price data for this security.</div>';
+      document.getElementById('perfBody').innerHTML = '<tr><td colspan="5" class="empty">No data.</td></tr>';
       return;
     }
 
@@ -558,26 +625,31 @@ async function load(){
     const refYtd = findOnOrBefore(daily, startOfYear(now));
     const ref1y = findOnOrBefore(daily, daysAgo(now,365));
 
-    // Punkt 1: 52-Wochen Hoch/Tief
     const last52w = rows.filter(r => r.dt >= daysAgo(now,365));
     const high52wRow = last52w.length ? last52w.reduce((a,b)=> b.Price>a.Price ? b : a) : null;
     const low52wRow = last52w.length ? last52w.reduce((a,b)=> b.Price<a.Price ? b : a) : null;
     const fmtDateYY = d => { const dd=String(d.getDate()).padStart(2,'0'); const mm=String(d.getMonth()+1).padStart(2,'0'); const yy=String(d.getFullYear()).slice(-2); return `${dd}.${mm}.${yy}`; };
 
     document.getElementById('detailPrice').textContent = fmtDecimal(last.Price, decimals);
-    document.getElementById('detailMeta').textContent = `Stand ${fmtShortDateTime(last.dt)} · Quelle: ${last.Source || '—'}`;
+    document.getElementById('detailMeta').textContent = `As of ${fmtShortDateTime(last.dt)} · Source: ${last.Source || '—'}`;
+
+    // Punkt 9: Dividend Yield ebenfalls als Kachel (zusätzlich zur Textzeile unten)
+    const oneYearAgo = daysAgo(now, 365);
+    const dist12m = distRows.filter(d => d.exDate > oneYearAgo && d.exDate <= now).reduce((s,d)=>s+d.amount,0);
+    const yieldPct = last.Price ? (dist12m/last.Price)*100 : null;
 
     const returns = [
-      { label:'Vortag', ref: prev }, { label:'Woche', ref: refWeek },
-      { label:'Monat', ref: refMonth }, { label:'YtD', ref: refYtd }, { label:'1 Jahr', ref: ref1y },
+      { label:'Day', ref: prev }, { label:'Week', ref: refWeek },
+      { label:'Month', ref: refMonth }, { label:'YTD', ref: refYtd }, { label:'1 Year', ref: ref1y },
     ];
     let returnsHtml = returns.map(r => {
       const chg = pctChange(last.Price, r.ref);
       const f = fmtPct(chg);
       return `<div class="return-box"><span class="return-label">${r.label}</span><span class="return-value ${f.dir}">${f.text}</span></div>`;
     }).join('');
-    returnsHtml += `<div class="return-box"><span class="return-label">52W Hoch</span><span class="return-value">${high52wRow!==null?fmtDecimal(high52wRow.Price,decimals):'—'}</span>${high52wRow!==null?`<span class="return-label" style="text-transform:none;letter-spacing:0;">${fmtDateYY(high52wRow.dt)}</span>`:''}</div>`;
-    returnsHtml += `<div class="return-box"><span class="return-label">52W Tief</span><span class="return-value">${low52wRow!==null?fmtDecimal(low52wRow.Price,decimals):'—'}</span>${low52wRow!==null?`<span class="return-label" style="text-transform:none;letter-spacing:0;">${fmtDateYY(low52wRow.dt)}</span>`:''}</div>`;
+    returnsHtml += `<div class="return-box"><span class="return-label">52W High</span><span class="return-value">${high52wRow!==null?fmtDecimal(high52wRow.Price,decimals):'—'}</span>${high52wRow!==null?`<span class="return-date">${fmtDateYY(high52wRow.dt)}</span>`:''}</div>`;
+    returnsHtml += `<div class="return-box"><span class="return-label">52W Low</span><span class="return-value">${low52wRow!==null?fmtDecimal(low52wRow.Price,decimals):'—'}</span>${low52wRow!==null?`<span class="return-date">${fmtDateYY(low52wRow.dt)}</span>`:''}</div>`;
+    returnsHtml += `<div class="return-box"><span class="return-label">Dividend Yield (12M)</span><span class="return-value ${yieldPct!==null&&yieldPct>0?'up':'flat'}">${yieldPct!==null?yieldPct.toFixed(2)+'%':'—'}</span></div>`;
     document.getElementById('returnsBoxes').innerHTML = returnsHtml;
 
     document.getElementById('thPriceLc').textContent = `Price Return ${currency}`;
@@ -610,8 +682,8 @@ async function load(){
     }
 
     const periods = [
-      { label:'Vortag', ref:prev }, { label:'Woche', ref:refWeek }, { label:'Monat', ref:refMonth },
-      { label:'YtD', ref:refYtd }, { label:'1 Jahr', ref:ref1y },
+      { label:'Day', ref:prev }, { label:'Week', ref:refWeek }, { label:'Month', ref:refMonth },
+      { label:'YTD', ref:refYtd }, { label:'1 Year', ref:ref1y },
     ];
     document.getElementById('perfBody').innerHTML = periods.map(p => {
       const r = computePeriod(p.ref);
@@ -625,15 +697,13 @@ async function load(){
       </tr>`;
     }).join('');
 
-    const oneYearAgo = daysAgo(now, 365);
-    const dist12m = distRows.filter(d => d.exDate > oneYearAgo && d.exDate <= now).reduce((s,d)=>s+d.amount,0);
-    const yieldPct = last.Price ? (dist12m/last.Price)*100 : null;
     document.getElementById('yieldNote').textContent = yieldPct !== null
-      ? `Ausschüttungsrendite (letzte 12 Monate vs. Kurs ${currency}): ${yieldPct.toFixed(2)}%`
-      : 'Keine Ausschüttungsdaten vorhanden.';
+      ? `Dividend yield (last 12 months vs. price ${currency}): ${yieldPct.toFixed(2)}%`
+      : 'No dividend data available.';
 
     let currentView = 'price', currentPriceRange = '12M', currentDistRange = '12M';
     const chartWrap = document.getElementById('chartWrap');
+    const chartTooltip = document.getElementById('chartTooltip');
     const chartTitle = document.getElementById('chartTitle');
     const priceRangeRow = document.getElementById('priceRangeRow');
     const distRangeRow = document.getElementById('distRangeRow');
@@ -642,11 +712,11 @@ async function load(){
       if(currentView === 'dividends'){
         chartTitle.textContent = 'Dividend Chart';
         priceRangeRow.classList.add('hidden'); distRangeRow.classList.remove('hidden');
-        drawDistributionChart(chartWrap, filterDistByRange(distRows, currentDistRange), distRows);
+        drawDistributionChart(chartWrap, chartTooltip, filterDistByRange(distRows, currentDistRange), distRows, currency);
       } else {
         chartTitle.textContent = 'Price Chart';
         priceRangeRow.classList.remove('hidden'); distRangeRow.classList.add('hidden');
-        drawLineChart(chartWrap, filterByRange(daily, currentPriceRange), decimals);
+        drawLineChart(chartWrap, chartTooltip, filterByRange(daily, currentPriceRange), decimals, currency);
       }
     }
 
@@ -675,8 +745,8 @@ async function load(){
     renderChart();
 
   }catch(e){
-    document.getElementById('detailName').textContent = 'Fehler';
-    document.getElementById('chartWrap').innerHTML = `<div class="error">Fehler: ${e.message}</div>`;
+    document.getElementById('detailName').textContent = 'Error';
+    document.getElementById('chartWrap').innerHTML = `<div class="error">Error: ${e.message}</div>`;
   }
 }
 
