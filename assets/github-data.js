@@ -236,3 +236,18 @@ function fxRateOnDate(fxMap, currency, date) {
   const ref = findOnOrBefore(series, date);
   return ref ? ref.Price : null;
 }
+
+/* Wie fxRateOnDate, liefert aber zusätzlich an, ob eine Näherung nötig war:
+ * wenn für das Referenzdatum keine FX-Notierung existiert (z.B. weil die
+ * FX-Historie kürzer ist als die Aktien-Historie - etwa nach einem
+ * historischen Preis-Import nur für Aktien, nicht für FX-Paare), wird die
+ * ÄLTESTE verfügbare FX-Notierung als bestmögliche Näherung verwendet,
+ * statt gar keinen Wert zu liefern. */
+function fxRateOnDateWithFallback(fxMap, currency, date) {
+  if (!currency || currency.toUpperCase() === 'CHF') return { rate: 1, approx: false };
+  const series = fxMap[currency.toUpperCase()];
+  if (!series || !series.length) return { rate: null, approx: false };
+  const exact = findOnOrBefore(series, date);
+  if (exact) return { rate: exact.Price, approx: false };
+  return { rate: series[0].Price, approx: true };
+}
