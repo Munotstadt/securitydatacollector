@@ -2495,7 +2495,7 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 14,Xtrackers S&P 500 Equal Weight UCITS ETF (XDEW),121.31,28.07.2026 20:15:00,Yahoo Finance (Weekday),28.07.2026 20:15:00
 15,VanEck S&P Global Mining UCITS ETF (GDIG),56.91,28.07.2026 20:15:00,Yahoo Finance (Weekday),28.07.2026 20:15:00
 16,UBS Gold ETF (AUUSI),128.92,28.07.2026 20:15:00,Yahoo Finance (Weekday),28.07.2026 20:15:00
-17,iShares Core MSCI Japan IMI UCITS ETF (SJPA/IJPA),12744.00,28.07.2026 20:15:00,Yahoo Finance (Weekday),28.07.2026 20:15:00
+17,iShares Core MSCI Japan IMI UCITS ETF (SJPA/IJPA),12744.00,28.07.2026 20:15:00,SIX,28.07.2026 20:15:00
 18,iShares MSCI EMU Small Cap ETF (CSEMUS),365.39999,28.07.2026 20:15:00,Yahoo Finance (Weekday),28.07.2026 20:15:00
 19,Amazon,231.11,28.07.2026 20:15:00,Yahoo Finance (Weekday),28.07.2026 20:15:00
 21,Microsoft,397.37,28.07.2026 20:15:00,Yahoo Finance (Weekday),28.07.2026 20:15:00
