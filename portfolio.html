@@ -46,8 +46,10 @@
   thead th{text-align:left;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:12px 8px 8px;border-bottom:1px solid var(--line);}
   thead th.num{text-align:right;}
   tbody td{padding:10px 8px;border-bottom:1px solid var(--line);font-size:13px;}
-  tbody tr.section-row td{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);padding:20px 8px 6px;font-weight:600;display:flex;justify-content:space-between;gap:10px;}
-  tbody tr.subgroup-row td{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:12px 8px 4px 20px;font-weight:600;display:flex;justify-content:space-between;gap:10px;}
+  tbody tr.section-row td{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);padding:20px 8px 6px;font-weight:600;}
+  tbody tr.subgroup-row td{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:12px 8px 4px;font-weight:600;}
+  tbody tr.subgroup-row td.name{padding-left:20px;}
+  tbody tr.section-row td.price, tbody tr.subgroup-row td.price{font-family:'IBM Plex Mono',monospace;text-transform:none;letter-spacing:0;}
   .name{font-weight:500;}
   .name a{color:var(--text);text-decoration:none;border-bottom:1px dotted var(--muted);}
   .name a:hover{color:var(--accent);border-bottom-color:var(--accent);}
@@ -372,18 +374,28 @@ function renderBoard(positions, total){
   });
 
   function sumChf(positions){ return positions.reduce((s,p)=> s + (p.valChf||0), 0); }
+  function groupRow(label, positions, cls){
+    const sum = sumChf(positions);
+    const pctPf = total ? (sum/total)*100 : null;
+    return `<tr class="${cls}">
+      <td class="name">${label}</td><td></td><td></td>
+      <td class="price">${pctPf!==null?pctPf.toFixed(1)+'%':'—'}</td>
+      <td class="price">${fmtChf(sum)}</td>
+      <td></td><td></td><td></td><td></td>
+    </tr>`;
+  }
 
   let html = '';
   for(const gruppe of groupNames){
     const groupPositions = groups[gruppe];
-    html += `<tr class="section-row"><td colspan="9"><span>${gruppe}</span><span>${fmtChf(sumChf(groupPositions))} CHF</span></td></tr>`;
+    html += groupRow(gruppe, groupPositions, 'section-row');
 
     if(SUBGROUP_ENABLED.has(gruppe)){
       const subgroups = {};
       for(const p of groupPositions) (subgroups[p.subgruppe]=subgroups[p.subgruppe]||[]).push(p);
       const subNames = Object.keys(subgroups).sort();
       for(const sub of subNames){
-        html += `<tr class="subgroup-row"><td colspan="9"><span>${sub}</span><span>${fmtChf(sumChf(subgroups[sub]))} CHF</span></td></tr>`;
+        html += groupRow(sub, subgroups[sub], 'subgroup-row');
         const subPositions = [...subgroups[sub]].sort((a,b)=>(b.valChf||0)-(a.valChf||0));
         for(const r of subPositions) html += positionRow(r, total);
       }
