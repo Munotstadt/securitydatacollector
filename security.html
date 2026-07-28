@@ -140,10 +140,11 @@
       <th>Period</th>
       <th class="num" id="thPriceLc">Price Return LC</th>
       <th class="num" id="thTotalLc">Total Return LC</th>
+      <th class="num">Cry</th>
       <th class="num">Price Return CHF</th>
       <th class="num">Total Return CHF</th>
     </tr></thead>
-    <tbody id="perfBody"><tr><td colspan="5" class="empty">Loading…</td></tr></tbody>
+    <tbody id="perfBody"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
   </table>
   </div>
   <div class="detail-meta" id="yieldNote" style="margin-top:8px;"></div>
@@ -612,7 +613,7 @@ async function load(){
     if(rows.length === 0){
       document.getElementById('detailPrice').textContent = '—';
       document.getElementById('chartWrap').innerHTML = '<div class="chart-empty">No price data for this security.</div>';
-      document.getElementById('perfBody').innerHTML = '<tr><td colspan="5" class="empty">No data.</td></tr>';
+      document.getElementById('perfBody').innerHTML = '<tr><td colspan="6" class="empty">No data.</td></tr>';
       return;
     }
 
@@ -620,10 +621,22 @@ async function load(){
     const last = daily[daily.length-1];
     const prev = daily.length >= 2 ? daily[daily.length-2] : null;
     const now = new Date();
-    const refWeek = findOnOrBefore(daily, daysAgo(now,7));
-    const refMonth = findOnOrBefore(daily, daysAgo(now,30));
-    const refYtd = findOnOrBefore(daily, startOfYear(now));
-    const ref1y = findOnOrBefore(daily, daysAgo(now,365));
+
+    // Cutoffs bewusst auf 23:59:59 des Zieltags gesetzt ("letzter Kurs von
+    // diesem Tag"), statt die aktuelle Uhrzeit von "now" zu übernehmen. Sonst
+    // kann es passieren, dass ein an diesem Tag später erfasster FX-Kurs
+    // (z.B. USD/CHF) fälschlich als "nicht vorhanden" gilt, nur weil er
+    // zeitlich nach dem Referenz-Zeitstempel der Wertschrift liegt.
+    function endOfDay(d){ const r = new Date(d); r.setHours(23,59,59,999); return r; }
+    const cutoffWeek = endOfDay(daysAgo(now,7));
+    const cutoffMonth = endOfDay(daysAgo(now,30));
+    const cutoffYtd = endOfDay(daysAgo(startOfYear(now), 1)); // 31.12. Vorjahr, 23:59:59
+    const cutoff1y = endOfDay(daysAgo(now,365));
+
+    const refWeek = findOnOrBefore(daily, cutoffWeek);
+    const refMonth = findOnOrBefore(daily, cutoffMonth);
+    const refYtd = findOnOrBefore(daily, cutoffYtd);
+    const ref1y = findOnOrBefore(daily, cutoff1y);
 
     const last52w = rows.filter(r => r.dt >= daysAgo(now,365));
     const high52wRow = last52w.length ? last52w.reduce((a,b)=> b.Price>a.Price ? b : a) : null;
@@ -660,42 +673,60 @@ async function load(){
     }
     function sumDistChf(fromDt, toDt){
       return distRows.filter(d => d.exDate > fromDt && d.exDate <= toDt).reduce((s,d)=>{
-        const rate = fxRateOnDate(fxMap, d.currency, d.exDate);
-        return s + (rate!==null ? d.amount*rate : 0);
+        const fx = fxRateOnDateWithFallback(fxMap, d.currency, d.exDate);
+        return s + (fx.rate!==null ? d.amount*fx.rate : 0);
       },0);
     }
-    function computePeriod(ref){
-      if(!ref) return { priceLc:null, totalLc:null, priceChf:null, totalChf:null };
+    let anyApprox = false;
+    function computePeriod(ref, cutoff){
+      if(!ref) return { priceLc:null, totalLc:null, cry:null, priceChf:null, totalChf:null, approx:false };
       const priceLc = pctChange(last.Price, ref);
       const distSum = sumDist(ref.dt, last.dt);
       const totalLc = ref.Price ? ((last.Price - ref.Price + distSum) / ref.Price) * 100 : null;
-      const rateNow = fxRateOnDate(fxMap, currency, last.dt);
-      const rateRef = fxRateOnDate(fxMap, currency, ref.dt);
-      let priceChf = null, totalChf = null;
-      if(rateNow !== null && rateRef !== null){
-        const nowChf = last.Price*rateNow, refChf = ref.Price*rateRef;
+
+      // WICHTIG: Der FX-Kurs wird gegen denselben ursprünglichen Perioden-
+      // Cutoff gesucht wie der Wertschriften-Kurs (nicht gegen ref.dt, den
+      // bereits aufgelösten Zeitstempel DIESER Wertschrift!). Sonst kann ein
+      // FX-Kurs vom SELBEN Tag, der zeitlich nach ref.dt liegt, fälschlich
+      // als "nicht vorhanden" gelten, obwohl er existiert.
+      const nowFx = fxRateOnDateWithFallback(fxMap, currency, endOfDay(now));
+      const refFx = fxRateOnDateWithFallback(fxMap, currency, cutoff);
+      let cry = null, priceChf = null, totalChf = null;
+      const approx = nowFx.approx || refFx.approx;
+      if(nowFx.rate !== null && refFx.rate !== null){
+        cry = refFx.rate ? ((nowFx.rate-refFx.rate)/refFx.rate)*100 : null;
+        const nowChf = last.Price*nowFx.rate, refChf = ref.Price*refFx.rate;
         priceChf = refChf ? ((nowChf-refChf)/refChf)*100 : null;
         const distSumChf = sumDistChf(ref.dt, last.dt);
         totalChf = refChf ? ((nowChf-refChf+distSumChf)/refChf)*100 : null;
+        if(approx) anyApprox = true;
       }
-      return { priceLc, totalLc, priceChf, totalChf };
+      return { priceLc, totalLc, cry, priceChf, totalChf, approx };
     }
 
+    const cutoffDay = endOfDay(daysAgo(now,1));
     const periods = [
-      { label:'Day', ref:prev }, { label:'Week', ref:refWeek }, { label:'Month', ref:refMonth },
-      { label:'YTD', ref:refYtd }, { label:'1 Year', ref:ref1y },
+      { label:'Day', ref:prev, cutoff:cutoffDay }, { label:'Week', ref:refWeek, cutoff:cutoffWeek },
+      { label:'Month', ref:refMonth, cutoff:cutoffMonth },
+      { label:'YTD', ref:refYtd, cutoff:cutoffYtd }, { label:'1 Year', ref:ref1y, cutoff:cutoff1y },
     ];
     document.getElementById('perfBody').innerHTML = periods.map(p => {
-      const r = computePeriod(p.ref);
-      const a=fmtPct(r.priceLc), b=fmtPct(r.totalLc), c=fmtPct(r.priceChf), e=fmtPct(r.totalChf);
+      const r = computePeriod(p.ref, p.cutoff);
+      const a=fmtPct(r.priceLc), b=fmtPct(r.totalLc), cr=fmtPct(r.cry), c=fmtPct(r.priceChf), e=fmtPct(r.totalChf);
+      const mark = r.approx ? '<span title="FX-Kurs genähert: keine Notierung so weit zurück vorhanden, älteste verfügbare Notierung verwendet.">*</span>' : '';
       return `<tr>
         <td>${p.label}</td>
         <td class="chg ${a.dir}">${a.text}</td>
         <td class="chg ${b.dir}">${b.text}</td>
-        <td class="chg ${c.dir}">${c.text}</td>
-        <td class="chg ${e.dir}">${e.text}</td>
+        <td class="chg ${cr.dir}">${cr.text}${mark}</td>
+        <td class="chg ${c.dir}">${c.text}${mark}</td>
+        <td class="chg ${e.dir}">${e.text}${mark}</td>
       </tr>`;
     }).join('');
+    if(anyApprox){
+      document.getElementById('yieldNote').insertAdjacentHTML('beforebegin',
+        '<div class="detail-meta">* FX rate approximated (no quote that far back yet - oldest available FX quote used instead).</div>');
+    }
 
     document.getElementById('yieldNote').textContent = yieldPct !== null
       ? `Dividend yield (last 12 months vs. price ${currency}): ${yieldPct.toFixed(2)}%`
