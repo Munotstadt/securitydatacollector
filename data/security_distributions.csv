@@ -1,1 +1,3 @@
 SecurityID,SecurityName,DistributionAmount,Currency,ExDate,PayDate,Source,Created_at
+,,,CHF,28.07.2026,,manual,28.07.2026 07:06:36
+10,iShares Swiss Dividends,0.76,CHF,21.07.2026,23.07.2026,manual,28.07.2026 07:06:49
