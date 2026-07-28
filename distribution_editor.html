@@ -162,7 +162,14 @@ async function load() {
     sel.innerHTML = '<option value="">Alle Securities…</option>' + masterRows
       .map(m => `<option value="${m.SecurityID}">${m.SecurityID} · ${m.SecurityName}</option>`).join('');
 
-    renderAll();
+    // Deep-Link von security.html: ?id=SecurityID selektiert direkt den Filter.
+    const urlId = new URLSearchParams(location.search).get('id');
+    if (urlId && masterRows.some(m => m.SecurityID === urlId)) {
+      sel.value = urlId;
+      renderAll(urlId);
+    } else {
+      renderAll();
+    }
     setStatus(`${rows.length} Ausschüttungen geladen.`, 'ok');
   } catch (e) {
     document.getElementById('body').innerHTML = `<tr><td colspan="8">Fehler: ${e.message}</td></tr>`;

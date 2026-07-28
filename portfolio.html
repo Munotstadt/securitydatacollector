@@ -115,7 +115,7 @@
 
 <script src="assets/github-data.js"></script>
 <script>
-function fmtPct(v){ if(v===null||v===undefined||isNaN(v)) return {text:'—',dir:'flat'}; return {text:`${v>0?'+':''}${v.toFixed(2)}%`, dir:v>0?'up':(v<0?'down':'flat')}; }
+function fmtPct(v){ if(v===null||v===undefined||isNaN(v)) return {text:'—',dir:'flat'}; const r=Math.round(v*100)/100; const dir=r>0?'up':(r<0?'down':'flat'); return {text:`${r>0?'+':''}${r.toFixed(2)}%`, dir}; }
 function fmtChf(v){ return v===null||isNaN(v) ? '—' : v.toLocaleString('de-CH',{maximumFractionDigits:0}); }
 /* daysAgo, findOnOrBefore, buildFxMap, fxRateOnDate kommen aus assets/github-data.js */
 

@@ -87,7 +87,9 @@ function startOfYear(d){ return new Date(d.getFullYear(),0,1); }
 function pctChange(now, ref){ return (ref===0||ref==null||now==null) ? null : ((now-ref)/ref)*100; }
 function fmtPct(v){
   if (v===null||v===undefined||isNaN(v)) return {text:'—',dir:'flat'};
-  return {text:`${v>0?'+':''}${v.toFixed(2)}%`, dir: v>0?'up':(v<0?'down':'flat')};
+  const r = Math.round(v*100)/100;
+  const dir = r>0?'up':(r<0?'down':'flat');
+  return {text:`${r>0?'+':''}${r.toFixed(2)}%`, dir};
 }
 function findOnOrBefore(sorted, date){
   let best=null;
