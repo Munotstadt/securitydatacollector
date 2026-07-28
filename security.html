@@ -560,8 +560,9 @@ async function load(){
 
     // Punkt 1: 52-Wochen Hoch/Tief
     const last52w = rows.filter(r => r.dt >= daysAgo(now,365));
-    const high52w = last52w.length ? Math.max(...last52w.map(r=>r.Price)) : null;
-    const low52w = last52w.length ? Math.min(...last52w.map(r=>r.Price)) : null;
+    const high52wRow = last52w.length ? last52w.reduce((a,b)=> b.Price>a.Price ? b : a) : null;
+    const low52wRow = last52w.length ? last52w.reduce((a,b)=> b.Price<a.Price ? b : a) : null;
+    const fmtDateYY = d => { const dd=String(d.getDate()).padStart(2,'0'); const mm=String(d.getMonth()+1).padStart(2,'0'); const yy=String(d.getFullYear()).slice(-2); return `${dd}.${mm}.${yy}`; };
 
     document.getElementById('detailPrice').textContent = fmtDecimal(last.Price, decimals);
     document.getElementById('detailMeta').textContent = `Stand ${fmtShortDateTime(last.dt)} · Quelle: ${last.Source || '—'}`;
@@ -575,8 +576,8 @@ async function load(){
       const f = fmtPct(chg);
       return `<div class="return-box"><span class="return-label">${r.label}</span><span class="return-value ${f.dir}">${f.text}</span></div>`;
     }).join('');
-    returnsHtml += `<div class="return-box"><span class="return-label">52W Hoch</span><span class="return-value">${high52w!==null?fmtDecimal(high52w,decimals):'—'}</span></div>`;
-    returnsHtml += `<div class="return-box"><span class="return-label">52W Tief</span><span class="return-value">${low52w!==null?fmtDecimal(low52w,decimals):'—'}</span></div>`;
+    returnsHtml += `<div class="return-box"><span class="return-label">52W Hoch</span><span class="return-value">${high52wRow!==null?fmtDecimal(high52wRow.Price,decimals):'—'}</span>${high52wRow!==null?`<span class="return-label" style="text-transform:none;letter-spacing:0;">${fmtDateYY(high52wRow.dt)}</span>`:''}</div>`;
+    returnsHtml += `<div class="return-box"><span class="return-label">52W Tief</span><span class="return-value">${low52wRow!==null?fmtDecimal(low52wRow.Price,decimals):'—'}</span>${low52wRow!==null?`<span class="return-label" style="text-transform:none;letter-spacing:0;">${fmtDateYY(low52wRow.dt)}</span>`:''}</div>`;
     document.getElementById('returnsBoxes').innerHTML = returnsHtml;
 
     document.getElementById('thPriceLc').textContent = `Price Return ${currency}`;
