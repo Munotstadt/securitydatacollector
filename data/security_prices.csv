@@ -2547,3 +2547,12 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 50,JPY/CHF,0.005,28.07.2026 22:40:06,Yahoo Finance (Daily),28.07.2026 22:40:06
 54,Silver (USD/oz),57.38,28.07.2026 22:40:06,Yahoo Finance (Daily),28.07.2026 22:40:06
 58,Brent Crude Oil Last Day Financ,83.95,28.07.2026 22:40:06,Yahoo Finance (Daily),28.07.2026 22:40:06
+43,Rendite Bundesobligationen Eidgenossenschaft 10 Jahre (%),0.438,28.07.2026 23:08:08,SNB,28.07.2026 23:08:08
+4,STOXX Europe 600 EUR NR,1648.92,28.07.2026 23:08:08,onvista,28.07.2026 23:08:08
+41,Raiffeisen Futura II - Systematic Invest Equity B (Samantha),135.45,28.07.2026 23:08:08,Raiffeisen Börse,28.07.2026 23:08:08
+42,Raiffeisen Futura II - Systematic Invest Equity (Vorsorge),137.35,28.07.2026 23:08:08,Raiffeisen Börse,28.07.2026 23:08:08
+44,Raiffeisen Winterthur Hypothek 1 Jahr Zinssatz,1.54,28.07.2026 23:08:08,RB Winterthur,28.07.2026 23:08:08
+45,Raiffeisen Winterthur Hypothek 5 Jahr Zinssatz,1.72,28.07.2026 23:08:08,RB Winterthur,28.07.2026 23:08:08
+46,Raiffeisen Winterthur Hypothek 10 Jahr Zinssatz,2.07,28.07.2026 23:08:08,RB Winterthur,28.07.2026 23:08:08
+47,Raiffeisen Winterthur Hypothek 15 Jahr Zinssatz,2.48,28.07.2026 23:08:08,RB Winterthur,28.07.2026 23:08:08
+29,Gold Vreneli (CHF 20),603.0,28.07.2026 23:08:08,Raiffeisen Börse,28.07.2026 23:08:08
