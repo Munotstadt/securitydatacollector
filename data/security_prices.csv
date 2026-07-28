@@ -1842,3 +1842,4 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 1,Nestlé SA,83.08,30.06.2026 07:00:00,manual,28.07.2026 08:48:51
 1,Nestlé SA,78.74,31.12.2025 07:00:00,manual,28.07.2026 08:49:20
 13,Vanguard S&P 500 UCITS ETF (VUAA),135.87,30.06.2026 08:51:00,manual,28.07.2026 08:51:00
+13,Vanguard S&P 500 UCITS ETF (VUAA),130.57,31.12.2025 08:51:24,manual,28.07.2026 08:51:24
