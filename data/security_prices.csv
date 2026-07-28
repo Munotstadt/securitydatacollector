@@ -2415,7 +2415,6 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 53,Nasdaq Composite,24811.93164,28.07.2026 17:16:18,Yahoo Finance (Weekday),28.07.2026 17:16:18
 55,Sunrise Communications AG,42.68,28.07.2026 17:16:18,Yahoo Finance (Weekday),28.07.2026 17:16:18
 57,CBOE Interest Rate 10 Year T Note,4.616,28.07.2026 17:16:18,Yahoo Finance (Weekday),28.07.2026 17:16:18
-59,Swiss Life,942.59998,28.07.2026 17:16:18,Yahoo Finance (Weekday),28.07.2026 17:16:18
 8,BTC - Bitcoin,63778.07812,28.07.2026 18:29:40,Yahoo Finance (Daily),28.07.2026 18:29:40
 7,SOL - Solana,74.16,28.07.2026 18:29:40,Yahoo Finance (Daily),28.07.2026 18:29:40
 9,ETH - Ethereum,1916.21997,28.07.2026 18:29:40,Yahoo Finance (Daily),28.07.2026 18:29:40
@@ -2470,7 +2469,6 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 53,Nasdaq Composite,24979.27539,28.07.2026 18:57:40,Yahoo Finance (Weekday),28.07.2026 18:57:40
 55,Sunrise Communications AG,42.72,28.07.2026 18:57:40,Yahoo Finance (Weekday),28.07.2026 18:57:40
 57,CBOE Interest Rate 10 Year T Note,4.592,28.07.2026 18:57:40,Yahoo Finance (Weekday),28.07.2026 18:57:40
-59,Swiss Life,943.79999,28.07.2026 18:57:40,Yahoo Finance (Weekday),28.07.2026 18:57:40
 8,BTC - Bitcoin,63542.44922,28.07.2026 19:56:17,Yahoo Finance (Daily),28.07.2026 19:56:17
 7,SOL - Solana,73.57,28.07.2026 19:56:17,Yahoo Finance (Daily),28.07.2026 19:56:17
 9,ETH - Ethereum,1896.18994,28.07.2026 19:56:17,Yahoo Finance (Daily),28.07.2026 19:56:17
@@ -2525,4 +2523,4 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 53,Nasdaq Composite,24869.90039,28.07.2026 20:15:00,Yahoo Finance (Weekday),28.07.2026 20:15:00
 55,Sunrise Communications AG,42.72,28.07.2026 20:15:00,Yahoo Finance (Weekday),28.07.2026 20:15:00
 57,CBOE Interest Rate 10 Year T Note,4.602,28.07.2026 20:15:00,Yahoo Finance (Weekday),28.07.2026 20:15:00
-59,Swiss Life,943.79999,28.07.2026 20:15:00,Yahoo Finance (Weekday),28.07.2026 20:15:00
+59,Swiss Life,943.80,28.07.2026 20:15:00,Yahoo Finance (Weekday),28.07.2026 20:15:00
