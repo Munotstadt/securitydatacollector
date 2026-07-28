@@ -40,7 +40,11 @@ for attempt in $(seq 1 "$MAX_RETRIES"); do
   # Pending-Zeilen (ohne Header) an die frisch geholte CSV anhängen.
   tail -n +2 "$PENDING_PATH" >> "$PRICES_PATH"
 
-  git add "$PRICES_PATH"
+  # Pre-Aggregat neu generieren, damit dashboard.html/portfolio.html nicht
+  # mehr die komplette CSV laden müssen (siehe generate_latest_prices.py).
+  python scripts/generate_latest_prices.py
+
+  git add "$PRICES_PATH" data/latest_prices.json
   if git diff --cached --quiet; then
     echo "Keine Änderungen nach dem Anhängen - fertig."
     exit 0
