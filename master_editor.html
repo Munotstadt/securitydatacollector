@@ -109,7 +109,7 @@
 // abgeglichen) und bekommen daher KEINE "Other"-Option.
 const CURRENCY_OPTS = ['CHF','EUR','USD','GBP','JPY'];
 const GRUPPE_OPTS = ['Shares','Bonds','Alternative'];
-const INSTRUMENT_OPTS = ['Index','Shares','ETF/Funds','Crypto','Currency'];
+const INSTRUMENT_OPTS = ['Index','Shares','ETF/Funds','Crypto','Currency','Interests','Commodities','other'];
 const COLLECTOR_OPTS = ['Collector_YahooWeekday','Collector_YahooDaily','Collector_Other','none'];
 
 let header = [];
@@ -143,7 +143,7 @@ function renderRow(row, idx) {
     <td>${sel('PortfolioGruppe', row.PortfolioGruppe, GRUPPE_OPTS)}</td>
     <td><input type="text" data-field="PortfolioSubgruppe1" value="${row.PortfolioSubgruppe1||''}"></td>
     <td><input type="text" data-field="PortfolioSubgruppe2" value="${row.PortfolioSubgruppe2||''}"></td>
-    <td>${selWithOther('Instrument', row.Instrument, INSTRUMENT_OPTS)}</td>
+    <td>${sel('Instrument', row.Instrument, INSTRUMENT_OPTS)}</td>
     <td>${sel('DataCollector', row.DataCollector, COLLECTOR_OPTS)}</td>
     <td><input type="text" data-field="YahooTicker" value="${row.YahooTicker||''}"></td>
     <td><input type="number" step="any" data-field="Quantity" value="${row.Quantity||0}" style="width:70px"></td>
