@@ -2901,3 +2901,11 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 55,Sunrise Communications AG,42.84,29.07.2026 14:24:18,Yahoo Finance (Weekday),29.07.2026 14:24:18
 57,CBOE Interest Rate 10 Year T Note,4.641,29.07.2026 14:24:18,Yahoo Finance (Weekday),29.07.2026 14:24:18
 59,Swiss Life,940.0,29.07.2026 14:24:18,Yahoo Finance (Weekday),29.07.2026 14:24:18
+8,BTC - Bitcoin,64225.76172,29.07.2026 14:55:56,Yahoo Finance (Daily),29.07.2026 14:55:56
+7,SOL - Solana,73.47,29.07.2026 14:55:56,Yahoo Finance (Daily),29.07.2026 14:55:56
+9,ETH - Ethereum,1904.08997,29.07.2026 14:55:56,Yahoo Finance (Daily),29.07.2026 14:55:56
+48,GBP/CHF,1.08916,29.07.2026 14:55:56,Yahoo Finance (Daily),29.07.2026 14:55:56
+49,Gold (USD/oz),4078.8999,29.07.2026 14:55:56,Yahoo Finance (Daily),29.07.2026 14:55:56
+50,JPY/CHF,0.00501,29.07.2026 14:55:56,Yahoo Finance (Daily),29.07.2026 14:55:56
+54,Silver (USD/oz),57.45,29.07.2026 14:55:56,Yahoo Finance (Daily),29.07.2026 14:55:56
+58,Brent Crude Oil Last Day Financ,89.44,29.07.2026 14:55:56,Yahoo Finance (Daily),29.07.2026 14:55:56
