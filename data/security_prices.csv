@@ -2628,3 +2628,11 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 50,JPY/CHF,0.005,29.07.2026 00:52:53,Yahoo Finance (Daily),29.07.2026 00:52:53
 54,Silver (USD/oz),57.195,29.07.2026 00:52:53,Yahoo Finance (Daily),29.07.2026 00:52:53
 58,Brent Crude Oil Last Day Financ,87.5,29.07.2026 00:52:53,Yahoo Finance (Daily),29.07.2026 00:52:53
+8,BTC - Bitcoin,63882.94922,29.07.2026 07:00:15,Yahoo Finance (Daily),29.07.2026 07:00:15
+7,SOL - Solana,73.37,29.07.2026 07:00:15,Yahoo Finance (Daily),29.07.2026 07:00:15
+9,ETH - Ethereum,1903.19995,29.07.2026 07:00:15,Yahoo Finance (Daily),29.07.2026 07:00:15
+48,GBP/CHF,1.08678,29.07.2026 07:00:15,Yahoo Finance (Daily),29.07.2026 07:00:15
+49,Gold (USD/oz),4023.80005,29.07.2026 07:00:15,Yahoo Finance (Daily),29.07.2026 07:00:15
+50,JPY/CHF,0.005,29.07.2026 07:00:15,Yahoo Finance (Daily),29.07.2026 07:00:15
+54,Silver (USD/oz),57.64,29.07.2026 07:00:15,Yahoo Finance (Daily),29.07.2026 07:00:15
+58,Brent Crude Oil Last Day Financ,87.29,29.07.2026 07:00:15,Yahoo Finance (Daily),29.07.2026 07:00:15
