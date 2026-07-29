@@ -230,7 +230,16 @@ function collapseToDaily(obsSortedAsc){
 }
 
 function startOfYear(d){ return new Date(d.getFullYear(), 0, 1); }
-function decideDecimals(maxAbs){ return maxAbs > 5000 ? 0 : (maxAbs < 5 ? 4 : 2); }
+/* Dezimalstellen-Regel für Y-Achsen-Beschriftung in Charts:
+ * > 9'999  -> 0 Dezimalstellen
+ * < 9.99   -> 4 Dezimalstellen
+ * sonst    -> 2 Dezimalstellen */
+function decideAxisDecimals(v){
+  const abs = Math.abs(v);
+  if(abs > 9999) return 0;
+  if(abs < 9.99) return 4;
+  return 2;
+}
 
 function filterByRange(daily, range){
   if(range === 'ALL') return daily;
@@ -260,13 +269,23 @@ function showTooltip(evt, wrap, tooltip, html){
 }
 
 function drawLineChart(container, tooltip, points, decimals, currency){
-  const width=800, height=240, pad={top:14,right:14,bottom:26,left:56};
-  const innerW = width-pad.left-pad.right, innerH = height-pad.top-pad.bottom;
+  const width=800, height=240;
   if(points.length < 2){ container.innerHTML = '<div class="chart-empty">Not enough data points for a chart.</div>'; return; }
   const amounts = points.map(p=>p.Price);
   const minY = Math.min(...amounts), maxY = Math.max(...amounts);
   const yPad = (maxY-minY)*0.08 || maxY*0.01 || 1;
   const yMin = minY-yPad, yMax = maxY+yPad;
+  const axisDecimals = decideAxisDecimals(maxY);
+
+  // Dynamischer linker Rand: reicht der feste Platz nicht für die breiteste
+  // Achsenbeschriftung (z.B. 5-6-stellige Preise wie bei BTC), wird der
+  // Text sonst links über den Rand hinaus geschrieben und vom SVG-viewBox
+  // abgeschnitten - sieht dann aus wie eine fehlende führende Ziffer.
+  const widestLabel = fmtDecimal(Math.max(Math.abs(yMin), Math.abs(yMax)), axisDecimals);
+  const leftPad = Math.max(56, widestLabel.length * 7 + 16);
+  const pad = {top:14, right:14, bottom:26, left:leftPad};
+  const innerW = width-pad.left-pad.right, innerH = height-pad.top-pad.bottom;
+
   const minX = points[0].dt.getTime(), maxX = points[points.length-1].dt.getTime();
   const xSpan = (maxX-minX) || 1;
   const xScale = t => pad.left + ((t-minX)/xSpan)*innerW;
@@ -279,12 +298,16 @@ function drawLineChart(container, tooltip, points, decimals, currency){
   for(let i=0;i<=4;i++){
     const v = yMin + (i/4)*(yMax-yMin), y = yScale(v);
     grid += `<line x1="${pad.left}" y1="${y.toFixed(1)}" x2="${width-pad.right}" y2="${y.toFixed(1)}" stroke="#E3E6EA" stroke-width="1"/>`;
-    grid += `<text x="${pad.left-8}" y="${(y+3).toFixed(1)}" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10" fill="#767E8A">${fmtDecimal(v,decimals)}</text>`;
+    grid += `<text x="${pad.left-8}" y="${(y+3).toFixed(1)}" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10" fill="#767E8A">${fmtDecimal(v,axisDecimals)}</text>`;
   }
   const mid = points[Math.floor(points.length/2)];
-  const xLabels = [points[0], mid, points[points.length-1]].map(p=>{
+  const xLabels = [
+    { p: points[0], anchor: 'start' },
+    { p: mid, anchor: 'middle' },
+    { p: points[points.length-1], anchor: 'end' },
+  ].map(({p, anchor}) => {
     const x = xScale(p.dt.getTime());
-    return `<text x="${x.toFixed(1)}" y="${height-8}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#767E8A">${fmtDateOnly(p.dt)}</text>`;
+    return `<text x="${x.toFixed(1)}" y="${height-8}" text-anchor="${anchor}" font-family="IBM Plex Mono, monospace" font-size="10" fill="#767E8A">${fmtDateOnly(p.dt)}</text>`;
   }).join('');
 
   // Punkt 7: antippbare/hoverbare Datenpunkte mit Tooltip (Datum + Preis) -
@@ -326,12 +349,22 @@ function computeRolling12m(sorted){
 
 function drawDistributionChart(container, tooltip, displayDist, allDist, currency){
   if(!displayDist.length){ container.innerHTML = '<div class="chart-empty">No dividends for this period.</div>'; return; }
-  const width=800, height=240, pad={top:14,right:56,bottom:26,left:56};
-  const innerW = width-pad.left-pad.right, innerH = height-pad.top-pad.bottom;
+  const width=800, height=240;
   const sorted = [...displayDist].sort((a,b)=>a.exDate-b.exDate);
   const maxBar = Math.max(...sorted.map(d=>d.amount))*1.15 || 1;
   const rolling = computeRolling12m(sorted, allDist);
   const maxRoll = Math.max(...rolling.map(r=>r.rollingSum), 0)*1.15 || 1;
+
+  // Dynamischer linker/rechter Rand, analog drawLineChart: verhindert
+  // Abschneiden bei breiten Beträgen (linke Achse: Balkenbeträge, rechte
+  // Achse: rollierende 12-Monats-Summe, potenziell deutlich grösser).
+  const leftAxisDecimals = decideAxisDecimals(maxBar);
+  const rightAxisDecimals = decideAxisDecimals(maxRoll);
+  const leftPad = Math.max(56, fmtDecimal(maxBar,leftAxisDecimals).length * 7 + 16);
+  const rightPad = Math.max(56, fmtDecimal(maxRoll,rightAxisDecimals).length * 7 + 16);
+  const pad = {top:14, right:rightPad, bottom:26, left:leftPad};
+  const innerW = width-pad.left-pad.right, innerH = height-pad.top-pad.bottom;
+
   const minX = sorted[0].exDate.getTime(), maxX = sorted[sorted.length-1].exDate.getTime();
   const xSpan = (maxX-minX) || 1;
 
@@ -361,14 +394,18 @@ function drawDistributionChart(container, tooltip, displayDist, allDist, currenc
   for(let i=0;i<=4;i++){
     const v = (i/4)*maxBar, y = yScaleBar(v);
     grid += `<line x1="${pad.left}" y1="${y.toFixed(1)}" x2="${width-pad.right}" y2="${y.toFixed(1)}" stroke="#E3E6EA" stroke-width="1"/>`;
-    grid += `<text x="${pad.left-8}" y="${(y+3).toFixed(1)}" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10" fill="#767E8A">${fmtDecimal(v,2)}</text>`;
+    grid += `<text x="${pad.left-8}" y="${(y+3).toFixed(1)}" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10" fill="#767E8A">${fmtDecimal(v,leftAxisDecimals)}</text>`;
     const vr = (i/4)*maxRoll, yr = yScaleRoll(vr);
-    rightLabels += `<text x="${width-pad.right+8}" y="${(yr+3).toFixed(1)}" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="10" fill="#C0293D">${fmtDecimal(vr,2)}</text>`;
+    rightLabels += `<text x="${width-pad.right+8}" y="${(yr+3).toFixed(1)}" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="10" fill="#C0293D">${fmtDecimal(vr,rightAxisDecimals)}</text>`;
   }
   const mid = sorted[Math.floor(sorted.length/2)];
-  const xLabels = [sorted[0], mid, sorted[sorted.length-1]].map(d=>{
+  const xLabels = [
+    { d: sorted[0], anchor: 'start' },
+    { d: mid, anchor: 'middle' },
+    { d: sorted[sorted.length-1], anchor: 'end' },
+  ].map(({d, anchor}) => {
     const x = xScale(d.exDate.getTime());
-    return `<text x="${x.toFixed(1)}" y="${height-8}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#767E8A">${fmtDateOnly(d.exDate)}</text>`;
+    return `<text x="${x.toFixed(1)}" y="${height-8}" text-anchor="${anchor}" font-family="IBM Plex Mono, monospace" font-size="10" fill="#767E8A">${fmtDateOnly(d.exDate)}</text>`;
   }).join('');
 
   container.innerHTML = `<svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Distribution chart">
