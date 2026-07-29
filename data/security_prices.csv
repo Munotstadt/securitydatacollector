@@ -3138,3 +3138,41 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 46,Raiffeisen Winterthur Hypothek 10 Jahr Zinssatz,2.09,29.07.2026 21:50:35,RB Winterthur,29.07.2026 21:50:35
 47,Raiffeisen Winterthur Hypothek 15 Jahr Zinssatz,2.5,29.07.2026 21:50:35,RB Winterthur,29.07.2026 21:50:35
 29,Gold Vreneli (CHF 20),603.0,29.07.2026 21:50:35,Raiffeisen Börse,29.07.2026 21:50:35
+20,Apple Inc.,339.39001,29.07.2026 21:51:52,Yahoo Finance (Weekday),29.07.2026 21:51:52
+3,EUR/CHF,0.9333,29.07.2026 21:51:52,Yahoo Finance (Weekday),29.07.2026 21:51:52
+2,USD/CHF,0.81483,29.07.2026 21:51:52,Yahoo Finance (Weekday),29.07.2026 21:51:52
+10,iShares Swiss Dividends,194.72,29.07.2026 21:51:52,Yahoo Finance (Weekday),29.07.2026 21:51:52
+1,Nestlé SA,82.64,29.07.2026 21:51:52,Yahoo Finance (Weekday),29.07.2026 21:51:52
+5,S&P 500 Total Return,16406.41016,29.07.2026 21:51:52,Yahoo Finance (Weekday),29.07.2026 21:51:52
+6,SMI Total Return,37939.71094,29.07.2026 21:51:52,Yahoo Finance (Weekday),29.07.2026 21:51:52
+11,iShares Core MSCI EM IMI UCITS ETF (EIMI),50.07,29.07.2026 21:51:52,Yahoo Finance (Weekday),29.07.2026 21:51:52
+12,UBS ETF (CH) SMIM,323.35001,29.07.2026 21:51:52,Yahoo Finance (Weekday),29.07.2026 21:51:52
+13,Vanguard S&P 500 UCITS ETF,139.67,29.07.2026 21:51:52,Yahoo Finance (Weekday),29.07.2026 21:51:52
+14,Xtrackers S&P 500 Equal Weight UCITS ETF (XDEW),120.61,29.07.2026 21:51:52,Yahoo Finance (Weekday),29.07.2026 21:51:52
+15,VanEck S&P Global Mining UCITS ETF (GDIG),56.02,29.07.2026 21:51:52,Yahoo Finance (Weekday),29.07.2026 21:51:52
+16,UBS Gold ETF (AUUSI),127.94,29.07.2026 21:51:52,Yahoo Finance (Weekday),29.07.2026 21:51:52
+17,iShares Core MSCI Japan IMI UCITS ETF,77.42,29.07.2026 21:51:52,Yahoo Finance (Weekday),29.07.2026 21:51:52
+18,iShares MSCI EMU Small Cap ETF (CSEMUS),366.10001,29.07.2026 21:51:52,Yahoo Finance (Weekday),29.07.2026 21:51:52
+19,Amazon,227.55,29.07.2026 21:51:52,Yahoo Finance (Weekday),29.07.2026 21:51:52
+21,Microsoft,392.04999,29.07.2026 21:51:52,Yahoo Finance (Weekday),29.07.2026 21:51:52
+22,Nvidia,191.60001,29.07.2026 21:51:52,Yahoo Finance (Weekday),29.07.2026 21:51:52
+23,Lonza Group AG,572.0,29.07.2026 21:51:52,Yahoo Finance (Weekday),29.07.2026 21:51:52
+24,UBS Group AG,42.75,29.07.2026 21:51:52,Yahoo Finance (Weekday),29.07.2026 21:51:52
+25,Vonovia,21.07,29.07.2026 21:51:52,Yahoo Finance (Weekday),29.07.2026 21:51:52
+26,Alphabet (Google Class C),335.82001,29.07.2026 21:51:52,Yahoo Finance (Weekday),29.07.2026 21:51:52
+27,SpaceX,110.62,29.07.2026 21:51:52,Yahoo Finance (Weekday),29.07.2026 21:51:52
+30,Partners Group Holding AG,682.59998,29.07.2026 21:51:52,Yahoo Finance (Weekday),29.07.2026 21:51:52
+31,iShares Core MSCI Europe UCITS ETF EUR Dist,40.37,29.07.2026 21:51:52,Yahoo Finance (Weekday),29.07.2026 21:51:52
+32,iShares Core MSCI Pacific ex Japan,247.74001,29.07.2026 21:51:52,Yahoo Finance (Weekday),29.07.2026 21:51:52
+33,iShares Core FTSE 100,1061.80005,29.07.2026 21:51:52,Yahoo Finance (Weekday),29.07.2026 21:51:52
+34,iShares Core MSCI EMU UCITS ETF,241.77,29.07.2026 21:51:52,Yahoo Finance (Weekday),29.07.2026 21:51:52
+35,SWC (CH) REF Rsp Swiss Commercial FA CHF,96.4,29.07.2026 21:51:52,Yahoo Finance (Weekday),29.07.2026 21:51:52
+36,SPDR S&P Euro Dividend Aristocrats ETF,28.67,29.07.2026 21:51:52,Yahoo Finance (Weekday),29.07.2026 21:51:52
+37,Richemont SA,188.35001,29.07.2026 21:51:52,Yahoo Finance (Weekday),29.07.2026 21:51:52
+38,Sika Ltd,178.39999,29.07.2026 21:51:52,Yahoo Finance (Weekday),29.07.2026 21:51:52
+39,Alcon AG,57.12,29.07.2026 21:51:52,Yahoo Finance (Weekday),29.07.2026 21:51:52
+40,Helvetia Baloise Holding AG,213.2,29.07.2026 21:51:52,Yahoo Finance (Weekday),29.07.2026 21:51:52
+53,Nasdaq Composite,24515.04688,29.07.2026 21:51:52,Yahoo Finance (Weekday),29.07.2026 21:51:52
+55,Sunrise Communications AG,43.2,29.07.2026 21:51:52,Yahoo Finance (Weekday),29.07.2026 21:51:52
+57,CBOE Interest Rate 10 Year T Note,4.622,29.07.2026 21:51:52,Yahoo Finance (Weekday),29.07.2026 21:51:52
+59,Swiss Life,940.0,29.07.2026 21:51:52,Yahoo Finance (Weekday),29.07.2026 21:51:52
