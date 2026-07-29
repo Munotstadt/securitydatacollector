@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,14 +11,16 @@
   body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;padding:32px 16px 80px;}
   .wrap{max-width:1100px;margin:0 auto;}
   h1{font-family:'Space Grotesk',sans-serif;font-size:20px;text-transform:uppercase;letter-spacing:.02em;border-bottom:2px solid var(--accent);padding-bottom:14px;}
-  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:16px 0;}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:16px 0 8px;}
   input[type=text], select, input[type=number]{
     font-family:'Inter',sans-serif;font-size:14px;padding:9px 10px;border:1px solid var(--line);border-radius:3px;background:var(--panel);color:var(--text);outline:none;transition:border-color .15s;
   }
   #filterSecurity{min-width:260px;}
-  button{font-family:'IBM Plex Mono',monospace;font-size:12px;padding:8px 14px;border-radius:3px;border:1px solid var(--line);background:none;cursor:pointer;color:var(--text);}
+  button{font-family:'IBM Plex Mono',monospace;font-size:12px;padding:8px 14px;border-radius:3px;border:1px solid var(--line);background:none;cursor:pointer;color:var(--text);text-decoration:none;display:inline-block;}
   button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
   button:hover{border-color:var(--text);}
+  button:disabled, a.disabled{opacity:.4;cursor:not-allowed;pointer-events:none;}
+  .count-line{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);margin:0 0 14px;}
   table{width:100%;border-collapse:collapse;font-size:13px;}
   th{text-align:left;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:8px 6px;border-bottom:1px solid var(--line);background:var(--panel);}
   td{padding:6px;border-bottom:1px solid var(--line);vertical-align:middle;}
@@ -29,7 +31,7 @@
   .settings{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:14px;margin-bottom:16px;display:none;gap:8px;}
   .settings.show{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;}
   .settings label{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);display:block;margin-bottom:3px;}
-  .note{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);margin:6px 0 16px;}
+  .note{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);margin:24px 0 0;padding-top:14px;border-top:1px solid var(--line);}
   .table-wrap{overflow-x:auto;max-height:60vh;overflow-y:auto;}
 
   .topnav{
@@ -57,31 +59,36 @@
 </nav>
 <div class="wrap">
   <h1>Security Prices · Editor</h1>
-  <p class="note">Collectors schreiben laufend neue Zeilen (nichts wird automatisch gelöscht, ausser durch den wöchentlichen Cleanup-Job für Einträge &gt;380 Tage). Hier können einzelne Kurse manuell korrigiert oder ergänzt werden.</p>
 
   <div class="toolbar">
-    <select id="filterSecurity"><option value="">Alle Securities…</option></select>
+    <select id="filterSecurity"><option value="">All securities…</option></select>
+    <a id="linkSecurityForm" class="disabled" target="_self"><button disabled id="btnSecurityForm">📈 View Security</button></a>
+    <a id="linkDistributions" class="disabled" target="_self"><button disabled id="btnDistributions">💰 View Distributions</button></a>
     <button id="settingsBtn">⚙ Repo/Token</button>
-    <button id="addBtn">+ Neuer Preis</button>
-    <button id="saveBtn" class="primary">Speichern</button>
+    <button id="addBtn">+ New Price</button>
+    <button id="saveBtn" class="primary">Save</button>
   </div>
+
+  <div class="count-line" id="countLine">Loading…</div>
 
   <div class="settings" id="settingsPanel">
     <div><label>GitHub Owner</label><input type="text" id="cfgOwner"></div>
     <div><label>Repo</label><input type="text" id="cfgRepo"></div>
     <div><label>Branch</label><input type="text" id="cfgBranch" placeholder="main"></div>
-    <div><label>Personal Access Token (repo-Scope)</label><input type="text" id="cfgToken" placeholder="ghp_…"></div>
-    <div style="align-self:end;"><button id="cfgSave" class="primary">Übernehmen</button></div>
+    <div><label>Personal Access Token (repo scope)</label><input type="text" id="cfgToken" placeholder="ghp_…"></div>
+    <div style="align-self:end;"><button id="cfgSave" class="primary">Apply</button></div>
   </div>
 
   <div class="table-wrap">
   <table>
-    <thead><tr><th>SecurityID</th><th>SecurityName</th><th>Price</th><th>PriceDate</th><th>Source</th><th>Created_at</th><th></th></tr></thead>
-    <tbody id="body"><tr><td colspan="7">Lade…</td></tr></tbody>
+    <thead><tr><th>SecurityID</th><th>SecurityName</th><th>Price</th><th style="min-width:170px;">PriceDate</th><th>Source</th><th></th></tr></thead>
+    <tbody id="body"><tr><td colspan="6">Loading…</td></tr></tbody>
   </table>
   </div>
 
   <div class="status" id="status"></div>
+
+  <p class="note">Collectors continuously append new rows (nothing is deleted automatically, except by the weekly cleanup job). The weekly cleanup job compacts rows older than 35 days to one price per day, and permanently deletes rows older than 380 days. Here you can manually correct or add individual prices.</p>
 </div>
 
 <script src="assets/github-data.js"></script>
@@ -98,11 +105,32 @@ function renderRow(row, idx) {
     <td><input type="text" data-field="SecurityID" value="${row.SecurityID||''}" style="width:70px"></td>
     <td><input type="text" data-field="SecurityName" value="${row.SecurityName||''}"></td>
     <td><input type="number" step="any" data-field="Price" value="${row.Price||''}" style="width:100px"></td>
-    <td><input type="text" data-field="PriceDate" value="${row.PriceDate||''}" placeholder="dd.mm.yyyy hh:mm:ss" style="width:150px"></td>
+    <td><input type="text" data-field="PriceDate" value="${row.PriceDate||''}" placeholder="dd.mm.yyyy hh:mm:ss" style="width:170px"></td>
     <td><input type="text" data-field="Source" value="${row.Source||''}"></td>
-    <td><input type="text" data-field="Created_at" value="${row.Created_at||''}" style="width:150px"></td>
     <td><button data-del="${idx}">✕</button></td>
   </tr>`;
+}
+
+function updateSelectionLinks(secId) {
+  const linkSecurityForm = document.getElementById('linkSecurityForm');
+  const linkDistributions = document.getElementById('linkDistributions');
+  const btnSecurityForm = document.getElementById('btnSecurityForm');
+  const btnDistributions = document.getElementById('btnDistributions');
+  if (secId) {
+    linkSecurityForm.href = `security.html?id=${encodeURIComponent(secId)}`;
+    linkDistributions.href = `distribution_editor.html?id=${encodeURIComponent(secId)}`;
+    linkSecurityForm.classList.remove('disabled');
+    linkDistributions.classList.remove('disabled');
+    btnSecurityForm.disabled = false;
+    btnDistributions.disabled = false;
+  } else {
+    linkSecurityForm.removeAttribute('href');
+    linkDistributions.removeAttribute('href');
+    linkSecurityForm.classList.add('disabled');
+    linkDistributions.classList.add('disabled');
+    btnSecurityForm.disabled = true;
+    btnDistributions.disabled = true;
+  }
 }
 
 function renderAll(filterSecId='') {
@@ -110,9 +138,15 @@ function renderAll(filterSecId='') {
   const filtered = rows.map((r,i)=>({r,i}))
     .filter(({r}) => !filterSecId || r.SecurityID === filterSecId)
     .sort((a,b) => (parseSwissDateTime(b.r.PriceDate)||0) - (parseSwissDateTime(a.r.PriceDate)||0));
+
+  document.getElementById('countLine').textContent =
+    `Total ${rows.length.toLocaleString('en-US')} Security Price Entries · ${filtered.length.toLocaleString('en-US')} Entries selected`;
+
+  updateSelectionLinks(filterSecId);
+
   body.innerHTML = filtered.length
     ? filtered.slice(0,300).map(({r,i}) => renderRow(r, i)).join('')
-    : '<tr><td colspan="7">Keine Einträge.</td></tr>';
+    : '<tr><td colspan="6">No entries.</td></tr>';
 
   body.querySelectorAll('input').forEach(el => {
     el.addEventListener('change', () => {
@@ -123,7 +157,7 @@ function renderAll(filterSecId='') {
   body.querySelectorAll('[data-del]').forEach(btn => {
     btn.addEventListener('click', () => {
       const idx = Number(btn.dataset.del);
-      if (confirm('Preis-Eintrag wirklich löschen?')) { rows.splice(idx,1); renderAll(document.getElementById('filterSecurity').value); }
+      if (confirm('Delete this price entry?')) { rows.splice(idx,1); renderAll(document.getElementById('filterSecurity').value); }
     });
   });
 }
@@ -146,11 +180,12 @@ async function load() {
     fileSha = pricesF.sha;
 
     masterRows = parseCSV(masterF.text).rows;
+    const sortedMaster = [...masterRows].sort((a,b) => (a.SecurityName||'').localeCompare(b.SecurityName||''));
     const sel = document.getElementById('filterSecurity');
-    sel.innerHTML = '<option value="">Alle Securities…</option>' + masterRows
-      .map(m => `<option value="${m.SecurityID}">${m.SecurityID} · ${m.SecurityName}</option>`).join('');
+    sel.innerHTML = '<option value="">All securities…</option>' + sortedMaster
+      .map(m => `<option value="${m.SecurityID}">${m.SecurityName} · ${m.SecurityID}</option>`).join('');
 
-    // Deep-Link von security.html: ?id=SecurityID selektiert direkt den Filter.
+    // Deep link from security.html: ?id=SecurityID pre-selects the filter.
     const urlId = new URLSearchParams(location.search).get('id');
     if (urlId && masterRows.some(m => m.SecurityID === urlId)) {
       sel.value = urlId;
@@ -158,9 +193,9 @@ async function load() {
     } else {
       renderAll();
     }
-    setStatus(`${rows.length} Preis-Einträge geladen.`, 'ok');
+    setStatus(`${rows.length} price entries loaded.`, 'ok');
   } catch (e) {
-    document.getElementById('body').innerHTML = `<tr><td colspan="7">Fehler: ${e.message}</td></tr>`;
+    document.getElementById('body').innerHTML = `<tr><td colspan="6">Error: ${e.message}</td></tr>`;
   }
 }
 
@@ -184,18 +219,18 @@ document.getElementById('addBtn').addEventListener('click', () => {
 
 document.getElementById('saveBtn').addEventListener('click', async () => {
   if (!ghConfigured() || !GH.token) {
-    setStatus('Bitte zuerst Repo + Token unter ⚙ Repo/Token hinterlegen.', 'error');
+    setStatus('Please set Repo + Token under ⚙ Repo/Token first.', 'error');
     document.getElementById('settingsPanel').classList.add('show');
     return;
   }
   const csv = toCSV(header, rows);
   try {
-    setStatus('Speichere…');
-    const result = await ghPutFile(PATH, csv, `price_editor: manuelle Anpassung security_prices.csv (${nowZurichString()})`, fileSha);
+    setStatus('Saving…');
+    const result = await ghPutFile(PATH, csv, `price_editor: manual update to security_prices.csv (${nowZurichString()})`, fileSha);
     fileSha = result.content.sha;
-    setStatus('Gespeichert ✓ ' + nowZurichString(), 'ok');
+    setStatus('Saved ✓ ' + nowZurichString(), 'ok');
   } catch (e) {
-    setStatus('Fehler beim Speichern: ' + e.message, 'error');
+    setStatus('Error while saving: ' + e.message, 'error');
   }
 });
 
