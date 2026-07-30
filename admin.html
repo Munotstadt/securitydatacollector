@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{ --bg:#fff;--panel:#F7F8FA;--line:#E3E6EA;--text:#1A1D22;--muted:#767E8A;--accent:#E30613;--gain:#1F8A6E; }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;padding:32px 16px 80px;display:flex;flex-direction:column;align-items:center;}
+  .board{width:100%;max-width:960px;}
+  .eyebrow{display:flex;align-items:center;justify-content:space-between;padding-bottom:16px;border-bottom:2px solid var(--accent);}
+  .brand h1{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:20px;text-transform:uppercase;letter-spacing:.02em;margin:0;}
+  .status{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);}
+
+  .summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:20px 0;}
+  .summary-box{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:14px;}
+  .summary-label{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);}
+  .summary-value{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;margin-top:4px;}
+
+  .section-title{font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;margin:28px 0 4px;padding-bottom:8px;border-bottom:1px solid var(--line);}
+
+  .settings{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:14px;margin-bottom:8px;display:none;gap:8px;}
+  .settings.show{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;}
+  .settings label{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);display:block;margin-bottom:3px;}
+  .settings input{width:100%;font-family:'Inter',sans-serif;font-size:14px;padding:8px 9px;border:1px solid var(--line);border-radius:3px;background:var(--bg);color:var(--text);}
+
+  .upload-box{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:16px;margin-top:8px;}
+  .upload-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  .upload-row input[type=file]{
+    font-family:'Inter',sans-serif;font-size:13px;flex:1;min-width:200px;
+  }
+  .upload-instructions{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);margin-top:12px;padding-top:12px;border-top:1px solid var(--line);}
+  .upload-instructions code{background:var(--bg);border:1px solid var(--line);border-radius:3px;padding:2px 5px;}
+
+  button{font-family:'IBM Plex Mono',monospace;font-size:12px;padding:8px 14px;border-radius:3px;border:1px solid var(--line);background:none;cursor:pointer;color:var(--text);}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
+  button:hover{border-color:var(--text);}
+  button:disabled{opacity:.5;cursor:not-allowed;}
+
+  .quick-status{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);margin-top:10px;display:block;}
+  .quick-status.ok{color:var(--gain);}
+  .quick-status.err{color:#C0293D;}
+
+  table{width:100%;border-collapse:collapse;margin-top:4px;font-size:13px;}
+  thead th{text-align:left;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:8px 6px;border-bottom:1px solid var(--line);}
+  thead th.num{text-align:right;}
+  tbody td{padding:6px;border-bottom:1px solid var(--line);}
+  tbody td.num{font-family:'IBM Plex Mono',monospace;text-align:right;}
+  tbody tr.total-row td{font-weight:600;background:var(--panel);}
+  .table-wrap{overflow-x:auto;max-height:60vh;overflow-y:auto;}
+  .empty,.error{padding:30px 10px;text-align:center;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:13px;}
+  .error{color:#C0293D;}
+
+  .topnav{
+    display:flex;gap:4px;flex-wrap:wrap;align-items:center;
+    max-width:960px;width:100%;margin:0 auto 24px;padding:0 0 10px;
+    border-bottom:1px solid var(--line);
+    font-family:"IBM Plex Mono",monospace;font-size:12px;
+  }
+  .topnav a{ color:var(--muted);text-decoration:none;padding:6px 10px;border-radius:3px;border:1px solid transparent;white-space:nowrap; }
+  .topnav a:hover{color:var(--text);border-color:var(--line);}
+  .topnav a.active{color:var(--text);font-weight:600;border-color:var(--accent);background:rgba(227,6,19,0.06);}
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <a href="index.html">🏠 Home</a>
+  <a href="dashboard.html">📊 Dashboard</a>
+  <a href="portfolio.html">💼 Portfolio</a>
+  <a href="master_editor.html">🗂 Stammdaten</a>
+  <a href="price_editor.html">✏️ Kurse</a>
+  <a href="distribution_editor.html">💰 Ausschüttungen</a>
+  <a href="admin.html" class="active">⚙️ Admin</a>
+</nav>
+
+<div class="board">
+  <div class="eyebrow">
+    <div class="brand"><h1>Admin</h1></div>
+    <div class="status" id="statusText">loading…</div>
+  </div>
+
+  <div class="summary" id="summaryBoxes"></div>
+
+  <div class="section-title">Upload Prices CSV</div>
+  <div class="upload-box">
+    <div class="upload-row">
+      <input type="file" id="csvFile" accept=".csv">
+      <button type="button" id="settingsBtn">⚙ Repo/Token</button>
+      <button type="button" id="uploadBtn" class="primary" disabled>Upload</button>
+    </div>
+    <span class="quick-status" id="uploadStatus"></span>
+    <div class="upload-instructions">
+      CSV file in the following format:<br>
+      <code>SecurityID,SecurityName,Price,PriceDate,Source,Created_at</code><br>
+      One header row, then one data row per price entry. <code>PriceDate</code>/<code>Created_at</code> use <code>dd.mm.yyyy hh:mm:ss</code>. Rows are appended to <code>security_prices.csv</code> — nothing existing is overwritten or removed.
+    </div>
+  </div>
+
+  <div class="settings" id="settingsPanel">
+    <div><label>GitHub Owner</label><input type="text" id="cfgOwner"></div>
+    <div><label>Repo</label><input type="text" id="cfgRepo"></div>
+    <div><label>Branch</label><input type="text" id="cfgBranch" placeholder="main"></div>
+    <div><label>Personal Access Token (repo scope)</label><input type="text" id="cfgToken" placeholder="ghp_…"></div>
+    <div style="align-self:end;"><button type="button" id="cfgSave" class="primary">Apply</button></div>
+  </div>
+
+  <div class="section-title">Activity - Last 30 Days</div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Date</th><th class="num">Securities Added</th><th class="num">Prices Added</th><th class="num">Distributions Added</th>
+    </tr></thead>
+    <tbody id="activityBody"><tr><td colspan="4" class="empty">Loading…</td></tr></tbody>
+  </table>
+  </div>
+</div>
+
+<script src="assets/github-data.js"></script>
+<script>
+function parseCreatedDate(s){
+  const dt = parseSwissDateTime(s);
+  return dt ? dt.toISOString().slice(0,10) : null;
+}
+
+function countByDay(rows, dateField){
+  const counts = {};
+  for(const r of rows){
+    const day = parseCreatedDate(r[dateField]);
+    if(!day) continue;
+    counts[day] = (counts[day]||0) + 1;
+  }
+  return counts;
+}
+
+function last30Days(){
+  const days = [];
+  const now = new Date();
+  for(let i=0;i<30;i++){
+    const d = new Date(now); d.setDate(d.getDate()-i);
+    days.push(d.toISOString().slice(0,10));
+  }
+  return days;
+}
+
+async function loadCounts(){
+  const [masterText, pricesText, distText] = await Promise.all([
+    ghFetchRaw('data/security_master.csv'),
+    ghFetchRaw('data/security_prices.csv'),
+    ghFetchRaw('data/security_distributions.csv'),
+  ]);
+  const master = parseCSV(masterText).rows;
+  const prices = parseCSV(pricesText).rows;
+  const dist = parseCSV(distText).rows;
+
+  document.getElementById('summaryBoxes').innerHTML = `
+    <div class="summary-box"><div class="summary-label">Securities</div><div class="summary-value">${master.length.toLocaleString('en-US')}</div></div>
+    <div class="summary-box"><div class="summary-label">Prices</div><div class="summary-value">${prices.length.toLocaleString('en-US')}</div></div>
+    <div class="summary-box"><div class="summary-label">Distributions</div><div class="summary-value">${dist.length.toLocaleString('en-US')}</div></div>
+  `;
+
+  const secByDay = countByDay(master, 'Created_at');
+  const priceByDay = countByDay(prices, 'Created_at');
+  const distByDay = countByDay(dist, 'Created_at');
+
+  const days = last30Days();
+  let totalSec=0, totalPrice=0, totalDist=0;
+  const rowsHtml = days.map(day => {
+    const s = secByDay[day]||0, p = priceByDay[day]||0, d = distByDay[day]||0;
+    totalSec+=s; totalPrice+=p; totalDist+=d;
+    const [y,m,dd] = day.split('-');
+    return `<tr><td>${dd}.${m}.${y}</td><td class="num">${s||'—'}</td><td class="num">${p||'—'}</td><td class="num">${d||'—'}</td></tr>`;
+  }).join('');
+  const totalRow = `<tr class="total-row"><td>Total (30 days)</td><td class="num">${totalSec}</td><td class="num">${totalPrice}</td><td class="num">${totalDist}</td></tr>`;
+
+  document.getElementById('activityBody').innerHTML = rowsHtml + totalRow;
+}
+
+async function load(){
+  try{
+    await loadCounts();
+    document.getElementById('statusText').textContent = 'live · ' + new Date().toLocaleTimeString('en-US');
+  }catch(e){
+    document.getElementById('activityBody').innerHTML = `<tr><td colspan="4" class="error">Error: ${e.message}</td></tr>`;
+    document.getElementById('statusText').textContent = 'error';
+  }
+}
+
+// ---- CSV upload ----
+const csvFile = document.getElementById('csvFile');
+const uploadBtn = document.getElementById('uploadBtn');
+csvFile.addEventListener('change', () => { uploadBtn.disabled = !csvFile.files.length; });
+
+uploadBtn.addEventListener('click', async () => {
+  const statusEl = document.getElementById('uploadStatus');
+  if (!ghConfigured() || !GH.token) {
+    statusEl.className='quick-status err'; statusEl.textContent='Please set Repo + Token under ⚙ Repo/Token first.';
+    document.getElementById('settingsPanel').classList.add('show');
+    return;
+  }
+  const file = csvFile.files[0];
+  if(!file){ statusEl.className='quick-status err'; statusEl.textContent='Please select a CSV file first.'; return; }
+
+  try{
+    statusEl.className='quick-status'; statusEl.textContent='Reading file…';
+    const text = await file.text();
+    const parsed = parseCSV(text);
+    if(!parsed.rows.length){ statusEl.className='quick-status err'; statusEl.textContent='No data rows found in the selected file.'; return; }
+
+    statusEl.textContent = `Uploading ${parsed.rows.length} row(s)…`;
+    const fresh = await ghGetFile('data/security_prices.csv');
+    const freshParsed = parseCSV(fresh.content);
+    const header = freshParsed.header.length ? freshParsed.header : ['SecurityID','SecurityName','Price','PriceDate','Source','Created_at'];
+    const newRows = [...freshParsed.rows, ...parsed.rows];
+    const csv = toCSV(header, newRows);
+    await ghPutFile('data/security_prices.csv', csv, `admin.html: bulk price upload (${parsed.rows.length} rows, ${nowZurichString()})`, fresh.sha);
+
+    statusEl.className='quick-status ok'; statusEl.textContent = `Uploaded ✓ ${parsed.rows.length} row(s) added.`;
+    csvFile.value = '';
+    uploadBtn.disabled = true;
+    load();
+  }catch(e){
+    statusEl.className='quick-status err'; statusEl.textContent = 'Error: ' + e.message;
+  }
+});
+
+document.getElementById('settingsBtn').addEventListener('click', () => {
+  document.getElementById('cfgOwner').value = GH.owner;
+  document.getElementById('cfgRepo').value = GH.repo;
+  document.getElementById('cfgBranch').value = GH.branch;
+  document.getElementById('cfgToken').value = GH.token;
+  document.getElementById('settingsPanel').classList.toggle('show');
+});
+document.getElementById('cfgSave').addEventListener('click', () => {
+  ghSaveConfig({
+    owner: document.getElementById('cfgOwner').value.trim(),
+    repo: document.getElementById('cfgRepo').value.trim(),
+    branch: document.getElementById('cfgBranch').value.trim() || 'main',
+    token: document.getElementById('cfgToken').value.trim(),
+  });
+  document.getElementById('settingsPanel').classList.remove('show');
+  load();
+});
+
+load();
+</script>
+</body>
+</html>

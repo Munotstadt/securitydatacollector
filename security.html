@@ -32,6 +32,14 @@
   .return-date{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);}
   .return-value.up{color:var(--gain);} .return-value.down{color:var(--loss);} .return-value.flat{color:var(--muted);}
 
+  .range52w-wrap{position:relative;margin:24px 0 4px;padding:30px 4px 0;}
+  .range52w-current{position:absolute;top:0;transform:translateX(-50%);font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:15px;color:var(--text);white-space:nowrap;}
+  .range52w-bar{position:relative;height:6px;border-radius:3px;background:linear-gradient(to right, #C7DEE0, #1F5F63);}
+  .range52w-marker{position:absolute;top:-2px;transform:translate(-50%,-100%);font-size:11px;line-height:1;color:#1A3D40;}
+  .range52w-labels{display:flex;justify-content:space-between;margin-top:12px;}
+  .range52w-value{font-family:'IBM Plex Mono',monospace;font-size:15px;color:var(--text);display:block;}
+  .range52w-date{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);display:block;margin-top:2px;}
+
   .section-title{font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;margin:28px 0 4px;padding-bottom:8px;border-bottom:1px solid var(--line);}
   table{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px;}
   th{text-align:left;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:8px 6px;border-bottom:1px solid var(--line);}
@@ -108,6 +116,7 @@
   <a href="master_editor.html">🗂 Stammdaten</a>
   <a href="price_editor.html">✏️ Kurse</a>
   <a href="distribution_editor.html">💰 Ausschüttungen</a>
+  <a href="admin.html">⚙️ Admin</a>
 </nav>
 
 <div class="board">
@@ -131,6 +140,7 @@
       <span class="detail-meta" id="detailMeta"></span>
     </div>
     <div class="returns" id="returnsBoxes"></div>
+    <div class="range52w-wrap" id="range52wWrap"></div>
   </div>
 
   <div class="section-title">Performance</div>
@@ -458,6 +468,8 @@ function renderMasterForm(){
     <div class="field"><label>Instrument</label>${selHtml('mfInstrument', masterRow.Instrument, INSTRUMENT_OPTS)}</div>
     <div class="field"><label>Data Collector</label>${selHtml('mfCollector', masterRow.DataCollector, COLLECTOR_OPTS)}</div>
     <div class="field"><label>Yahoo Ticker</label><input type="text" id="mfTicker" value="${masterRow.YahooTicker||''}"></div>
+    <div class="field"><label>Comment</label><input type="text" id="mfComment" value="${masterRow.Comment||''}"></div>
+    <div class="field"><label>Market Group</label><input type="text" id="mfMarketGroup" value="${masterRow.MarketGroup||''}"></div>
     <div class="field"><label>Quantity</label><input type="number" step="any" id="mfQuantity" value="${masterRow.Quantity||0}"></div>
   `;
   const curSel = document.getElementById('mfCurrency');
@@ -486,6 +498,8 @@ document.getElementById('masterSave').addEventListener('click', async () => {
     Instrument: document.getElementById('mfInstrument').value,
     DataCollector: document.getElementById('mfCollector').value,
     YahooTicker: document.getElementById('mfTicker').value,
+    Comment: document.getElementById('mfComment').value,
+    MarketGroup: document.getElementById('mfMarketGroup').value,
     Quantity: document.getElementById('mfQuantity').value,
     Modified_at: nowZurichString(),
   };
@@ -494,8 +508,10 @@ document.getElementById('masterSave').addEventListener('click', async () => {
     statusEl.className='quick-status'; statusEl.textContent='Saving…';
     const fresh = await ghGetFile('data/security_master.csv');
     const parsed = parseCSV(fresh.content);
+    const freshHeader = parsed.header.length ? parsed.header : masterHeader;
+    ['Comment','MarketGroup'].forEach(col => { if (!freshHeader.includes(col)) freshHeader.push(col); });
     const freshRows = parsed.rows.map(r => r.SecurityID === secId ? updated : r);
-    const csv = toCSV(parsed.header.length?parsed.header:masterHeader, freshRows);
+    const csv = toCSV(freshHeader, freshRows);
     await ghPutFile('data/security_master.csv', csv, `security.html: master data updated for ${secId} (${nowZurichString()})`, fresh.sha);
     masterRow = updated;
     statusEl.className='quick-status ok'; statusEl.textContent='Saved ✓ ' + nowZurichString();
@@ -590,6 +606,22 @@ document.getElementById('cfgSave').addEventListener('click', () => {
   });
   document.getElementById('settingsPanel').classList.remove('show');
 });
+
+function renderRange52w(highRow, lowRow, last, decimals){
+  const el = document.getElementById('range52wWrap');
+  if(!highRow || !lowRow || !last){ el.innerHTML = ''; return; }
+  const lowVal = lowRow.Price, highVal = highRow.Price;
+  const fmtDateDDMM = d => { const dd=String(d.getDate()).padStart(2,'0'); const mm=String(d.getMonth()+1).padStart(2,'0'); return `${dd}.${mm}.${d.getFullYear()}`; };
+  let pct = highVal > lowVal ? ((last.Price - lowVal) / (highVal - lowVal)) * 100 : 50;
+  pct = Math.max(0, Math.min(100, pct));
+  el.innerHTML = `
+    <div class="range52w-current" style="left:${pct.toFixed(1)}%">${fmtDecimal(last.Price, decimals)}</div>
+    <div class="range52w-bar"><div class="range52w-marker" style="left:${pct.toFixed(1)}%">▼</div></div>
+    <div class="range52w-labels">
+      <div><span class="range52w-value">${fmtDecimal(lowVal, decimals)}</span><span class="range52w-date">${fmtDateDDMM(lowRow.dt)}</span></div>
+      <div style="text-align:right"><span class="range52w-value">${fmtDecimal(highVal, decimals)}</span><span class="range52w-date">${fmtDateDDMM(highRow.dt)}</span></div>
+    </div>`;
+}
 
 async function load(){
   const params = new URLSearchParams(location.search);
@@ -697,10 +729,10 @@ async function load(){
       const f = fmtPct(chg);
       return `<div class="return-box"><span class="return-label">${r.label}</span><span class="return-value ${f.dir}">${f.text}</span></div>`;
     }).join('');
-    returnsHtml += `<div class="return-box"><span class="return-label">52W High</span><span class="return-value">${high52wRow!==null?fmtDecimal(high52wRow.Price,decimals):'—'}</span>${high52wRow!==null?`<span class="return-date">${fmtDateYY(high52wRow.dt)}</span>`:''}</div>`;
-    returnsHtml += `<div class="return-box"><span class="return-label">52W Low</span><span class="return-value">${low52wRow!==null?fmtDecimal(low52wRow.Price,decimals):'—'}</span>${low52wRow!==null?`<span class="return-date">${fmtDateYY(low52wRow.dt)}</span>`:''}</div>`;
-    returnsHtml += `<div class="return-box"><span class="return-label">Dividend Yield (12M)</span><span class="return-value ${yieldPct!==null&&yieldPct>0?'up':'flat'}">${yieldPct!==null?yieldPct.toFixed(2)+'%':'—'}</span></div>`;
+    returnsHtml += `<div class="return-box"><span class="return-label">Dividend Yield</span><span class="return-value ${yieldPct!==null&&yieldPct>0?'up':'flat'}">${yieldPct!==null?yieldPct.toFixed(2)+'%':'—'}</span></div>`;
     document.getElementById('returnsBoxes').innerHTML = returnsHtml;
+
+    renderRange52w(high52wRow, low52wRow, last, decimals);
 
     document.getElementById('thPriceLc').textContent = `Price Return ${currency}`;
     document.getElementById('thTotalLc').textContent = `Total Return ${currency}`;

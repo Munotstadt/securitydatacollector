@@ -36,7 +36,13 @@
   td.name-col input{min-width:220px;}
   td.collector-col select{min-width:170px;}
   td.view-col{text-align:center;width:32px;}
-  td.view-col a{text-decoration:none;font-size:14px;}
+  .view-link{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:24px;height:24px;border-radius:3px;border:1px solid var(--line);
+    color:var(--muted);text-decoration:none;font-size:12px;background:var(--bg);
+    transition:border-color .15s, color .15s;
+  }
+  .view-link:hover{border-color:var(--accent);color:var(--accent);}
   .row-actions button{padding:3px 7px;}
   .status{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);margin-top:10px;}
   .status.error{color:#C0293D;}
@@ -72,6 +78,7 @@
   <a href="master_editor.html" class="active">🗂 Stammdaten</a>
   <a href="price_editor.html">✏️ Kurse</a>
   <a href="distribution_editor.html">💰 Ausschüttungen</a>
+  <a href="admin.html">⚙️ Admin</a>
 </nav>
 <div class="wrap">
   <h1>Security Master · Editor</h1>
@@ -130,6 +137,11 @@ const GRUPPE_OPTS = ['Shares','Bonds','Alternative'];
 const INSTRUMENT_OPTS = ['Index','Shares','ETF/Funds','Crypto','Currency','Interests','Commodities','other'];
 const COLLECTOR_OPTS = ['Collector_YahooWeekday','Collector_YahooDaily','Collector_Other','none'];
 
+// Simple line-style eye icon (matches the site's IBM Plex Mono / minimal
+// aesthetic better than a raw emoji, which renders inconsistently across
+// platforms).
+const EYE_SVG = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>`;
+
 let header = [];
 let rows = [];
 let fileSha = null;
@@ -156,7 +168,7 @@ function selWithOther(name, value, options) {
 
 function renderRow(row, idx) {
   return `<tr data-idx="${idx}">
-    <td class="view-col">${row.SecurityID ? `<a href="security.html?id=${encodeURIComponent(row.SecurityID)}" title="View Security">👁</a>` : ''}</td>
+    <td class="view-col">${row.SecurityID ? `<a class="view-link" href="security.html?id=${encodeURIComponent(row.SecurityID)}" title="View Security">${EYE_SVG}</a>` : ''}</td>
     <td class="name-col"><input type="text" data-field="SecurityName" value="${row.SecurityName||''}"></td>
     <td>${selWithOther('Currency', row.Currency, CURRENCY_OPTS)}</td>
     <td>${sel('PortfolioGruppe', row.PortfolioGruppe, GRUPPE_OPTS)}</td>
