@@ -3965,3 +3965,46 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 46,Raiffeisen Winterthur Hypothek 10 Jahr Zinssatz,2.1,30.07.2026 15:30:19,RB Winterthur,30.07.2026 15:30:19
 47,Raiffeisen Winterthur Hypothek 15 Jahr Zinssatz,2.51,30.07.2026 15:30:19,RB Winterthur,30.07.2026 15:30:19
 29,Gold Vreneli (CHF 20),608.0,30.07.2026 15:30:19,Raiffeisen Börse,30.07.2026 15:30:19
+20,Apple Inc.,331.5799,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+3,EUR/CHF,0.92936,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+2,USD/CHF,0.80708,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+10,iShares Swiss Dividends,193.84,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+1,Nestlé SA,82.29,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+5,S&P 500 Total Return,16588.10938,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+6,SMI Total Return,37727.07031,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+11,iShares Core MSCI EM IMI UCITS ETF (EIMI),51.55,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+12,UBS ETF (CH) SMIM,326.0,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+13,Vanguard S&P 500 UCITS ETF,140.4425,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+14,Xtrackers S&P 500 Equal Weight UCITS ETF (XDEW),119.15,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+15,VanEck S&P Global Mining UCITS ETF (GDIG),58.01,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+16,UBS Gold ETF (AUUSI),130.89999,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+17,iShares Core MSCI Japan IMI UCITS ETF,79.82,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+18,iShares MSCI EMU Small Cap ETF (CSEMUS),370.0,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+19,Amazon,237.38609,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+21,Microsoft,450.76001,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+22,Nvidia,196.4958,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+23,Lonza Group AG,574.20001,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+24,UBS Group AG,42.7,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+25,Vonovia,21.06,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+26,Alphabet (Google Class C),332.20999,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+27,SpaceX,115.92,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+30,Partners Group Holding AG,674.40002,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+31,iShares Core MSCI Europe UCITS ETF EUR Dist,40.73,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+32,iShares Core MSCI Pacific ex Japan,250.8,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+33,iShares Core FTSE 100,1064.0,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+34,iShares Core MSCI EMU UCITS ETF,245.49001,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+35,SWC (CH) REF Rsp Swiss Commercial FA CHF,96.0,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+36,SPDR S&P Euro Dividend Aristocrats ETF,28.865,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+37,Richemont SA,191.05,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+38,Sika Ltd,179.25,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+39,Alcon AG,56.28,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+40,Helvetia Baloise Holding AG,215.0,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+51,MSCI ACWI - Emerging Markets (USD),1104.88,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+52,MSCI World,4810.56982,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+53,Nasdaq Composite,25096.79492,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+55,Sunrise Communications AG,42.8,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+56,Swiss Performance Index (SPI),20275.78906,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+57,CBOE Interest Rate 10 Year T Note,4.655,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+59,Swiss Life,947.20001,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+60,MSCI Emerging Markets Index,1564.58997,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
+61,Swiss Market Index,14398.25,30.07.2026 16:40:38,Yahoo Finance (Weekday),30.07.2026 16:40:38
