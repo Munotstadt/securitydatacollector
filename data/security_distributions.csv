@@ -34,3 +34,4 @@ SecurityID,SecurityName,DistributionAmount,Currency,ExDate,PayDate,Source,Create
 22,Nvidia,0.215,USD,04.06.2026,26.06.2026,manual,30.07.2026 21:44:01
 22,Nvidia,0.008,USD,11.03.2026,01.04.2026,manual,30.07.2026 21:44:21
 22,Nvidia,0.009,USD,04.12.2025,26.12.2025,manual,30.07.2026 21:44:46
+22,Nvidia,0.009,USD,11.09.2025,02.10.2025,manual,30.07.2026 21:45:16
