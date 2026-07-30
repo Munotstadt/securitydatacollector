@@ -25,7 +25,7 @@ Vanguard S&P 500 UCITS ETF,13,18575508,USD,Shares,USA,,ETF/Funds,Collector_Yahoo
 Xtrackers S&P 500 Equal Weight UCITS ETF (XDEW),14,24514626,USD,Shares,USA,,ETF/Funds,Collector_YahooWeekday,XDEW.L,411,27.07.2026 20:50:11,30.07.2026 07:15:10,,
 VanEck S&P Global Mining UCITS ETF (GDIG),15,41125207,USD,Alternative,Commodities,,ETF/Funds,Collector_YahooWeekday,GDIG.L,100,27.07.2026 20:50:11,30.07.2026 07:15:10,,
 UBS Gold ETF (AUUSI),16,10602719,USD,Alternative,Commodities,,ETF/Funds,Collector_YahooWeekday,AUUSI-USD.SW,175,27.07.2026 20:50:11,30.07.2026 07:15:10,,
-iShares Core MSCI Japan IMI UCITS ETF,17,10608419,GBP,Shares,Asia Pacific,,ETF/Funds,Collector_YahooWeekday,IJPA.L,150,27.07.2026 20:50:11,30.07.2026 07:15:10,,
+iShares Core MSCI Japan IMI UCITS ETF,17,10608419,GBP,Shares,Asia Pacific,,ETF/Funds,Collector_YahooWeekday,IJPA.L,150,27.07.2026 20:50:11,30.07.2026 21:23:02,"Ticker für UK, wegen Liquidität. Umrechnung stimmt jedoch.",
 iShares MSCI EMU Small Cap ETF (CSEMUS),18,10192176,EUR,Shares,Europe,,ETF/Funds,Collector_YahooWeekday,CSEMUS.MI,50,27.07.2026 20:50:11,30.07.2026 07:15:10,,
 Amazon,19,10152,USD,Shares,USA,,Shares,Collector_YahooWeekday,AMZN,20,27.07.2026 20:50:11,30.07.2026 07:15:10,,
 Microsoft,21,951692,USD,Shares,USA,,Shares,Collector_YahooWeekday,MSFT,10,27.07.2026 20:50:11,30.07.2026 07:15:10,,
