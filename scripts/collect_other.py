@@ -182,6 +182,50 @@ def fetch_raiffeisen_vreneli_ankauf():
 
 
 # ---------------------------------------------------------------------------
+# Quelle 6: iShares NAV-Export (offizieller "Download"-Link auf der
+# Produktseite, liefert eine SpreadsheetML-"xls"-Datei mit u.a. dem Sheet
+# "Historisch" - Spalten: per (Datum), Währung, NAV, ...).
+# Nützlich für Fonds, bei denen der Yahoo-Kurs unzuverlässig/veraltet ist
+# (z.B. CSUKX.SW, wo Yahoo einen stark abweichenden Wert zeigte).
+#
+# Die Download-URL ist pro Fonds fix (enthält eine produktspezifische, nicht
+# herleitbare ID) - sie muss einmalig von der jeweiligen iShares-Produktseite
+# über den "Download"-Link unter "Literature" kopiert werden.
+# ---------------------------------------------------------------------------
+
+ISHARES_MONTHS = {
+    "Jan.": 1, "Feb.": 2, "März": 3, "Apr.": 4, "Mai": 5, "Juni": 6,
+    "Juli": 7, "Aug.": 8, "Sept.": 9, "Okt.": 10, "Nov.": 11, "Dez.": 12,
+}
+
+
+def _make_ishares_nav_fetcher(download_url):
+    def _fetch():
+        req = urllib.request.Request(download_url, headers=DEFAULT_HEADERS)
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            content = resp.read().decode("utf-8-sig", errors="replace")
+
+        m = re.search(r'<ss:Worksheet ss:Name="Historisch".*?</ss:Worksheet>', content, re.DOTALL)
+        if not m:
+            raise ValueError("Sheet 'Historisch' nicht im iShares-Export gefunden.")
+        rows = re.findall(r"<ss:Row>(.*?)</ss:Row>", m.group(0), re.DOTALL)
+        if len(rows) < 2:
+            raise ValueError("Keine Datenzeilen im 'Historisch'-Sheet gefunden.")
+
+        # Erste Datenzeile (nach dem Header) = jeweils der aktuellste Eintrag.
+        cells = re.findall(r'<ss:Data ss:Type="(String|Number)">([^<]*)</ss:Data>', rows[1])
+        if len(cells) < 3:
+            raise ValueError("Unerwartete Zeilenstruktur im 'Historisch'-Sheet.")
+        currency = cells[1][1].strip() or None
+        try:
+            nav = float(cells[2][1])
+        except ValueError:
+            raise ValueError(f"NAV-Wert nicht numerisch: {cells[2][1]!r}")
+        return nav, currency
+    return _fetch
+
+
+# ---------------------------------------------------------------------------
 # Registry: SecurityName -> (Fetch-Funktion, Source-Label)
 # Fetch-Funktion liefert (price, currency_or_None).
 # ---------------------------------------------------------------------------
@@ -204,6 +248,23 @@ FETCHERS = {
     "Gold Vreneli (CHF 20)": (fetch_raiffeisen_vreneli_ankauf, "Raiffeisen Börse"),
 }
 
+# ---------------------------------------------------------------------------
+# Registry (per SecurityID statt Name): für Securities, bei denen der Name
+# in security_master.csv sich ändern könnte oder wo eine exakte Namens-
+# Übereinstimmung nicht garantiert werden soll. Wird VOR der namens-basierten
+# FETCHERS-Registry geprüft.
+# ---------------------------------------------------------------------------
+
+FETCHERS_BY_ID = {
+    "33": (
+        _make_ishares_nav_fetcher(
+            "https://www.ishares.com/ch/individual/en/products/253716/ishares-ftse-100-ucits-etf-acc-fund/"
+            "1535604580403.ajax?fileType=xls&fileName=iShares-Core-FTSE-100-UCITS-ETF-GBP-Acc_fund&dataType=fund"
+        ),
+        "iShares (NAV)",
+    ),
+}
+
 
 def run():
     master = read_master()
@@ -217,9 +278,13 @@ def run():
     for row in active:
         name = row["SecurityName"]
         sec_id = row["SecurityID"]
-        entry = FETCHERS.get(name)
+        # SecurityID-Lookup hat Vorrang: kein Risiko, dass eine spätere
+        # Umbenennung in security_master.csv den Fetcher stillschweigend
+        # "verwaist" (die namens-basierte FETCHERS-Registry bräuchte sonst
+        # eine exakte String-Übereinstimmung).
+        entry = FETCHERS_BY_ID.get(sec_id) or FETCHERS.get(name)
         if not entry:
-            print(f"[WARN] Keine Fetch-Funktion registriert für '{name}' - bitte in collect_other.py ergänzen.")
+            print(f"[WARN] Keine Fetch-Funktion registriert für '{name}' (SecurityID {sec_id}) - bitte in collect_other.py ergänzen.")
             errors += 1
             continue
         fetch_fn, source_label = entry
