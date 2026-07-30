@@ -3768,3 +3768,11 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 9,ETH - Ethereum,2970.63,31.12.2025 07:25:00,manual,30.07.2026 07:26:26
 7,SOL - Solana,124.84,31.12.2025 07:26:00,manual,30.07.2026 07:26:56
 8,BTC - Bitcoin,88262.84,31.12.2025 07:27:00,manual,30.07.2026 07:27:25
+8,BTC - Bitcoin,63987.62891,30.07.2026 09:27:54,Yahoo Finance (Daily),30.07.2026 09:27:54
+7,SOL - Solana,73.62,30.07.2026 09:27:54,Yahoo Finance (Daily),30.07.2026 09:27:54
+9,ETH - Ethereum,1903.0,30.07.2026 09:27:54,Yahoo Finance (Daily),30.07.2026 09:27:54
+48,GBP/CHF,1.08914,30.07.2026 09:27:54,Yahoo Finance (Daily),30.07.2026 09:27:54
+49,Gold (USD/oz),4105.8999,30.07.2026 09:27:54,Yahoo Finance (Daily),30.07.2026 09:27:54
+50,JPY/CHF,0.00499,30.07.2026 09:27:54,Yahoo Finance (Daily),30.07.2026 09:27:54
+54,Silver (USD/oz),57.665,30.07.2026 09:27:54,Yahoo Finance (Daily),30.07.2026 09:27:54
+58,Brent Crude Oil Last Day Financ,92.27,30.07.2026 09:27:54,Yahoo Finance (Daily),30.07.2026 09:27:54
