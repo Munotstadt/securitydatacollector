@@ -3780,7 +3780,6 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 30,Partners Group Holding AG,684.0,30.07.2026 09:31:48,Yahoo Finance (Weekday),30.07.2026 09:31:48
 31,iShares Core MSCI Europe UCITS ETF EUR Dist,40.425,30.07.2026 09:31:48,Yahoo Finance (Weekday),30.07.2026 09:31:48
 32,iShares Core MSCI Pacific ex Japan,248.24001,30.07.2026 09:31:48,Yahoo Finance (Weekday),30.07.2026 09:31:48
-33,iShares Core FTSE 100,1062.80005,30.07.2026 09:31:48,Yahoo Finance (Weekday),30.07.2026 09:31:48
 34,iShares Core MSCI EMU UCITS ETF,242.32001,30.07.2026 09:31:48,Yahoo Finance (Weekday),30.07.2026 09:31:48
 35,SWC (CH) REF Rsp Swiss Commercial FA CHF,96.0,30.07.2026 09:31:48,Yahoo Finance (Weekday),30.07.2026 09:31:48
 36,SPDR S&P Euro Dividend Aristocrats ETF,28.695,30.07.2026 09:31:48,Yahoo Finance (Weekday),30.07.2026 09:31:48
@@ -3840,7 +3839,6 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 30,Partners Group Holding AG,674.59998,30.07.2026 12:20:06,Yahoo Finance (Weekday),30.07.2026 12:20:06
 31,iShares Core MSCI Europe UCITS ETF EUR Dist,40.46,30.07.2026 12:20:06,Yahoo Finance (Weekday),30.07.2026 12:20:06
 32,iShares Core MSCI Pacific ex Japan,248.64999,30.07.2026 12:20:06,Yahoo Finance (Weekday),30.07.2026 12:20:06
-33,iShares Core FTSE 100,1065.19995,30.07.2026 12:20:06,Yahoo Finance (Weekday),30.07.2026 12:20:06
 34,iShares Core MSCI EMU UCITS ETF,242.89,30.07.2026 12:20:06,Yahoo Finance (Weekday),30.07.2026 12:20:06
 35,SWC (CH) REF Rsp Swiss Commercial FA CHF,96.0,30.07.2026 12:20:06,Yahoo Finance (Weekday),30.07.2026 12:20:06
 36,SPDR S&P Euro Dividend Aristocrats ETF,28.865,30.07.2026 12:20:06,Yahoo Finance (Weekday),30.07.2026 12:20:06
@@ -3900,7 +3898,6 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 30,Partners Group Holding AG,674.0,30.07.2026 14:11:07,Yahoo Finance (Weekday),30.07.2026 14:11:07
 31,iShares Core MSCI Europe UCITS ETF EUR Dist,40.64,30.07.2026 14:11:07,Yahoo Finance (Weekday),30.07.2026 14:11:07
 32,iShares Core MSCI Pacific ex Japan,249.32001,30.07.2026 14:11:07,Yahoo Finance (Weekday),30.07.2026 14:11:07
-33,iShares Core FTSE 100,1066.80005,30.07.2026 14:11:07,Yahoo Finance (Weekday),30.07.2026 14:11:07
 34,iShares Core MSCI EMU UCITS ETF,243.81,30.07.2026 14:11:07,Yahoo Finance (Weekday),30.07.2026 14:11:07
 35,SWC (CH) REF Rsp Swiss Commercial FA CHF,96.0,30.07.2026 14:11:07,Yahoo Finance (Weekday),30.07.2026 14:11:07
 36,SPDR S&P Euro Dividend Aristocrats ETF,28.865,30.07.2026 14:11:07,Yahoo Finance (Weekday),30.07.2026 14:11:07
@@ -4243,7 +4240,6 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 30,Partners Group Holding AG,669.79999,30.07.2026 18:23:27,Yahoo Finance (Weekday),30.07.2026 18:23:27
 31,iShares Core MSCI Europe UCITS ETF EUR Dist,40.64,30.07.2026 18:23:27,Yahoo Finance (Weekday),30.07.2026 18:23:27
 32,iShares Core MSCI Pacific ex Japan,250.405,30.07.2026 18:23:27,Yahoo Finance (Weekday),30.07.2026 18:23:27
-33,iShares Core FTSE 100,1060.40002,30.07.2026 18:23:27,Yahoo Finance (Weekday),30.07.2026 18:23:27
 34,iShares Core MSCI EMU UCITS ETF,245.67,30.07.2026 18:23:27,Yahoo Finance (Weekday),30.07.2026 18:23:27
 35,SWC (CH) REF Rsp Swiss Commercial FA CHF,96.0,30.07.2026 18:23:27,Yahoo Finance (Weekday),30.07.2026 18:23:27
 36,SPDR S&P Euro Dividend Aristocrats ETF,28.865,30.07.2026 18:23:27,Yahoo Finance (Weekday),30.07.2026 18:23:27
@@ -4304,3 +4300,4 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 46,Raiffeisen Winterthur Hypothek 10 Jahr Zinssatz,2.1,30.07.2026 19:36:51,RB Winterthur,30.07.2026 19:36:51
 47,Raiffeisen Winterthur Hypothek 15 Jahr Zinssatz,2.51,30.07.2026 19:36:51,RB Winterthur,30.07.2026 19:36:51
 29,Gold Vreneli (CHF 20),603.0,30.07.2026 19:36:51,Raiffeisen Börse,30.07.2026 19:36:51
+33,iShares Core FTSE 100,222.60,29.07.2026 19:53:44,manual,30.07.2026 19:53:44
