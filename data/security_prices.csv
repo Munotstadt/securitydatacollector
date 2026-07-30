@@ -4294,3 +4294,11 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 33,iShares Core FTSE 100,229.25,31.12.2025 20:30:00,manual,30.07.2026 20:31:22
 33,iShares Core FTSE 100,257.45,24.07.2026 20:30:00,manual,30.07.2026 20:32:03
 33,iShares Core FTSE 100,260.6,29.07.2026 20:30:00,manual,30.07.2026 20:32:29
+8,BTC - Bitcoin,64634.37109,30.07.2026 20:53:01,Yahoo Finance (Daily),30.07.2026 20:53:01
+7,SOL - Solana,74.49,30.07.2026 20:53:01,Yahoo Finance (Daily),30.07.2026 20:53:01
+9,ETH - Ethereum,1915.06006,30.07.2026 20:53:01,Yahoo Finance (Daily),30.07.2026 20:53:01
+48,GBP/CHF,1.08364,30.07.2026 20:53:01,Yahoo Finance (Daily),30.07.2026 20:53:01
+49,Gold (USD/oz),4163.0,30.07.2026 20:53:01,Yahoo Finance (Daily),30.07.2026 20:53:01
+50,JPY/CHF,0.00506,30.07.2026 20:53:01,Yahoo Finance (Daily),30.07.2026 20:53:01
+54,Silver (USD/oz),59.115,30.07.2026 20:53:01,Yahoo Finance (Daily),30.07.2026 20:53:01
+58,Brent Crude Oil Last Day Financ,88.99,30.07.2026 20:53:01,Yahoo Finance (Daily),30.07.2026 20:53:01
