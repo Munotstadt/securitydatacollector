@@ -205,17 +205,33 @@ def _make_ishares_nav_fetcher(download_url):
         with urllib.request.urlopen(req, timeout=30) as resp:
             content = resp.read().decode("utf-8-sig", errors="replace")
 
-        m = re.search(r'<ss:Worksheet ss:Name="Historisch".*?</ss:Worksheet>', content, re.DOTALL)
-        if not m:
-            raise ValueError("Sheet 'Historisch' nicht im iShares-Export gefunden.")
-        rows = re.findall(r"<ss:Row>(.*?)</ss:Row>", m.group(0), re.DOTALL)
-        if len(rows) < 2:
-            raise ValueError("Keine Datenzeilen im 'Historisch'-Sheet gefunden.")
+        # Sheet-Namen sind sprachabhängig (z.B. "Historisch" auf Deutsch,
+        # "Historical" auf Englisch, je nach Locale in der Download-URL).
+        # Statt auf einen festen Namen zu vertrauen, wird das Sheet anhand
+        # seines Headers gefunden: die Spalte "NAV" bleibt über alle
+        # Sprachversionen unübersetzt (BlackRock-Konvention).
+        worksheets = re.findall(r"<ss:Worksheet\b[^>]*>.*?</ss:Worksheet>", content, re.DOTALL)
+        target_sheet = None
+        for ws in worksheets:
+            rows = re.findall(r"<ss:Row>(.*?)</ss:Row>", ws, re.DOTALL)
+            if not rows:
+                continue
+            header_cells = re.findall(r'<ss:Data ss:Type="String">([^<]*)</ss:Data>', rows[0])
+            if "NAV" in header_cells and len(rows) > 1:
+                target_sheet = rows
+                break
+
+        if target_sheet is None:
+            names = re.findall(r'<ss:Worksheet ss:Name="([^"]+)"', content)
+            raise ValueError(
+                f"Kein Sheet mit 'NAV'-Spalte im iShares-Export gefunden. "
+                f"Vorhandene Sheets: {names}"
+            )
 
         # Erste Datenzeile (nach dem Header) = jeweils der aktuellste Eintrag.
-        cells = re.findall(r'<ss:Data ss:Type="(String|Number)">([^<]*)</ss:Data>', rows[1])
+        cells = re.findall(r'<ss:Data ss:Type="(String|Number)">([^<]*)</ss:Data>', target_sheet[1])
         if len(cells) < 3:
-            raise ValueError("Unerwartete Zeilenstruktur im 'Historisch'-Sheet.")
+            raise ValueError("Unerwartete Zeilenstruktur im NAV-Sheet.")
         currency = cells[1][1].strip() or None
         try:
             nav = float(cells[2][1])
