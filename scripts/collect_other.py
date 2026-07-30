@@ -209,27 +209,46 @@ def _make_ishares_nav_fetcher(download_url):
         # "Historical" auf Englisch, je nach Locale in der Download-URL).
         # Statt auf einen festen Namen zu vertrauen, wird das Sheet anhand
         # seines Headers gefunden: die Spalte "NAV" bleibt über alle
-        # Sprachversionen unübersetzt (BlackRock-Konvention).
+        # Sprachversionen unübersetzt (BlackRock-Konvention). Die Header-Zeile
+        # muss dabei nicht zwingend die allererste Zeile des Sheets sein.
+        # Um falsche Treffer zu vermeiden (z.B. "NAV" in einem Fliesstext auf
+        # einem anderen Sheet), wird jeder Kandidat zusätzlich validiert:
+        # die Folgezeile muss wie ein echter NAV-Datenpunkt aussehen
+        # (3-stelliger Währungscode + numerischer NAV-Wert).
         worksheets = re.findall(r"<ss:Worksheet\b[^>]*>.*?</ss:Worksheet>", content, re.DOTALL)
-        target_sheet = None
+        data_row = None
         for ws in worksheets:
             rows = re.findall(r"<ss:Row>(.*?)</ss:Row>", ws, re.DOTALL)
-            if not rows:
-                continue
-            header_cells = re.findall(r'<ss:Data ss:Type="String">([^<]*)</ss:Data>', rows[0])
-            if "NAV" in header_cells and len(rows) > 1:
-                target_sheet = rows
+            for i, row in enumerate(rows):
+                header_cells = re.findall(r'<ss:Data ss:Type="String">([^<]*)</ss:Data>', row)
+                if "NAV" not in header_cells or i + 1 >= len(rows):
+                    continue
+                candidate_cells = re.findall(r'<ss:Data ss:Type="(String|Number)">([^<]*)</ss:Data>', rows[i + 1])
+                if len(candidate_cells) < 3:
+                    continue
+                currency_candidate = candidate_cells[1][1].strip()
+                nav_candidate = candidate_cells[2][1].strip()
+                if not re.match(r"^[A-Z]{3}$", currency_candidate):
+                    continue
+                try:
+                    float(nav_candidate)
+                except ValueError:
+                    continue
+                data_row = rows[i + 1]
+                break
+            if data_row is not None:
                 break
 
-        if target_sheet is None:
+        if data_row is None:
             names = re.findall(r'<ss:Worksheet ss:Name="([^"]+)"', content)
             raise ValueError(
-                f"Kein Sheet mit 'NAV'-Spalte im iShares-Export gefunden. "
+                f"Keine gültige NAV-Datenzeile im iShares-Export gefunden. "
                 f"Vorhandene Sheets: {names}"
             )
 
-        # Erste Datenzeile (nach dem Header) = jeweils der aktuellste Eintrag.
-        cells = re.findall(r'<ss:Data ss:Type="(String|Number)">([^<]*)</ss:Data>', target_sheet[1])
+        # data_row ist die erste Datenzeile direkt nach der gefundenen
+        # Header-Zeile = jeweils der aktuellste Eintrag.
+        cells = re.findall(r'<ss:Data ss:Type="(String|Number)">([^<]*)</ss:Data>', data_row)
         if len(cells) < 3:
             raise ValueError("Unerwartete Zeilenstruktur im NAV-Sheet.")
         currency = cells[1][1].strip() or None
