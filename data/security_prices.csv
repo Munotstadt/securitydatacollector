@@ -4746,3 +4746,11 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 59,Swiss Life,948.59998,31.07.2026 00:07:39,Yahoo Finance (Weekday),31.07.2026 00:07:39
 60,MSCI Emerging Markets Index,1563.01001,31.07.2026 00:07:39,Yahoo Finance (Weekday),31.07.2026 00:07:39
 61,Swiss Market Index,14385.73047,31.07.2026 00:07:39,Yahoo Finance (Weekday),31.07.2026 00:07:39
+8,BTC - Bitcoin,64804.30078,31.07.2026 00:56:32,Yahoo Finance (Daily),31.07.2026 00:56:32
+7,SOL - Solana,74.72,31.07.2026 00:56:32,Yahoo Finance (Daily),31.07.2026 00:56:32
+9,ETH - Ethereum,1925.02002,31.07.2026 00:56:32,Yahoo Finance (Daily),31.07.2026 00:56:32
+48,GBP/CHF,1.08443,31.07.2026 00:56:32,Yahoo Finance (Daily),31.07.2026 00:56:32
+49,Gold (USD/oz),4168.8999,31.07.2026 00:56:32,Yahoo Finance (Daily),31.07.2026 00:56:32
+50,JPY/CHF,0.00504,31.07.2026 00:56:32,Yahoo Finance (Daily),31.07.2026 00:56:32
+54,Silver (USD/oz),59.335,31.07.2026 00:56:32,Yahoo Finance (Daily),31.07.2026 00:56:32
+58,Brent Crude Oil Last Day Financ,89.45,31.07.2026 00:56:32,Yahoo Finance (Daily),31.07.2026 00:56:32
