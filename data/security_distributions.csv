@@ -28,3 +28,4 @@ SecurityID,SecurityName,DistributionAmount,Currency,ExDate,PayDate,Source,Create
 12,UBS ETF (CH) SMIM,3.87,CHF,06.09.2024,11.09.2024,manual,30.07.2026 17:09:17
 12,UBS ETF (CH) SMIM,3.6,CHF,05.09.2025,09.09.2025,manual,30.07.2026 17:10:00
 36,SPDR S&P Euro Dividend Aristocrats ETF,0.1525,EUR,23.03.2026,31.03.2026,manual,30.07.2026 21:35:56
+36,SPDR S&P Euro Dividend Aristocrats ETF,.8812,EUR,23.09.2025,30.09.2025,manual,30.07.2026 21:36:21
