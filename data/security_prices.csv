@@ -3420,3 +3420,11 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 57,CBOE Interest Rate 10 Year T Note,4.622,30.07.2026 06:44:03,Yahoo Finance (Weekday),30.07.2026 06:44:03
 59,Swiss Life,940.0,30.07.2026 06:44:03,Yahoo Finance (Weekday),30.07.2026 06:44:03
 60,MSCI Emerging Markets Index,1559.67004,30.07.2026 06:44:03,Yahoo Finance (Weekday),30.07.2026 06:44:03
+8,BTC - Bitcoin,63996.26172,30.07.2026 06:48:39,Yahoo Finance (Daily),30.07.2026 06:48:39
+7,SOL - Solana,73.45,30.07.2026 06:48:39,Yahoo Finance (Daily),30.07.2026 06:48:39
+9,ETH - Ethereum,1901.14001,30.07.2026 06:48:39,Yahoo Finance (Daily),30.07.2026 06:48:39
+48,GBP/CHF,1.0883,30.07.2026 06:48:39,Yahoo Finance (Daily),30.07.2026 06:48:39
+49,Gold (USD/oz),4106.7998,30.07.2026 06:48:39,Yahoo Finance (Daily),30.07.2026 06:48:39
+50,JPY/CHF,0.00499,30.07.2026 06:48:39,Yahoo Finance (Daily),30.07.2026 06:48:39
+54,Silver (USD/oz),57.57,30.07.2026 06:48:39,Yahoo Finance (Daily),30.07.2026 06:48:39
+58,Brent Crude Oil Last Day Financ,89.8,30.07.2026 06:48:39,Yahoo Finance (Daily),30.07.2026 06:48:39
