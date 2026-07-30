@@ -49,7 +49,7 @@ Helvetia Baloise Holding AG,40,46664220,CHF,Shares,Switzerland,Insurance,Shares,
 GBP/CHF,48,pending48,CHF,Alternative,,,Currency,Collector_YahooDaily,GBPCHF=X,0,27.07.2026 20:50:11,30.07.2026 06:35:13
 Gold (USD/oz),49,pending49,USD,Alternative,Commodities,,other,Collector_YahooDaily,GC=F,0,27.07.2026 20:50:11,30.07.2026 06:35:13
 JPY/CHF,50,pending50,CHF,Alternative,,,Currency,Collector_YahooDaily,JPYCHF=X,0,27.07.2026 20:50:11,30.07.2026 06:35:13
-MSCI ACWI - Emerging Markets (USD),51,Pending51,USD,Shares,Emerging Markets,,Index,Collector_YahooWeekday,,0,27.07.2026 20:50:11,30.07.2026 06:35:13
+MSCI ACWI - Emerging Markets (USD),51,Pending51,USD,Shares,Emerging Markets,,Index,Collector_YahooWeekday,892400-USD-STRD,0,27.07.2026 20:50:11,30.07.2026 06:40:05
 MSCI World,52,Pending52,USD,Shares,Global Equity,Index,Index,Collector_YahooWeekday,990100-USD-STRD,0,27.07.2026 20:50:11,30.07.2026 06:35:13
 Nasdaq Composite,53,Pending53,USD,Shares,US Equity,Index,Index,Collector_YahooWeekday,^IXIC,0,27.07.2026 20:50:11,30.07.2026 06:35:13
 Silver (USD/oz),54,pending54,USD,Alternative,Commodities,,other,Collector_YahooDaily,SI=F,0,27.07.2026 20:50:11,30.07.2026 06:35:13
