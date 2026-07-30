@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,24 +13,31 @@
   h1{font-family:'Space Grotesk',sans-serif;font-size:20px;text-transform:uppercase;letter-spacing:.02em;border-bottom:2px solid var(--accent);padding-bottom:14px;}
   .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:16px 0;}
   input[type=text], select, input[type=number]{
-    font-family:'Inter',sans-serif;font-size:14px;color:var(--text);background:var(--panel);
-    border:1px solid var(--line);border-radius:3px;padding:9px 10px;outline:none;transition:border-color .15s;
+    font-family:'Inter',sans-serif;font-size:13px;color:var(--text);background:var(--panel);
+    border:1px solid var(--line);border-radius:3px;padding:6px 8px;outline:none;transition:border-color .15s;
   }
   input[type=text]:focus, select:focus, input[type=number]:focus{ border-color:var(--accent); }
   select{
     cursor:pointer; appearance:none;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23767E8A'/%3E%3C/svg%3E");
-    background-repeat:no-repeat; background-position:right 10px center; padding-right:28px;
+    background-repeat:no-repeat; background-position:right 8px center; padding-right:24px;
   }
-  #search{flex:1;min-width:220px;}
+  input:disabled{background:#EFF1F4;color:var(--muted);cursor:not-allowed;}
+  #search{flex:1;min-width:220px;font-size:14px;padding:9px 10px;}
   button{font-family:'IBM Plex Mono',monospace;font-size:12px;padding:8px 14px;border-radius:3px;border:1px solid var(--line);background:none;cursor:pointer;color:var(--text);}
   button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
   button:hover{border-color:var(--text);}
-  table{width:100%;border-collapse:collapse;font-size:13px;}
-  th{text-align:left;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:8px 6px;border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:0;}
-  td{padding:6px;border-bottom:1px solid var(--line);vertical-align:top;}
-  td input, td select{width:100%;min-width:80px;}
-  .row-actions button{padding:4px 8px;}
+  table{width:100%;min-width:1500px;border-collapse:collapse;font-size:12.5px;}
+  th{text-align:left;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:6px;border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:0;cursor:pointer;white-space:nowrap;user-select:none;}
+  th:hover{color:var(--text);}
+  th .arrow{color:var(--accent);margin-left:2px;}
+  td{padding:3px 4px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  td input, td select{width:100%;min-width:70px;}
+  td.name-col input{min-width:220px;}
+  td.collector-col select{min-width:170px;}
+  td.view-col{text-align:center;width:32px;}
+  td.view-col a{text-decoration:none;font-size:14px;}
+  .row-actions button{padding:3px 7px;}
   .status{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);margin-top:10px;}
   .status.error{color:#C0293D;}
   .status.ok{color:#1F8A6E;}
@@ -39,8 +46,7 @@
   .settings label{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);display:block;margin-bottom:3px;}
   .table-wrap{overflow-x:auto;}
 
-  /* Dropdown + "Other" Freitext-Reveal, analog Accounting-Formular */
-  .otherWrap{ margin-top:6px; display:none; }
+  .otherWrap{ margin-top:4px; display:none; }
   .otherWrap.show{ display:block; }
   .otherWrap input{ width:100%; }
 
@@ -71,30 +77,42 @@
   <h1>Security Master · Editor</h1>
 
   <div class="toolbar">
-    <input type="text" id="search" placeholder="Wertschrift suchen (Name, SecurityID, MainID, Ticker)…">
+    <input type="text" id="search" placeholder="Search security (name, ID, MainID, ticker)…">
     <button id="settingsBtn">⚙ Repo/Token</button>
-    <button id="addBtn">+ Neue Zeile</button>
-    <button id="saveBtn" class="primary">Speichern</button>
+    <button id="addBtn">+ New Row</button>
+    <button id="saveBtn" class="primary">Save</button>
   </div>
 
   <div class="settings" id="settingsPanel">
     <div><label>GitHub Owner</label><input type="text" id="cfgOwner"></div>
     <div><label>Repo</label><input type="text" id="cfgRepo"></div>
     <div><label>Branch</label><input type="text" id="cfgBranch" placeholder="main"></div>
-    <div><label>Personal Access Token (repo-Scope)</label><input type="text" id="cfgToken" placeholder="ghp_…"></div>
-    <div style="align-self:end;"><button id="cfgSave" class="primary">Übernehmen</button></div>
+    <div><label>Personal Access Token (repo scope)</label><input type="text" id="cfgToken" placeholder="ghp_…"></div>
+    <div style="align-self:end;"><button id="cfgSave" class="primary">Apply</button></div>
   </div>
 
   <div class="table-wrap">
   <table>
     <thead>
-      <tr>
-        <th>Name</th><th>SecurityID</th><th>MainID</th><th>Currency</th>
-        <th>PortfolioGruppe</th><th>Subgruppe1</th><th>Subgruppe2</th>
-        <th>Instrument</th><th>DataCollector</th><th>YahooTicker</th><th>Quantity</th><th></th>
+      <tr id="headerRow">
+        <th></th>
+        <th data-sort="SecurityName">Name</th>
+        <th data-sort="Currency">Currency</th>
+        <th data-sort="PortfolioGruppe">Portfolio Group</th>
+        <th data-sort="PortfolioSubgruppe1">Subgroup 1</th>
+        <th data-sort="PortfolioSubgruppe2">Subgroup 2</th>
+        <th data-sort="Instrument">Instrument</th>
+        <th data-sort="DataCollector">Data Collector</th>
+        <th data-sort="YahooTicker">Yahoo Ticker</th>
+        <th data-sort="Comment">Comment</th>
+        <th data-sort="MarketGroup">Market Group</th>
+        <th data-sort="Quantity">Quantity</th>
+        <th data-sort="MainID">Main ID</th>
+        <th data-sort="SecurityID">Security ID</th>
+        <th></th>
       </tr>
     </thead>
-    <tbody id="body"><tr><td colspan="12">Lade…</td></tr></tbody>
+    <tbody id="body"><tr><td colspan="15">Loading…</td></tr></tbody>
   </table>
   </div>
 
@@ -103,10 +121,10 @@
 
 <script src="assets/github-data.js"></script>
 <script>
-// Currency und Instrument erlauben zusätzlich Freitext ("Other…"), wie im
-// ursprünglichen Spec vorgesehen. PortfolioGruppe und DataCollector sind
-// strikte Enums (DataCollector wird von den Collector-Skripten exakt
-// abgeglichen) und bekommen daher KEINE "Other"-Option.
+// Currency and Instrument additionally allow free text ("Other…"), as
+// originally specified. PortfolioGruppe and DataCollector are strict enums
+// (DataCollector is matched exactly by the collector scripts) and therefore
+// get NO "Other" option.
 const CURRENCY_OPTS = ['CHF','EUR','USD','GBP','JPY'];
 const GRUPPE_OPTS = ['Shares','Bonds','Alternative'];
 const INSTRUMENT_OPTS = ['Index','Shares','ETF/Funds','Crypto','Currency','Interests','Commodities','other'];
@@ -115,6 +133,8 @@ const COLLECTOR_OPTS = ['Collector_YahooWeekday','Collector_YahooDaily','Collect
 let header = [];
 let rows = [];
 let fileSha = null;
+let sortField = null;
+let sortDir = 'asc';
 const PATH = 'data/security_master.csv';
 
 function sel(name, value, options) {
@@ -122,9 +142,9 @@ function sel(name, value, options) {
   return `<select data-field="${name}">${opts}</select>`;
 }
 
-/* Dropdown mit "Other…"-Option: ist der aktuelle Wert nicht in der Liste der
- * bekannten Optionen enthalten, wird automatisch "Other…" vorausgewählt und
- * das Freitextfeld direkt mit dem bestehenden Wert befüllt/eingeblendet. */
+/* Dropdown with "Other…" option: if the current value is not in the list of
+ * known options, "Other…" is auto-selected and the free-text field is
+ * immediately shown, pre-filled with the existing value. */
 function selWithOther(name, value, options) {
   const isKnown = options.includes(value);
   const isOther = !isKnown && (value || '') !== '';
@@ -136,42 +156,70 @@ function selWithOther(name, value, options) {
 
 function renderRow(row, idx) {
   return `<tr data-idx="${idx}">
-    <td><input type="text" data-field="SecurityName" value="${row.SecurityName||''}"></td>
-    <td><input type="text" data-field="SecurityID" value="${row.SecurityID||''}" style="width:60px"></td>
-    <td><input type="text" data-field="MainID" value="${row.MainID||''}"></td>
+    <td class="view-col">${row.SecurityID ? `<a href="security.html?id=${encodeURIComponent(row.SecurityID)}" title="View Security">👁</a>` : ''}</td>
+    <td class="name-col"><input type="text" data-field="SecurityName" value="${row.SecurityName||''}"></td>
     <td>${selWithOther('Currency', row.Currency, CURRENCY_OPTS)}</td>
     <td>${sel('PortfolioGruppe', row.PortfolioGruppe, GRUPPE_OPTS)}</td>
     <td><input type="text" data-field="PortfolioSubgruppe1" value="${row.PortfolioSubgruppe1||''}"></td>
     <td><input type="text" data-field="PortfolioSubgruppe2" value="${row.PortfolioSubgruppe2||''}"></td>
-    <td>${sel('Instrument', row.Instrument, INSTRUMENT_OPTS)}</td>
-    <td>${sel('DataCollector', row.DataCollector, COLLECTOR_OPTS)}</td>
+    <td>${selWithOther('Instrument', row.Instrument, INSTRUMENT_OPTS)}</td>
+    <td class="collector-col">${sel('DataCollector', row.DataCollector, COLLECTOR_OPTS)}</td>
     <td><input type="text" data-field="YahooTicker" value="${row.YahooTicker||''}"></td>
+    <td><input type="text" data-field="Comment" value="${row.Comment||''}"></td>
+    <td><input type="text" data-field="MarketGroup" value="${row.MarketGroup||''}"></td>
     <td><input type="number" step="any" data-field="Quantity" value="${row.Quantity||0}" style="width:70px"></td>
+    <td><input type="text" data-field="MainID" value="${row.MainID||''}"></td>
+    <td><input type="text" value="${row.SecurityID||''}" disabled style="width:60px"></td>
     <td class="row-actions"><button data-del="${idx}">✕</button></td>
   </tr>`;
+}
+
+function compareRows(a, b, field) {
+  const av = a[field] ?? '', bv = b[field] ?? '';
+  const an = parseFloat(av), bn = parseFloat(bv);
+  if (av !== '' && bv !== '' && !isNaN(an) && !isNaN(bn)) return an - bn;
+  return String(av).localeCompare(String(bv), undefined, { sensitivity: 'base' });
+}
+
+function updateSortIndicators() {
+  document.querySelectorAll('#headerRow th[data-sort]').forEach(th => {
+    th.innerHTML = th.textContent.replace(' ▲','').replace(' ▼','');
+    if (th.dataset.sort === sortField) {
+      th.innerHTML += `<span class="arrow">${sortDir === 'asc' ? '▲' : '▼'}</span>`;
+    }
+  });
 }
 
 function renderAll(filter='') {
   const body = document.getElementById('body');
   const f = filter.toLowerCase();
-  const filtered = rows.map((r,i)=>({r,i})).filter(({r}) => !f ||
+  let filtered = rows.map((r,i)=>({r,i})).filter(({r}) => !f ||
     (r.SecurityName||'').toLowerCase().includes(f) ||
     (r.SecurityID||'').toLowerCase().includes(f) ||
     (r.MainID||'').toLowerCase().includes(f) ||
     (r.YahooTicker||'').toLowerCase().includes(f));
+
+  if (sortField) {
+    filtered = [...filtered].sort((a,b) => {
+      const cmp = compareRows(a.r, b.r, sortField);
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+  }
+  updateSortIndicators();
+
   body.innerHTML = filtered.length
     ? filtered.map(({r,i}) => renderRow(r, i)).join('')
-    : '<tr><td colspan="12">Keine Treffer.</td></tr>';
+    : '<tr><td colspan="15">No matches.</td></tr>';
 
-  // Normale Felder (Text/Number/reine Enum-Selects ohne Other-Option)
-  body.querySelectorAll('input:not(.other-input), select:not(.other-select)').forEach(el => {
+  // Regular fields (text/number/plain enum selects without Other option)
+  body.querySelectorAll('input:not(.other-input):not(:disabled), select:not(.other-select)').forEach(el => {
     el.addEventListener('change', () => {
       const idx = Number(el.closest('tr').dataset.idx);
       rows[idx][el.dataset.field] = el.value;
     });
   });
 
-  // Dropdown+Other Felder (Currency, Instrument)
+  // Dropdown+Other fields (Currency, Instrument)
   body.querySelectorAll('select.other-select').forEach(selEl => {
     const wrap = selEl.nextElementSibling;
     const otherInput = wrap.querySelector('.other-input');
@@ -195,13 +243,34 @@ function renderAll(filter='') {
   body.querySelectorAll('[data-del]').forEach(btn => {
     btn.addEventListener('click', () => {
       const idx = Number(btn.dataset.del);
-      if (confirm('Zeile wirklich löschen?')) { rows.splice(idx,1); renderAll(document.getElementById('search').value); }
+      if (confirm('Delete this row?')) { rows.splice(idx,1); renderAll(document.getElementById('search').value); }
     });
   });
 }
 
+document.querySelectorAll('#headerRow th[data-sort]').forEach(th => {
+  th.addEventListener('click', () => {
+    const field = th.dataset.sort;
+    if (sortField === field) {
+      sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      sortField = field;
+      sortDir = 'asc';
+    }
+    renderAll(document.getElementById('search').value);
+  });
+});
+
+function nextSecurityId() {
+  const maxId = rows.reduce((max, r) => {
+    const n = parseInt(r.SecurityID, 10);
+    return !isNaN(n) && n > max ? n : max;
+  }, 0);
+  return String(maxId + 1);
+}
+
 async function load() {
-  header = ['SecurityName','SecurityID','MainID','Currency','PortfolioGruppe','PortfolioSubgruppe1','PortfolioSubgruppe2','Instrument','DataCollector','YahooTicker','Quantity','Created_at','Modified_at'];
+  header = ['SecurityName','SecurityID','MainID','Currency','PortfolioGruppe','PortfolioSubgruppe1','PortfolioSubgruppe2','Instrument','DataCollector','YahooTicker','Comment','MarketGroup','Quantity','Created_at','Modified_at'];
   try {
     let text, sha;
     if (ghConfigured()) {
@@ -212,12 +281,14 @@ async function load() {
     }
     const parsed = parseCSV(text);
     header = parsed.header.length ? parsed.header : header;
+    // Extend schema forward if these columns don't exist yet in the CSV.
+    ['Comment','MarketGroup'].forEach(col => { if (!header.includes(col)) header.push(col); });
     rows = parsed.rows;
     fileSha = sha || null;
     renderAll();
-    setStatus(`${rows.length} Wertschriften geladen.`, 'ok');
+    setStatus(`${rows.length} securities loaded.`, 'ok');
   } catch (e) {
-    document.getElementById('body').innerHTML = `<tr><td colspan="12">Fehler: ${e.message}</td></tr>`;
+    document.getElementById('body').innerHTML = `<tr><td colspan="15">Error: ${e.message}</td></tr>`;
   }
 }
 
@@ -230,25 +301,25 @@ document.getElementById('search').addEventListener('input', (e) => renderAll(e.t
 
 document.getElementById('addBtn').addEventListener('click', () => {
   const now = nowZurichString();
-  rows.push({SecurityName:'',SecurityID:'',MainID:'',Currency:'CHF',PortfolioGruppe:'Shares',
+  rows.push({SecurityName:'',SecurityID:nextSecurityId(),MainID:'',Currency:'CHF',PortfolioGruppe:'Shares',
     PortfolioSubgruppe1:'',PortfolioSubgruppe2:'',Instrument:'Shares',DataCollector:'none',
-    YahooTicker:'',Quantity:'0',Created_at:now,Modified_at:now});
-  // WICHTIG: Suchfeld leeren, sonst wird die neue (noch leere) Zeile vom
-  // aktiven Filter sofort wieder ausgeblendet -> "es passiert nichts".
+    YahooTicker:'',Comment:'',MarketGroup:'',Quantity:'0',Created_at:now,Modified_at:now});
+  // Clear the search field, otherwise the new (still mostly empty) row would
+  // be immediately hidden again by an active filter.
   document.getElementById('search').value = '';
+  sortField = null; // otherwise the new row could land anywhere in a sorted view
   renderAll('');
-  // Neue Zeile sichtbar machen und Fokus auf das erste Feld setzen.
   const lastRow = document.querySelector('#body tr:last-child');
   if (lastRow) {
     lastRow.scrollIntoView({ behavior:'smooth', block:'center' });
-    const firstInput = lastRow.querySelector('input');
+    const firstInput = lastRow.querySelector('input:not(:disabled)');
     if (firstInput) firstInput.focus();
   }
 });
 
 document.getElementById('saveBtn').addEventListener('click', async () => {
   if (!ghConfigured() || !GH.token) {
-    setStatus('Bitte zuerst Repo + Token unter ⚙ Repo/Token hinterlegen.', 'error');
+    setStatus('Please set Repo + Token under ⚙ Repo/Token first.', 'error');
     document.getElementById('settingsPanel').classList.add('show');
     return;
   }
@@ -256,12 +327,12 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
   rows.forEach(r => { r.Modified_at = now; if (!r.Created_at) r.Created_at = now; });
   const csv = toCSV(header, rows);
   try {
-    setStatus('Speichere…');
+    setStatus('Saving…');
     const result = await ghPutFile(PATH, csv, `master_editor: update security_master.csv (${now})`, fileSha);
     fileSha = result.content.sha;
-    setStatus('Gespeichert ✓ ' + now, 'ok');
+    setStatus('Saved ✓ ' + now, 'ok');
   } catch (e) {
-    setStatus('Fehler beim Speichern: ' + e.message, 'error');
+    setStatus('Error while saving: ' + e.message, 'error');
   }
 });
 
