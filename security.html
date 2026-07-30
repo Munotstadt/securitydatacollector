@@ -172,7 +172,8 @@
     <button type="button" class="toggle-btn" data-range="ALL">All</button>
   </div>
   <div class="toggle-row hidden" id="distRangeRow">
-    <button type="button" class="toggle-btn active" data-range="12M">12 Months</button>
+    <button type="button" class="toggle-btn" data-range="12M">12 Months</button>
+    <button type="button" class="toggle-btn active" data-range="24M">24 Months</button>
     <button type="button" class="toggle-btn" data-range="ALL">All</button>
   </div>
 
@@ -264,7 +265,8 @@ function filterByRange(daily, range){
 }
 function filterDistByRange(dist, range){
   if(range === 'ALL') return dist;
-  const cutoff = daysAgo(new Date(), 365);
+  const days = range === '12M' ? 365 : 730; // 24M (default) sonst
+  const cutoff = daysAgo(new Date(), days);
   return dist.filter(d => d.exDate >= cutoff);
 }
 
@@ -801,7 +803,7 @@ async function load(){
       ? `Dividend yield (last 12 months vs. price ${currency}): ${yieldPct.toFixed(2)}%`
       : 'No dividend data available.';
 
-    let currentView = 'price', currentPriceRange = '12M', currentDistRange = '12M';
+    let currentView = 'price', currentPriceRange = '12M', currentDistRange = '24M';
     const chartWrap = document.getElementById('chartWrap');
     const chartTooltip = document.getElementById('chartTooltip');
     const chartTitle = document.getElementById('chartTitle');
