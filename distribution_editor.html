@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,14 +23,16 @@
   .topnav a.active{color:var(--text);font-weight:600;border-color:var(--accent);background:rgba(227,6,19,0.06);}
   .wrap{max-width:1100px;width:100%;}
   h1{font-family:'Space Grotesk',sans-serif;font-size:20px;text-transform:uppercase;letter-spacing:.02em;border-bottom:2px solid var(--accent);padding-bottom:14px;}
-  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:16px 0;}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:16px 0 8px;}
   input[type=text], select, input[type=number], input[type=date]{
     font-family:'Inter',sans-serif;font-size:14px;padding:9px 10px;border:1px solid var(--line);border-radius:3px;background:var(--panel);color:var(--text);outline:none;transition:border-color .15s;
   }
   #filterSecurity{min-width:260px;}
-  button{font-family:'IBM Plex Mono',monospace;font-size:12px;padding:8px 14px;border-radius:3px;border:1px solid var(--line);background:none;cursor:pointer;color:var(--text);}
+  button{font-family:'IBM Plex Mono',monospace;font-size:12px;padding:8px 14px;border-radius:3px;border:1px solid var(--line);background:none;cursor:pointer;color:var(--text);text-decoration:none;display:inline-block;}
   button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
   button:hover{border-color:var(--text);}
+  button:disabled, a.disabled{opacity:.4;cursor:not-allowed;pointer-events:none;}
+  .count-line{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);margin:0 0 14px;}
   table{width:100%;border-collapse:collapse;font-size:13px;}
   th{text-align:left;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:8px 6px;border-bottom:1px solid var(--line);background:var(--panel);}
   td{padding:6px;border-bottom:1px solid var(--line);vertical-align:middle;}
@@ -58,24 +60,28 @@
   <h1>Security Distributions · Editor</h1>
 
   <div class="toolbar">
-    <select id="filterSecurity"><option value="">Alle Securities…</option></select>
+    <select id="filterSecurity"><option value="">All securities…</option></select>
+    <a id="linkSecurityForm" class="disabled" target="_self"><button disabled id="btnSecurityForm">📈 View Security</button></a>
+    <a id="linkPrices" class="disabled" target="_self"><button disabled id="btnPrices">✏️ View Prices</button></a>
     <button id="settingsBtn">⚙ Repo/Token</button>
-    <button id="addBtn">+ Neue Ausschüttung</button>
-    <button id="saveBtn" class="primary">Speichern</button>
+    <button id="addBtn">+ New Distribution</button>
+    <button id="saveBtn" class="primary">Save</button>
   </div>
+
+  <div class="count-line" id="countLine">Loading…</div>
 
   <div class="settings" id="settingsPanel">
     <div><label>GitHub Owner</label><input type="text" id="cfgOwner"></div>
     <div><label>Repo</label><input type="text" id="cfgRepo"></div>
     <div><label>Branch</label><input type="text" id="cfgBranch" placeholder="main"></div>
-    <div><label>Personal Access Token (repo-Scope)</label><input type="text" id="cfgToken" placeholder="ghp_…"></div>
-    <div style="align-self:end;"><button id="cfgSave" class="primary">Übernehmen</button></div>
+    <div><label>Personal Access Token (repo scope)</label><input type="text" id="cfgToken" placeholder="ghp_…"></div>
+    <div style="align-self:end;"><button id="cfgSave" class="primary">Apply</button></div>
   </div>
 
   <div class="table-wrap">
   <table>
     <thead><tr><th>SecurityID</th><th>SecurityName</th><th>Amount</th><th>Currency</th><th>ExDate</th><th>PayDate</th><th>Source</th><th></th></tr></thead>
-    <tbody id="body"><tr><td colspan="8">Lade…</td></tr></tbody>
+    <tbody id="body"><tr><td colspan="8">Loading…</td></tr></tbody>
   </table>
   </div>
 
@@ -114,14 +120,42 @@ function renderRow(row, idx) {
   </tr>`;
 }
 
+function updateSelectionLinks(secId) {
+  const linkSecurityForm = document.getElementById('linkSecurityForm');
+  const linkPrices = document.getElementById('linkPrices');
+  const btnSecurityForm = document.getElementById('btnSecurityForm');
+  const btnPrices = document.getElementById('btnPrices');
+  if (secId) {
+    linkSecurityForm.href = `security.html?id=${encodeURIComponent(secId)}`;
+    linkPrices.href = `price_editor.html?id=${encodeURIComponent(secId)}`;
+    linkSecurityForm.classList.remove('disabled');
+    linkPrices.classList.remove('disabled');
+    btnSecurityForm.disabled = false;
+    btnPrices.disabled = false;
+  } else {
+    linkSecurityForm.removeAttribute('href');
+    linkPrices.removeAttribute('href');
+    linkSecurityForm.classList.add('disabled');
+    linkPrices.classList.add('disabled');
+    btnSecurityForm.disabled = true;
+    btnPrices.disabled = true;
+  }
+}
+
 function renderAll(filterSecId='') {
   const body = document.getElementById('body');
   const filtered = rows.map((r,i)=>({r,i}))
     .filter(({r}) => !filterSecId || r.SecurityID === filterSecId)
     .sort((a,b) => (parseSwissDate(b.r.ExDate)||0) - (parseSwissDate(a.r.ExDate)||0));
+
+  document.getElementById('countLine').textContent =
+    `Total ${rows.length.toLocaleString('en-US')} Distribution Entries · ${filtered.length.toLocaleString('en-US')} Entries selected`;
+
+  updateSelectionLinks(filterSecId);
+
   body.innerHTML = filtered.length
     ? filtered.map(({r,i}) => renderRow(r, i)).join('')
-    : '<tr><td colspan="8">Keine Einträge.</td></tr>';
+    : '<tr><td colspan="8">No entries.</td></tr>';
 
   body.querySelectorAll('input').forEach(el => {
     el.addEventListener('change', () => {
@@ -136,7 +170,7 @@ function renderAll(filterSecId='') {
   body.querySelectorAll('[data-del]').forEach(btn => {
     btn.addEventListener('click', () => {
       const idx = Number(btn.dataset.del);
-      if (confirm('Ausschüttung wirklich löschen?')) { rows.splice(idx,1); renderAll(document.getElementById('filterSecurity').value); }
+      if (confirm('Delete this distribution entry?')) { rows.splice(idx,1); renderAll(document.getElementById('filterSecurity').value); }
     });
   });
 }
@@ -159,11 +193,12 @@ async function load() {
     fileSha = distF.sha;
 
     masterRows = parseCSV(masterF.text).rows;
+    const sortedMaster = [...masterRows].sort((a,b) => (a.SecurityName||'').localeCompare(b.SecurityName||''));
     const sel = document.getElementById('filterSecurity');
-    sel.innerHTML = '<option value="">Alle Securities…</option>' + masterRows
-      .map(m => `<option value="${m.SecurityID}">${m.SecurityID} · ${m.SecurityName}</option>`).join('');
+    sel.innerHTML = '<option value="">All securities…</option>' + sortedMaster
+      .map(m => `<option value="${m.SecurityID}">${m.SecurityName} · ${m.SecurityID}</option>`).join('');
 
-    // Deep-Link von security.html: ?id=SecurityID selektiert direkt den Filter.
+    // Deep link from security.html: ?id=SecurityID pre-selects the filter.
     const urlId = new URLSearchParams(location.search).get('id');
     if (urlId && masterRows.some(m => m.SecurityID === urlId)) {
       sel.value = urlId;
@@ -171,9 +206,9 @@ async function load() {
     } else {
       renderAll();
     }
-    setStatus(`${rows.length} Ausschüttungen geladen.`, 'ok');
+    setStatus(`${rows.length} distribution entries loaded.`, 'ok');
   } catch (e) {
-    document.getElementById('body').innerHTML = `<tr><td colspan="8">Fehler: ${e.message}</td></tr>`;
+    document.getElementById('body').innerHTML = `<tr><td colspan="8">Error: ${e.message}</td></tr>`;
   }
 }
 
@@ -198,19 +233,19 @@ document.getElementById('addBtn').addEventListener('click', () => {
 
 document.getElementById('saveBtn').addEventListener('click', async () => {
   if (!ghConfigured() || !GH.token) {
-    setStatus('Bitte zuerst Repo + Token unter ⚙ Repo/Token hinterlegen.', 'error');
+    setStatus('Please set Repo + Token under ⚙ Repo/Token first.', 'error');
     document.getElementById('settingsPanel').classList.add('show');
     return;
   }
   rows.forEach(r => { if (!r.Created_at) r.Created_at = nowZurichString(); });
   const csv = toCSV(header, rows);
   try {
-    setStatus('Speichere…');
+    setStatus('Saving…');
     const result = await ghPutFile(PATH, csv, `distribution_editor: update security_distributions.csv (${nowZurichString()})`, fileSha);
     fileSha = result.content.sha;
-    setStatus('Gespeichert ✓ ' + nowZurichString(), 'ok');
+    setStatus('Saved ✓ ' + nowZurichString(), 'ok');
   } catch (e) {
-    setStatus('Fehler beim Speichern: ' + e.message, 'error');
+    setStatus('Error while saving: ' + e.message, 'error');
   }
 });
 
