@@ -205,57 +205,68 @@ def _make_ishares_nav_fetcher(download_url):
         with urllib.request.urlopen(req, timeout=30) as resp:
             content = resp.read().decode("utf-8-sig", errors="replace")
 
-        # Sheet-Namen sind sprachabhängig (z.B. "Historisch" auf Deutsch,
-        # "Historical" auf Englisch, je nach Locale in der Download-URL).
-        # Statt auf einen festen Namen zu vertrauen, wird das Sheet anhand
-        # seines Headers gefunden: die Spalte "NAV" bleibt über alle
-        # Sprachversionen unübersetzt (BlackRock-Konvention). Die Header-Zeile
-        # muss dabei nicht zwingend die allererste Zeile des Sheets sein.
-        # Um falsche Treffer zu vermeiden (z.B. "NAV" in einem Fliesstext auf
-        # einem anderen Sheet), wird jeder Kandidat zusätzlich validiert:
-        # die Folgezeile muss wie ein echter NAV-Datenpunkt aussehen
-        # (3-stelliger Währungscode + numerischer NAV-Wert).
-        worksheets = re.findall(r"<ss:Worksheet\b[^>]*>.*?</ss:Worksheet>", content, re.DOTALL)
+        # Das Sheet mit der Kurshistorie heisst je nach Sprache der Download-
+        # URL unterschiedlich (z.B. "Historisch" auf Deutsch, "Historical"
+        # auf Englisch) - daher per Namens-Teilstring statt exaktem Namen
+        # gesucht.
+        sheet_match = re.search(
+            r'<ss:Worksheet ss:Name="([^"]*[Hh]istor[^"]*)">(.*?)</ss:Worksheet>',
+            content, re.DOTALL,
+        )
+        if not sheet_match:
+            names = re.findall(r'<ss:Worksheet ss:Name="([^"]+)"', content)
+            raise ValueError(f"Kein Historie-Sheet gefunden. Vorhandene Sheets: {names}")
+
+        sheet_name, sheet_body = sheet_match.group(1), sheet_match.group(2)
+        rows = re.findall(r"<ss:Row>(.*?)</ss:Row>", sheet_body, re.DOTALL)
+
+        def row_cells(row):
+            return re.findall(r'<ss:Data ss:Type="(String|Number)">([^<]*)</ss:Data>', row)
+
+        # Header-Zeile suchen: irgendeine Zeile, die "NAV" (case-insensitive,
+        # als Teilstring) in einer ihrer String-Zellen enthält - und die
+        # SPALTENPOSITION dieser Zelle merken, statt eine feste Position
+        # (z.B. "3. Spalte") anzunehmen, die je nach Sprachversion/Fondstyp
+        # variieren kann.
+        header_idx = None
+        nav_col = None
+        currency_col = None
+        for i, row in enumerate(rows):
+            cells = row_cells(row)
+            nav_positions = [j for j, (t, v) in enumerate(cells) if t == "String" and "nav" in v.lower()]
+            if nav_positions:
+                header_idx = i
+                nav_col = nav_positions[0]
+                currency_positions = [j for j, (t, v) in enumerate(cells) if t == "String" and "curren" in v.lower() or v.strip().lower() in ("währung",)]
+                currency_col = currency_positions[0] if currency_positions else None
+                break
+
         data_row = None
-        for ws in worksheets:
-            rows = re.findall(r"<ss:Row>(.*?)</ss:Row>", ws, re.DOTALL)
-            for i, row in enumerate(rows):
-                header_cells = re.findall(r'<ss:Data ss:Type="String">([^<]*)</ss:Data>', row)
-                if "NAV" not in header_cells or i + 1 >= len(rows):
-                    continue
-                candidate_cells = re.findall(r'<ss:Data ss:Type="(String|Number)">([^<]*)</ss:Data>', rows[i + 1])
-                if len(candidate_cells) < 3:
-                    continue
-                currency_candidate = candidate_cells[1][1].strip()
-                nav_candidate = candidate_cells[2][1].strip()
-                if not re.match(r"^[A-Z]{3}$", currency_candidate):
-                    continue
-                try:
-                    float(nav_candidate)
-                except ValueError:
-                    continue
-                data_row = rows[i + 1]
-                break
-            if data_row is not None:
-                break
+        if header_idx is not None and header_idx + 1 < len(rows):
+            candidate = rows[header_idx + 1]
+            candidate_cells = row_cells(candidate)
+            if nav_col < len(candidate_cells) and candidate_cells[nav_col][0] == "Number":
+                data_row = candidate
 
         if data_row is None:
-            names = re.findall(r'<ss:Worksheet ss:Name="([^"]+)"', content)
+            # Diagnose-Fallback: Inhalte der ersten Zeilen des Historie-Sheets
+            # mitliefern, damit der nächste Fehlschlag konkrete Daten statt
+            # nur Sheet-Namen zeigt.
+            preview = []
+            for row in rows[:6]:
+                preview.append([v for _t, v in row_cells(row)])
             raise ValueError(
-                f"Keine gültige NAV-Datenzeile im iShares-Export gefunden. "
-                f"Vorhandene Sheets: {names}"
+                f"Keine gültige NAV-Datenzeile im Sheet '{sheet_name}' gefunden. "
+                f"Erste Zeilen zur Diagnose: {preview}"
             )
 
-        # data_row ist die erste Datenzeile direkt nach der gefundenen
-        # Header-Zeile = jeweils der aktuellste Eintrag.
-        cells = re.findall(r'<ss:Data ss:Type="(String|Number)">([^<]*)</ss:Data>', data_row)
-        if len(cells) < 3:
-            raise ValueError("Unerwartete Zeilenstruktur im NAV-Sheet.")
-        currency = cells[1][1].strip() or None
+        cells = row_cells(data_row)
+        nav_str = cells[nav_col][1]
+        currency = cells[currency_col][1].strip() if currency_col is not None and currency_col < len(cells) else None
         try:
-            nav = float(cells[2][1])
+            nav = float(nav_str)
         except ValueError:
-            raise ValueError(f"NAV-Wert nicht numerisch: {cells[2][1]!r}")
+            raise ValueError(f"NAV-Wert nicht numerisch: {nav_str!r}")
         return nav, currency
     return _fetch
 
@@ -291,13 +302,8 @@ FETCHERS = {
 # ---------------------------------------------------------------------------
 
 FETCHERS_BY_ID = {
-    "33": (
-        _make_ishares_nav_fetcher(
-            "https://www.ishares.com/ch/individual/en/products/253716/ishares-ftse-100-ucits-etf-acc-fund/"
-            "1535604580403.ajax?fileType=xls&fileName=iShares-Core-FTSE-100-UCITS-ETF-GBP-Acc_fund&dataType=fund"
-        ),
-        "iShares (NAV)",
-    ),
+    # Aktuell keine Einträge. War hier zuvor für "iShares Core FTSE 100"
+    # (SecurityID 33, CSUKX/SXRW) registriert - auf Wunsch wieder entfernt.
 }
 
 
