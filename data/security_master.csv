@@ -53,7 +53,7 @@ MSCI ACWI - Emerging Markets (USD),51,Pending51,USD,Shares,Emerging Markets,,Ind
 MSCI World,52,Pending52,USD,Shares,Global Equity,Index,Index,Collector_YahooWeekday,^990100-USD-STRD,0,27.07.2026 20:50:11,31.07.2026 22:22:13,,
 Nasdaq Composite,53,Pending53,USD,Shares,US Equity,Index,Index,Collector_YahooWeekday,^IXIC,0,27.07.2026 20:50:11,31.07.2026 22:22:13,,
 Silver (USD/oz),54,pending54,USD,Alternative,Commodities,,other,Collector_YahooDaily,SI=F,0,27.07.2026 20:50:11,31.07.2026 22:22:13,,
-Sunrise Communications AG,55,pending55,CHF,Shares,Switzerland,,Shares,Collector_YahooWeekday,SUNN.SW,120,27.07.2026 20:50:11,31.07.2026 22:27:00,,Switzerland Growth
+Sunrise Communications AG,55,pending55,CHF,Shares,Switzerland,,Shares,Collector_YahooWeekday,SUNN.SW,120,27.07.2026 20:50:11,31.07.2026 22:29:47,,Switzerland Growth
 Swiss Performance Index (SPI),56,pending56,CHF,Shares,Swiss Equity,Index,Index,Collector_YahooWeekday,^SSHI,0,27.07.2026 20:50:11,31.07.2026 22:22:13,,SWITZERLAND INDEX
 CBOE Interest Rate 10 Year T Note,57,pending57,USD,Bonds,US Rates,,Interests,Collector_YahooWeekday,^TNX,0,27.07.2026 20:50:11,31.07.2026 22:22:13,,
 Brent Crude Oil Last Day Financ,58,pending58,USD,Alternative,Commodities,,other,Collector_YahooDaily,BZ=F,0,27.07.2026 20:50:11,31.07.2026 22:22:13,,
