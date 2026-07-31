@@ -97,6 +97,11 @@ def build_entry(observations, now):
         cutoff = end_of_day(now - timedelta(days=offset_days))
         entry[key] = obs_to_json(find_on_or_before(observations, cutoff))
 
+    # YTD: letzter Kurs des VORJAHRES (31.12., 23:59:59), nicht ein
+    # Tage-Offset - kalendarisch, nicht rollierend.
+    ytd_cutoff = end_of_day(datetime(now.year - 1, 12, 31))
+    entry["ytd"] = obs_to_json(find_on_or_before(observations, ytd_cutoff))
+
     last_365d = [o for o in observations if o["dt"] >= now - timedelta(days=365)]
     if last_365d:
         high = max(last_365d, key=lambda o: o["price"])
