@@ -59,4 +59,4 @@ CBOE Interest Rate 10 Year T Note,57,pending57,USD,Bonds,US Rates,,Interests,Col
 Brent Crude Oil Last Day Financ,58,pending58,USD,Alternative,Commodities,,other,Collector_YahooDaily,BZ=F,0,27.07.2026 20:50:11,30.07.2026 07:15:10,,
 Swiss Life,59,pending59,CHF,Shares,Switzerland,,Shares,Collector_YahooWeekday,SLHN.SW,0,28.07.2026 06:32:28,30.07.2026 07:15:10,,
 MSCI Emerging Markets Index,60,pending60,USD,Shares,,,Index,Collector_YahooWeekday,^891800-USD-STRD,0,30.07.2026 06:33:55,30.07.2026 07:15:10,,
-Swiss Market Index,61,pending61,CHF,Shares,,,Index,Collector_YahooWeekday,^SSMI,0,30.07.2026 07:14:39,30.07.2026 07:15:10,,
+Swiss Market Index (Price Index),61,pending61,CHF,Shares,,,Index,Collector_YahooWeekday,^SSMI,0,30.07.2026 07:14:39,31.07.2026 21:38:03,,
