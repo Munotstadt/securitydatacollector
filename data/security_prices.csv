@@ -4747,3 +4747,11 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 21,Microsoft,370.17,31.03.2026 21:56:00,manual,30.07.2026 21:57:13
 21,Microsoft,392.74,27.02.2026 21:56:00,manual,30.07.2026 21:57:30
 21,Microsoft,430.29,30.01.2026 21:56:00,manual,30.07.2026 21:57:48
+8,BTC - Bitcoin,62866.0,31.07.2026 19:19:46,Yahoo Finance (Daily),31.07.2026 19:19:46
+7,SOL - Solana,73.27,31.07.2026 19:19:46,Yahoo Finance (Daily),31.07.2026 19:19:46
+9,ETH - Ethereum,1866.70996,31.07.2026 19:19:46,Yahoo Finance (Daily),31.07.2026 19:19:46
+48,GBP/CHF,1.0891,31.07.2026 19:19:46,Yahoo Finance (Daily),31.07.2026 19:19:46
+49,Gold (USD/oz),4098.1001,31.07.2026 19:19:46,Yahoo Finance (Daily),31.07.2026 19:19:46
+50,JPY/CHF,0.00507,31.07.2026 19:19:46,Yahoo Finance (Daily),31.07.2026 19:19:46
+54,Silver (USD/oz),57.585,31.07.2026 19:19:46,Yahoo Finance (Daily),31.07.2026 19:19:46
+58,Brent Crude Oil Last Day Financ,90.01,31.07.2026 19:19:46,Yahoo Finance (Daily),31.07.2026 19:19:46
