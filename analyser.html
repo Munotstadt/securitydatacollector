@@ -41,6 +41,10 @@
   .fx-chart-legend{font-size:10px;color:var(--muted);}
   .fx-chart-legend .sw{display:inline-block;width:10px;height:2px;vertical-align:middle;margin-right:4px;}
 
+  .mg-block{margin-bottom:28px;}
+  .mg-title{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:16px 0 4px;}
+  .mg-table{min-width:760px;}
+
   .topnav{
     display:flex;gap:4px;flex-wrap:wrap;align-items:center;
     max-width:960px;width:100%;margin:0 auto 24px;padding:0 0 10px;
@@ -97,6 +101,10 @@
   </div>
   <div class="fx-charts" id="fxCharts"></div>
   <p class="note">Volatilität = Standardabweichung der täglichen FX-Kursänderungen über die letzten 360 Tage (oder weniger, falls keine längere Historie vorliegt) - ein Mass für die typische Tagesschwankung. Impact-Spalten zeigen die CHF-Wertveränderung des jeweiligen Fremdwährungs-Bestands (aus der FX-Sektion oben) bei einer angenommenen Kursbewegung dieser Grösse, in beide Richtungen symmetrisch. Charts zeigen den FX-Kurs der letzten 360 Tage (Tagesschlusskurse) mit gleitendem 30-Tage-Durchschnitt.</p>
+
+  <div class="section-title">Switzerland</div>
+  <div id="marketGroupSections"></div>
+  <p class="note">Gruppierung nach dem Stammdatenfeld "Market Group" (security_master.csv). Die Total-Zeile je Gruppe ist der <strong>arithmetische Durchschnitt</strong> der %-Werte (nicht wertgewichtet) - Value CHF und % PF in der Total-Zeile sind dagegen Summen.</p>
 </div>
 
 <script src="assets/github-data.js"></script>
@@ -196,6 +204,7 @@ async function load(){
       byCurrency[bucket] = (byCurrency[bucket]||0) + valChf;
 
       positions.push({
+        name: m.SecurityName, secId: m.SecurityID, marketGroup: (m.MarketGroup||'').trim(),
         valChf,
         valDayChf: valueAt(qty, entry, 'day', m.Currency),
         valWeekChf: valueAt(qty, entry, 'week', m.Currency),
@@ -207,6 +216,7 @@ async function load(){
     }
 
     renderFxTable(byCurrency, totalChf, fxByCurrency, positions);
+    renderMarketGroups(positions, totalChf);
     document.getElementById('statusText').textContent = 'live · ' + new Date().toLocaleTimeString('de-CH');
 
     // FX Risks: braucht die vollen Tageskurse der FX-Paare (nicht nur die
@@ -363,7 +373,7 @@ function riskRow(ccy, valueChf, sd){
 }
 
 function drawMiniFxChart(container, title, points, maPoints){
-  const width = 400, height = 150, pad = {top:10,right:8,bottom:8,left:8};
+  const width = 400, height = 170, pad = {top:10,right:8,bottom:20,left:44};
   const innerW = width-pad.left-pad.right, innerH = height-pad.top-pad.bottom;
   if(points.length < 2){ container.innerHTML = `<div class="fx-chart-title">${title}</div><div class="empty" style="padding:20px 0;">Not enough data.</div>`; return; }
 
@@ -375,6 +385,23 @@ function drawMiniFxChart(container, title, points, maPoints){
   const xSpan = (maxX-minX) || 1;
   const xScale = t => pad.left + ((t-minX)/xSpan)*innerW;
   const yScale = v => pad.top + innerH - ((v-yMin)/(yMax-yMin))*innerH;
+  const fmtDateShort = d => `${d.getMonth()+1}/${d.getDate()}`;
+
+  let grid = '';
+  for(let i=0;i<=3;i++){
+    const v = yMin + (i/3)*(yMax-yMin), y = yScale(v);
+    grid += `<line x1="${pad.left}" y1="${y.toFixed(1)}" x2="${width-pad.right}" y2="${y.toFixed(1)}" stroke="var(--line)" stroke-width="1"/>`;
+    grid += `<text x="${pad.left-6}" y="${(y+3).toFixed(1)}" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="9" fill="var(--muted)">${fmtDecimal(v,4)}</text>`;
+  }
+  const mid = points[Math.floor(points.length/2)];
+  const xLabels = [
+    { p: points[0], anchor:'start' },
+    { p: mid, anchor:'middle' },
+    { p: points[points.length-1], anchor:'end' },
+  ].map(({p,anchor}) => {
+    const x = xScale(p.dt.getTime());
+    return `<text x="${x.toFixed(1)}" y="${height-6}" text-anchor="${anchor}" font-family="IBM Plex Mono, monospace" font-size="9" fill="var(--muted)">${fmtDateShort(p.dt)}</text>`;
+  }).join('');
 
   let rawPath = '';
   points.forEach((p,i) => { const x=xScale(p.dt.getTime()), y=yScale(p.Price); rawPath += (i===0?'M':'L')+x.toFixed(1)+','+y.toFixed(1)+' '; });
@@ -390,6 +417,8 @@ function drawMiniFxChart(container, title, points, maPoints){
 
   const last = points[points.length-1].Price;
   const svg = `<svg width="100%" height="${height}" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">
+    ${grid}
+    ${xLabels}
     <path d="${rawPath}" fill="none" stroke="var(--fxline)" stroke-width="1.5"/>
     <path d="${maPath}" fill="none" stroke="var(--muted)" stroke-width="1.2" stroke-dasharray="3,2"/>
   </svg>`;
@@ -441,6 +470,68 @@ async function loadFxRisks(byCurrency, fxSecurityId){
   }
 
   document.getElementById('riskBody').innerHTML = riskHtml;
+}
+
+/* Reine LC-%-Rendite einer Position für eine Periode (Wertschriften-eigene
+ * Performance in CHF-Termen, nicht der CHF-Impact) - Basis für den
+ * arithmetischen Durchschnitt in der Switzerland-Sektion. */
+function positionPct(p, refField){
+  if(p.valChf===null || !p[refField]) return null;
+  return ((p.valChf - p[refField]) / p[refField]) * 100;
+}
+
+function mgCell(pct){
+  const f = fmtPct(pct);
+  return `<td class="chg ${f.dir}">${f.text}</td>`;
+}
+
+function renderMarketGroupTable(groupLabel, positions, totalChf){
+  const rows = positions.filter(p => p.marketGroup === groupLabel);
+  let html = `<div class="mg-block"><div class="mg-title">${groupLabel}</div>`;
+  if(!rows.length){
+    html += `<div class="empty" style="padding:16px 0;">Keine Securities mit Market Group "${groupLabel}" im Portfolio.</div></div>`;
+    return html;
+  }
+
+  html += `<div class="table-wrap"><table class="mg-table"><thead><tr>
+    <th>Security</th><th class="num">Value CHF</th><th class="num">% PF</th>
+    ${PERIODS.map(p => `<th class="num">${p.label}</th>`).join('')}
+  </tr></thead><tbody>`;
+
+  for(const p of rows){
+    const pctPf = totalChf ? (p.valChf/totalChf)*100 : null;
+    html += `<tr>
+      <td class="name"><a href="security.html?id=${encodeURIComponent(p.secId)}">${p.name}</a></td>
+      <td class="price">${fmtChf(p.valChf)}</td>
+      <td class="price">${pctPf!==null?pctPf.toFixed(1)+'%':'—'}</td>
+      ${PERIODS.map(pr => mgCell(positionPct(p, FIELD_BY_PERIOD[pr.key]))).join('')}
+    </tr>`;
+  }
+
+  // Total-Zeile: Value CHF und % PF als Summe, Perioden-Spalten als
+  // ARITHMETISCHER Durchschnitt der %-Werte (nicht wertgewichtet).
+  const sumValueChf = rows.reduce((s,p)=>s+(p.valChf||0),0);
+  const sumPctPf = totalChf ? (sumValueChf/totalChf)*100 : null;
+  const avgCells = PERIODS.map(pr => {
+    const vals = rows.map(p => positionPct(p, FIELD_BY_PERIOD[pr.key])).filter(v => v!==null);
+    const avg = vals.length ? vals.reduce((s,v)=>s+v,0)/vals.length : null;
+    return mgCell(avg);
+  }).join('');
+  html += `<tr class="total-row">
+    <td class="name">Total</td>
+    <td class="price">${fmtChf(sumValueChf)}</td>
+    <td class="price">${sumPctPf!==null?sumPctPf.toFixed(1)+'%':'—'}</td>
+    ${avgCells}
+  </tr>`;
+
+  html += `</tbody></table></div></div>`;
+  return html;
+}
+
+function renderMarketGroups(positions, totalChf){
+  const groups = ['Switzerland Index', 'Switzerland Core', 'Switzerland Growth'];
+  const html = groups.map(g => renderMarketGroupTable(g, positions, totalChf)).join('');
+  document.getElementById('marketGroupSections').innerHTML = html;
 }
 
 load();
