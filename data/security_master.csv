@@ -54,7 +54,7 @@ MSCI World,52,Pending52,USD,Shares,Global Equity,Index,Index,Collector_YahooWeek
 Nasdaq Composite,53,Pending53,USD,Shares,US Equity,Index,Index,Collector_YahooWeekday,^IXIC,0,27.07.2026 20:50:11,31.07.2026 22:32:18,,
 Silver (USD/oz),54,pending54,USD,Alternative,Commodities,,other,Collector_YahooDaily,SI=F,0,27.07.2026 20:50:11,31.07.2026 22:32:18,,
 Sunrise Communications AG,55,pending55,CHF,Shares,Switzerland,,Shares,Collector_YahooWeekday,SUNN.SW,120,27.07.2026 20:50:11,31.07.2026 22:32:18,,Switzerland Growth
-Swiss Performance Index (SPI),56,pending56,CHF,Shares,Swiss Equity,Index,Index,Collector_YahooWeekday,^SSHI,0,27.07.2026 20:50:11,31.07.2026 22:32:18,,Switzerland Index
+Swiss Performance Index (Total Return),56,pending56,CHF,Shares,Swiss Equity,Index,Index,Collector_YahooWeekday,^SSHI,0,27.07.2026 20:50:11,31.07.2026 22:36:43,,Switzerland Index
 CBOE Interest Rate 10 Year T Note,57,pending57,USD,Bonds,US Rates,,Interests,Collector_YahooWeekday,^TNX,0,27.07.2026 20:50:11,31.07.2026 22:32:18,,
 Brent Crude Oil Last Day Financ,58,pending58,USD,Alternative,Commodities,,other,Collector_YahooDaily,BZ=F,0,27.07.2026 20:50:11,31.07.2026 22:32:18,,
 Swiss Life,59,pending59,CHF,Shares,Switzerland,,Shares,Collector_YahooWeekday,SLHN.SW,0,28.07.2026 06:32:28,31.07.2026 22:32:18,,
