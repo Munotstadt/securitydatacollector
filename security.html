@@ -113,6 +113,7 @@
   <a href="index.html">🏠 Home</a>
   <a href="dashboard.html">📊 Dashboard</a>
   <a href="portfolio.html">💼 Portfolio</a>
+  <a href="analyser.html">🔬 Analyser</a>
   <a href="master_editor.html">🗂 Stammdaten</a>
   <a href="price_editor.html">✏️ Kurse</a>
   <a href="distribution_editor.html">💰 Ausschüttungen</a>
@@ -252,12 +253,19 @@ function decideAxisDecimals(v){
   return 2;
 }
 
-function filterByRange(daily, range){
-  if(range === 'ALL') return daily;
+function filterByRange(daily, rows, range){
   const now = new Date();
+  if(range === '10D'){
+    // Bewusste Ausnahme: 10 Tage zeigt echte Intraday-Kurse (alle rohen
+    // Beobachtungen), nicht nur den letzten Kurs pro Tag - für einen
+    // kurzen Zeitraum sind untertägige Schwankungen aussagekräftig genug,
+    // um sie nicht wegzumitteln.
+    const cutoff = daysAgo(now, 10);
+    return rows.filter(p => p.dt >= cutoff);
+  }
+  if(range === 'ALL') return daily;
   let cutoff;
-  if(range === '10D') cutoff = daysAgo(now, 10);
-  else if(range === '30D') cutoff = daysAgo(now, 30);
+  if(range === '30D') cutoff = daysAgo(now, 30);
   else if(range === 'YTD') cutoff = startOfYear(now);
   else if(range === '12M') cutoff = daysAgo(now, 365);
   else return daily;
@@ -818,7 +826,7 @@ async function load(){
       } else {
         chartTitle.textContent = 'Price Chart';
         priceRangeRow.classList.remove('hidden'); distRangeRow.classList.add('hidden');
-        drawLineChart(chartWrap, chartTooltip, filterByRange(daily, currentPriceRange), decimals, currency);
+        drawLineChart(chartWrap, chartTooltip, filterByRange(daily, rows, currentPriceRange), decimals, currency);
       }
     }
 
