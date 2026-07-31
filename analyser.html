@@ -6,7 +6,7 @@
 <title>Analyser</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root{ --bg:#fff;--panel:#F7F8FA;--line:#E3E6EA;--text:#1A1D22;--muted:#767E8A;--accent:#E30613;--gain:#1F8A6E;--loss:#C0293D; }
+  :root{ --bg:#fff;--panel:#F7F8FA;--line:#E3E6EA;--text:#1A1D22;--muted:#767E8A;--accent:#E30613;--gain:#1F8A6E;--loss:#C0293D;--fxline:#1F6FA8; }
   *{box-sizing:border-box;}
   body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;padding:40px 16px 80px;display:flex;flex-direction:column;align-items:center;}
   .board{width:100%;max-width:1080px;}
@@ -23,6 +23,7 @@
   tbody tr.total-row td{font-weight:600;background:var(--panel);border-top:1px solid var(--line);}
   .name{font-weight:500;}
   .price,.time{font-family:'IBM Plex Mono',monospace;text-align:right;white-space:nowrap;}
+  .price .sub{display:block;font-size:10px;color:var(--muted);font-weight:400;}
   .chg{font-family:'IBM Plex Mono',monospace;text-align:right;font-size:12px;white-space:nowrap;}
   .chg .abs{display:block;font-size:10px;color:var(--muted);}
   .chg.up{color:var(--gain);} .chg.down{color:var(--loss);} .chg.flat{color:var(--muted);}
@@ -31,6 +32,14 @@
   .note{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);margin-top:10px;}
   .table-wrap{overflow-x:auto;}
   #fxTable{min-width:960px;}
+  #riskTable{min-width:760px;}
+
+  .fx-charts{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px;}
+  @media (max-width:700px){ .fx-charts{grid-template-columns:1fr;} }
+  .fx-chart-box{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:14px;}
+  .fx-chart-title{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:flex;justify-content:space-between;}
+  .fx-chart-legend{font-size:10px;color:var(--muted);}
+  .fx-chart-legend .sw{display:inline-block;width:10px;height:2px;vertical-align:middle;margin-right:4px;}
 
   .topnav{
     display:flex;gap:4px;flex-wrap:wrap;align-items:center;
@@ -74,7 +83,20 @@
     <tbody id="fxBody"><tr><td colspan="9" class="empty">Loading…</td></tr></tbody>
   </table>
   </div>
-  <p class="note">Value CHF / PF % entsprechen der Währungsaufteilung aus dem Portfolio-Dashboard. FX-Performance je Periode ist die reine Wechselkursbewegung (unabhängig vom Kursverlauf der Wertschriften), CHF-Impact = Value CHF × FX-%. CHF und OTH haben keine eindeutige FX-Bewegung (CHF per Definition, OTH da Restgrösse über mehrere Währungen) - Periodenspalten bleiben dort leer. FX Result = Summe des USD/EUR-FX-Impacts. Total = tatsächliches Portfolio-Ergebnis (identisch zum Dashboard). LC Result = Total − FX Result (Rest-Effekt aus Kursbewegung + OTH-Bucket). Alle drei Ergebniszeilen sind in CHF sowie als Anteil am aktuellen Portfoliowert ausgewiesen.</p>
+  <p class="note">Value CHF / PF % entsprechen der Währungsaufteilung aus dem Portfolio-Dashboard (kleine Zahl darunter bei USD/EUR = aktueller FX-Kurs). FX-Performance je Periode ist die reine Wechselkursbewegung (unabhängig vom Kursverlauf der Wertschriften), CHF-Impact = Value CHF × FX-%, darunter jeweils der FX-Kurs zu Periodenbeginn. CHF und OTH haben keine eindeutige FX-Bewegung (CHF per Definition, OTH da Restgrösse über mehrere Währungen) - Periodenspalten bleiben dort leer. FX Result = Summe des USD/EUR-FX-Impacts. Total = tatsächliches Portfolio-Ergebnis (identisch zum Dashboard), Value CHF in dieser Zeile = Gesamtportfoliowert. LC Result = Total − FX Result (Rest-Effekt aus Kursbewegung + OTH-Bucket). Alle drei Ergebniszeilen sind in CHF sowie als Anteil am aktuellen Portfoliowert ausgewiesen.</p>
+
+  <div class="section-title">FX Risks</div>
+  <div class="table-wrap">
+  <table id="riskTable">
+    <thead><tr>
+      <th>Currency</th><th class="num">Volatilität (Tag, 1J Std.Abw.)</th>
+      <th class="num">Impact ± 1 Std.Abw.</th><th class="num">Impact ± 1%</th><th class="num">Impact ± 5%</th>
+    </tr></thead>
+    <tbody id="riskBody"><tr><td colspan="5" class="empty">Loading…</td></tr></tbody>
+  </table>
+  </div>
+  <div class="fx-charts" id="fxCharts"></div>
+  <p class="note">Volatilität = Standardabweichung der täglichen FX-Kursänderungen über die letzten 360 Tage (oder weniger, falls keine längere Historie vorliegt) - ein Mass für die typische Tagesschwankung. Impact-Spalten zeigen die CHF-Wertveränderung des jeweiligen Fremdwährungs-Bestands (aus der FX-Sektion oben) bei einer angenommenen Kursbewegung dieser Grösse, in beide Richtungen symmetrisch. Charts zeigen den FX-Kurs der letzten 360 Tage (Tagesschlusskurse) mit gleitendem 30-Tage-Durchschnitt.</p>
 </div>
 
 <script src="assets/github-data.js"></script>
@@ -115,6 +137,17 @@ function pairedDelta(positions, refField){
   return curSum - refSum;
 }
 
+/* Tages-Serie (letzte Beobachtung pro Kalendertag) aus rohen, aufsteigend
+ * sortierten Preiszeilen - analog security.html. */
+function collapseToDaily(obsSortedAsc){
+  const byDay = new Map();
+  for(const o of obsSortedAsc){
+    const key = o.dt.toISOString().slice(0,10);
+    byDay.set(key, o);
+  }
+  return [...byDay.values()].sort((a,b)=>a.dt-b.dt);
+}
+
 async function load(){
   try{
     const [masterText, pricesJsonText] = await Promise.all([ghFetchRaw('data/security_master.csv'), ghFetchRaw('data/latest_prices.json')]);
@@ -123,12 +156,18 @@ async function load(){
     const bySecurity = pricesJson.securities || {};
 
     // FX-Securities ("XXX/CHF") herausziehen - gleiche Logik wie portfolio.html.
+    // Zusätzlich SecurityID merken (für den Rohdaten-Abruf der FX-Historie
+    // in der FX-Risks-Sektion weiter unten).
     const fxByCurrency = {};
+    const fxSecurityId = {};
     for(const m of master){
       const match = (m.SecurityName||'').trim().match(/^([A-Za-z]{3})\/CHF$/i);
       if(!match) continue;
       const entry = bySecurity[m.SecurityID];
-      if(entry) fxByCurrency[match[1].toUpperCase()] = entry;
+      if(entry){
+        fxByCurrency[match[1].toUpperCase()] = entry;
+        fxSecurityId[match[1].toUpperCase()] = m.SecurityID;
+      }
     }
     function fxRate(currency, periodKey){
       if(!currency || currency.toUpperCase()==='CHF') return 1;
@@ -169,6 +208,13 @@ async function load(){
 
     renderFxTable(byCurrency, totalChf, fxByCurrency, positions);
     document.getElementById('statusText').textContent = 'live · ' + new Date().toLocaleTimeString('de-CH');
+
+    // FX Risks: braucht die vollen Tageskurse der FX-Paare (nicht nur die
+    // Perioden-Schnappschüsse aus latest_prices.json) - dafür einmalig die
+    // komplette security_prices.csv laden und auf USD/CHF + EUR/CHF filtern.
+    loadFxRisks(byCurrency, fxSecurityId).catch(e => {
+      document.getElementById('riskBody').innerHTML = `<tr><td colspan="5" class="error">Fehler: ${e.message}</td></tr>`;
+    });
   }catch(e){
     document.getElementById('fxBody').innerHTML = `<tr><td colspan="9" class="error">Fehler: ${e.message}</td></tr>`;
     document.getElementById('statusText').textContent = 'Fehler';
@@ -187,18 +233,20 @@ function fxPctChange(fx, periodKey){
 function emptyCell(){ return `<td class="chg flat">—</td>`; }
 
 function fxPeriodCell(currency, valueChf, fxByCurrency, periodKey){
-  const pct = fxPctChange(fxByCurrency[currency], periodKey);
+  const fx = fxByCurrency[currency];
+  const pct = fxPctChange(fx, periodKey);
   if(pct===null) return `<td class="chg flat">—<span class="abs">n/a</span></td>`;
   const impact = valueChf * pct;
   const f = fmtPct(pct*100);
   const imp = fmtChfSigned(impact);
-  return `<td class="chg ${f.dir}">${f.text}<span class="abs">${imp.text} CHF</span></td>`;
+  const refRate = fx[periodKey].price;
+  return `<td class="chg ${f.dir}">${f.text}<span class="abs">${imp.text} CHF</span><span class="abs">@ ${fmtDecimal(refRate,4)}</span></td>`;
 }
 
 /* Zeile für ein "Ergebnis" (FX Result / LC Result / Total): Spalten 2+3
- * (Value CHF, PF %) bleiben leer, Periodenspalten zeigen CHF-Betrag + Anteil
- * am aktuellen Portfoliowert. */
-function resultRow(label, valuesByPeriod, totalChf){
+ * (Value CHF, PF %) bleiben leer - ausser bei "Total", dort zeigt Value CHF
+ * den Gesamtportfoliowert. */
+function resultRow(label, valuesByPeriod, totalChf, valueChfDisplay){
   const cells = PERIODS.map(p => {
     const v = valuesByPeriod[p.key];
     if(v===null || v===undefined) return `<td class="chg flat">—<span class="abs">n/a</span></td>`;
@@ -207,7 +255,8 @@ function resultRow(label, valuesByPeriod, totalChf){
     const imp = fmtChfSigned(v);
     return `<td class="chg ${imp.dir}">${f.text}<span class="abs">${imp.text} CHF</span></td>`;
   }).join('');
-  return `<tr class="total-row"><td class="name">${label}</td><td></td><td></td>${cells}</tr>`;
+  const valCell = valueChfDisplay!==undefined ? `<td class="price">${fmtChf(valueChfDisplay)}</td>` : `<td></td>`;
+  return `<tr class="total-row"><td class="name">${label}</td>${valCell}<td></td>${cells}</tr>`;
 }
 
 function renderFxTable(byCurrency, totalChf, fxByCurrency, positions){
@@ -219,12 +268,15 @@ function renderFxTable(byCurrency, totalChf, fxByCurrency, positions){
   for(const ccy of order){
     const valueChf = byCurrency[ccy] || 0;
     const pctPf = totalChf ? (valueChf/totalChf)*100 : null;
-    const periodCells = (ccy === 'CHF' || ccy === 'OTH')
-      ? PERIODS.map(() => emptyCell()).join('')
-      : PERIODS.map(p => fxPeriodCell(ccy, valueChf, fxByCurrency, p.key)).join('');
+    const isFx = (ccy === 'USD' || ccy === 'EUR');
+    const periodCells = isFx
+      ? PERIODS.map(p => fxPeriodCell(ccy, valueChf, fxByCurrency, p.key)).join('')
+      : PERIODS.map(() => emptyCell()).join('');
+    const currentRate = (isFx && fxByCurrency[ccy] && fxByCurrency[ccy].last) ? fxByCurrency[ccy].last.price : null;
+    const rateSub = currentRate!==null ? `<span class="sub">@ ${fmtDecimal(currentRate,4)}</span>` : '';
     html += `<tr>
       <td class="name">${ccy}${ccy==='OTH' ? ' (Residual)' : ''}</td>
-      <td class="price">${fmtChf(valueChf)}</td>
+      <td class="price">${fmtChf(valueChf)}${rateSub}</td>
       <td class="price">${pctPf!==null?pctPf.toFixed(1)+'%':'—'}</td>
       ${periodCells}
     </tr>`;
@@ -261,9 +313,134 @@ function renderFxTable(byCurrency, totalChf, fxByCurrency, positions){
 
   html += resultRow('FX Result', fxResultByPeriod, totalChf);
   html += resultRow('LC Result', lcResultByPeriod, totalChf);
-  html += resultRow('Total', totalResultByPeriod, totalChf);
+  html += resultRow('Total', totalResultByPeriod, totalChf, totalChf);
 
   body.innerHTML = html;
+}
+
+/* ---- FX Risks: Volatilität, Impact-Szenarien, Mini-Charts ---- */
+
+function dailyReturns(dailyPoints){
+  const rets = [];
+  for(let i=1;i<dailyPoints.length;i++){
+    const prev = dailyPoints[i-1].Price, cur = dailyPoints[i].Price;
+    if(prev) rets.push((cur-prev)/prev);
+  }
+  return rets;
+}
+
+function stdDev(values){
+  const n = values.length;
+  if(n < 2) return null;
+  const mean = values.reduce((s,v)=>s+v,0)/n;
+  const variance = values.reduce((s,v)=>s+(v-mean)*(v-mean),0)/(n-1);
+  return Math.sqrt(variance);
+}
+
+function movingAverage(points, window){
+  const out = [];
+  for(let i=0;i<points.length;i++){
+    if(i+1 < window){ out.push(null); continue; }
+    let sum = 0;
+    for(let j=i-window+1;j<=i;j++) sum += points[j].Price;
+    out.push(sum/window);
+  }
+  return out;
+}
+
+function riskRow(ccy, valueChf, sd){
+  if(sd===null){
+    return `<tr><td class="name">${ccy}</td><td class="price">—</td><td class="price">—</td><td class="price">—</td><td class="price">—</td></tr>`;
+  }
+  const impSd = valueChf * sd, imp1 = valueChf * 0.01, imp5 = valueChf * 0.05;
+  return `<tr>
+    <td class="name">${ccy}</td>
+    <td class="price">± ${(sd*100).toFixed(2)}%</td>
+    <td class="price">± ${fmtChf(impSd)} CHF</td>
+    <td class="price">± ${fmtChf(imp1)} CHF</td>
+    <td class="price">± ${fmtChf(imp5)} CHF</td>
+  </tr>`;
+}
+
+function drawMiniFxChart(container, title, points, maPoints){
+  const width = 400, height = 150, pad = {top:10,right:8,bottom:8,left:8};
+  const innerW = width-pad.left-pad.right, innerH = height-pad.top-pad.bottom;
+  if(points.length < 2){ container.innerHTML = `<div class="fx-chart-title">${title}</div><div class="empty" style="padding:20px 0;">Not enough data.</div>`; return; }
+
+  const allVals = points.map(p=>p.Price).concat(maPoints.filter(v=>v!==null));
+  const minY = Math.min(...allVals), maxY = Math.max(...allVals);
+  const yPad = (maxY-minY)*0.1 || maxY*0.01 || 0.01;
+  const yMin = minY-yPad, yMax = maxY+yPad;
+  const minX = points[0].dt.getTime(), maxX = points[points.length-1].dt.getTime();
+  const xSpan = (maxX-minX) || 1;
+  const xScale = t => pad.left + ((t-minX)/xSpan)*innerW;
+  const yScale = v => pad.top + innerH - ((v-yMin)/(yMax-yMin))*innerH;
+
+  let rawPath = '';
+  points.forEach((p,i) => { const x=xScale(p.dt.getTime()), y=yScale(p.Price); rawPath += (i===0?'M':'L')+x.toFixed(1)+','+y.toFixed(1)+' '; });
+
+  let maPath = '', maStarted = false;
+  points.forEach((p,i) => {
+    const v = maPoints[i];
+    if(v===null){ maStarted = false; return; }
+    const x = xScale(p.dt.getTime()), y = yScale(v);
+    maPath += (!maStarted ? 'M' : 'L') + x.toFixed(1) + ',' + y.toFixed(1) + ' ';
+    maStarted = true;
+  });
+
+  const last = points[points.length-1].Price;
+  const svg = `<svg width="100%" height="${height}" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">
+    <path d="${rawPath}" fill="none" stroke="var(--fxline)" stroke-width="1.5"/>
+    <path d="${maPath}" fill="none" stroke="var(--muted)" stroke-width="1.2" stroke-dasharray="3,2"/>
+  </svg>`;
+
+  container.innerHTML = `
+    <div class="fx-chart-title"><span>${title} · 360 Tage</span><span class="fx-chart-legend"><span class="sw" style="background:var(--fxline)"></span>Kurs (${fmtDecimal(last,4)})&nbsp;&nbsp;<span class="sw" style="background:var(--muted);border-top:1px dashed var(--muted)"></span>MA 30T</span></div>
+    ${svg}`;
+}
+
+async function loadFxRisks(byCurrency, fxSecurityId){
+  const ids = Object.values(fxSecurityId);
+  if(!ids.length){
+    document.getElementById('riskBody').innerHTML = '<tr><td colspan="5" class="empty">Keine FX-Securities gefunden.</td></tr>';
+    return;
+  }
+
+  const pricesText = await ghFetchRaw('data/security_prices.csv');
+  const allPrices = parseCSV(pricesText).rows;
+  const bySecId = {};
+  for(const r of allPrices){
+    const dt = parseSwissDateTime(r.PriceDate);
+    const price = parseFloat(r.Price);
+    if(!dt || isNaN(price)) continue;
+    if(!ids.includes(r.SecurityID)) continue;
+    (bySecId[r.SecurityID] = bySecId[r.SecurityID] || []).push({dt, Price:price});
+  }
+
+  const now = new Date();
+  const cutoff360 = new Date(now); cutoff360.setDate(cutoff360.getDate()-360);
+
+  let riskHtml = '';
+  const chartsEl = document.getElementById('fxCharts');
+  chartsEl.innerHTML = '';
+
+  for(const ccy of ['USD','EUR']){
+    const secId = fxSecurityId[ccy];
+    const raw = (bySecId[secId] || []).sort((a,b)=>a.dt-b.dt);
+    const daily = collapseToDaily(raw).filter(p => p.dt >= cutoff360);
+
+    const rets = dailyReturns(daily);
+    const sd = stdDev(rets);
+    riskHtml += riskRow(ccy, byCurrency[ccy]||0, sd);
+
+    const maPoints = movingAverage(daily, 30);
+    const box = document.createElement('div');
+    box.className = 'fx-chart-box';
+    chartsEl.appendChild(box);
+    drawMiniFxChart(box, `${ccy}/CHF`, daily, maPoints);
+  }
+
+  document.getElementById('riskBody').innerHTML = riskHtml;
 }
 
 load();
