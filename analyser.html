@@ -67,14 +67,14 @@
   <div class="table-wrap">
   <table id="fxTable">
     <thead><tr>
-      <th>Währung</th><th class="num">Wert CHF investiert</th>
+      <th>Currency</th><th class="num">Value CHF</th><th class="num">PF %</th>
       <th class="num">Δ Tag</th><th class="num">Δ Woche</th><th class="num">Δ 10 Tage</th>
       <th class="num">Δ Monat</th><th class="num">Δ YTD</th><th class="num">Δ 1 Jahr</th>
     </tr></thead>
-    <tbody id="fxBody"><tr><td colspan="8" class="empty">Loading…</td></tr></tbody>
+    <tbody id="fxBody"><tr><td colspan="9" class="empty">Loading…</td></tr></tbody>
   </table>
   </div>
-  <p class="note">Wert CHF investiert entspricht der Währungsaufteilung aus dem Portfolio-Dashboard (Summe aller Positionen in dieser Währung, zu aktuellen Kursen in CHF). FX-Performance ist die reine Wechselkursbewegung dieser Periode (unabhängig vom Kursverlauf der Wertschriften selbst). FX-Impact CHF = Wert CHF investiert × FX-Performance %. Für CHF ist der FX-Impact naturgemäss immer 0. Total entspricht dem Portfolio-Gesamtwert.</p>
+  <p class="note">Value CHF / PF % entsprechen der Währungsaufteilung aus dem Portfolio-Dashboard. FX-Performance je Periode ist die reine Wechselkursbewegung (unabhängig vom Kursverlauf der Wertschriften), CHF-Impact = Value CHF × FX-%. CHF und OTH haben keine eindeutige FX-Bewegung (CHF per Definition, OTH da Restgrösse über mehrere Währungen) - Periodenspalten bleiben dort leer. FX Result = Summe des USD/EUR-FX-Impacts. Total = tatsächliches Portfolio-Ergebnis (identisch zum Dashboard). LC Result = Total − FX Result (Rest-Effekt aus Kursbewegung + OTH-Bucket). Alle drei Ergebniszeilen sind in CHF sowie als Anteil am aktuellen Portfoliowert ausgewiesen.</p>
 </div>
 
 <script src="assets/github-data.js"></script>
@@ -96,6 +96,24 @@ const PERIODS = [
   { key:'ytd',    label:'Δ YTD' },
   { key:'year',   label:'Δ 1 Jahr' },
 ];
+const FIELD_BY_PERIOD = {
+  day:'valDayChf', week:'valWeekChf', ten_day:'valTenChf',
+  month:'valMonthChf', ytd:'valYtdChf', year:'valYearChf',
+};
+
+/* Gepaarte Summe (wie in portfolio.html): nur Positionen, die SOWOHL einen
+ * aktuellen Wert ALS AUCH einen Wert am Referenzpunkt haben, fliessen ein -
+ * damit bleiben aktueller Wert und Referenzwert vergleichbar. */
+function pairedDelta(positions, refField){
+  let curSum = 0, refSum = 0, n = 0;
+  for(const p of positions){
+    if(p.valChf !== null && p[refField] !== null){
+      curSum += p.valChf; refSum += p[refField]; n++;
+    }
+  }
+  if(n === 0) return null;
+  return curSum - refSum;
+}
 
 async function load(){
   try{
@@ -123,9 +141,8 @@ async function load(){
       return rate!==null ? qty*entry[periodKey].price*rate : null;
     }
 
-    // Wert CHF investiert pro Währung - identische Aggregation wie im
-    // Portfolio-Dashboard (Bucket CHF/USD/EUR/OTH).
     const byCurrency = {};
+    const positions = [];
     let totalChf = 0;
     for(const m of master){
       const qty = parseFloat(m.Quantity)||0;
@@ -138,75 +155,113 @@ async function load(){
       const ccy = (m.Currency || '').toUpperCase();
       const bucket = ['CHF','USD','EUR'].includes(ccy) ? ccy : 'OTH';
       byCurrency[bucket] = (byCurrency[bucket]||0) + valChf;
+
+      positions.push({
+        valChf,
+        valDayChf: valueAt(qty, entry, 'day', m.Currency),
+        valWeekChf: valueAt(qty, entry, 'week', m.Currency),
+        valTenChf: valueAt(qty, entry, 'ten_day', m.Currency),
+        valMonthChf: valueAt(qty, entry, 'month', m.Currency),
+        valYtdChf: valueAt(qty, entry, 'ytd', m.Currency),
+        valYearChf: valueAt(qty, entry, 'year', m.Currency),
+      });
     }
 
-    renderFxTable(byCurrency, totalChf, fxByCurrency);
+    renderFxTable(byCurrency, totalChf, fxByCurrency, positions);
     document.getElementById('statusText').textContent = 'live · ' + new Date().toLocaleTimeString('de-CH');
   }catch(e){
-    document.getElementById('fxBody').innerHTML = `<tr><td colspan="8" class="error">Fehler: ${e.message}</td></tr>`;
+    document.getElementById('fxBody').innerHTML = `<tr><td colspan="9" class="error">Fehler: ${e.message}</td></tr>`;
     document.getElementById('statusText').textContent = 'Fehler';
   }
 }
 
-function fxPeriodCell(currency, valueChf, fxByCurrency, periodKey){
-  // FX-Performance: reine Wechselkursbewegung dieser Periode. Für CHF ist
-  // der Impact per Definition immer 0 (keine Fremdwährung, kein FX-Risiko).
-  if(currency === 'CHF'){
-    const f = fmtPct(0);
-    return `<td class="chg flat">${f.text}<span class="abs">${fmtChf(0)} CHF</span></td>`;
-  }
-  const fx = fxByCurrency[currency];
+/* FX-Rate-Bewegung einer Periode für eine Fremdwährung; null falls keine
+ * ausreichende FX-Historie vorhanden ist. */
+function fxPctChange(fx, periodKey){
   const nowRate = fx && fx.last ? fx.last.price : null;
   const refRate = fx && fx[periodKey] ? fx[periodKey].price : null;
-  if(nowRate===null || refRate===null || !refRate){
-    return `<td class="chg flat">—<span class="abs">n/a</span></td>`;
-  }
-  const pct = ((nowRate-refRate)/refRate)*100;
-  const impact = valueChf!==null ? valueChf * (pct/100) : null;
-  const f = fmtPct(pct);
+  if(nowRate===null || refRate===null || !refRate) return null;
+  return (nowRate-refRate)/refRate;
+}
+
+function emptyCell(){ return `<td class="chg flat">—</td>`; }
+
+function fxPeriodCell(currency, valueChf, fxByCurrency, periodKey){
+  const pct = fxPctChange(fxByCurrency[currency], periodKey);
+  if(pct===null) return `<td class="chg flat">—<span class="abs">n/a</span></td>`;
+  const impact = valueChf * pct;
+  const f = fmtPct(pct*100);
   const imp = fmtChfSigned(impact);
   return `<td class="chg ${f.dir}">${f.text}<span class="abs">${imp.text} CHF</span></td>`;
 }
 
-function renderFxTable(byCurrency, totalChf, fxByCurrency){
-  const body = document.getElementById('fxBody');
-  const order = ['CHF','USD','EUR','OTH'];
-  const entries = order.filter(c => byCurrency[c]);
-  if(!entries.length){ body.innerHTML = '<tr><td colspan="8" class="empty">Keine Daten.</td></tr>'; return; }
+/* Zeile für ein "Ergebnis" (FX Result / LC Result / Total): Spalten 2+3
+ * (Value CHF, PF %) bleiben leer, Periodenspalten zeigen CHF-Betrag + Anteil
+ * am aktuellen Portfoliowert. */
+function resultRow(label, valuesByPeriod, totalChf){
+  const cells = PERIODS.map(p => {
+    const v = valuesByPeriod[p.key];
+    if(v===null || v===undefined) return `<td class="chg flat">—<span class="abs">n/a</span></td>`;
+    const pctOfTotal = totalChf ? (v/totalChf)*100 : null;
+    const f = fmtPct(pctOfTotal);
+    const imp = fmtChfSigned(v);
+    return `<td class="chg ${imp.dir}">${f.text}<span class="abs">${imp.text} CHF</span></td>`;
+  }).join('');
+  return `<tr class="total-row"><td class="name">${label}</td><td></td><td></td>${cells}</tr>`;
+}
 
+function renderFxTable(byCurrency, totalChf, fxByCurrency, positions){
+  const body = document.getElementById('fxBody');
+  if(!totalChf){ body.innerHTML = '<tr><td colspan="9" class="empty">Keine Daten.</td></tr>'; return; }
+
+  const order = ['USD','EUR','CHF','OTH'];
   let html = '';
-  for(const ccy of entries){
-    const valueChf = byCurrency[ccy];
+  for(const ccy of order){
+    const valueChf = byCurrency[ccy] || 0;
+    const pctPf = totalChf ? (valueChf/totalChf)*100 : null;
+    const periodCells = (ccy === 'CHF' || ccy === 'OTH')
+      ? PERIODS.map(() => emptyCell()).join('')
+      : PERIODS.map(p => fxPeriodCell(ccy, valueChf, fxByCurrency, p.key)).join('');
     html += `<tr>
-      <td class="name">${ccy}</td>
+      <td class="name">${ccy}${ccy==='OTH' ? ' (Residual)' : ''}</td>
       <td class="price">${fmtChf(valueChf)}</td>
-      ${PERIODS.map(p => fxPeriodCell(ccy, valueChf, fxByCurrency, p.key)).join('')}
+      <td class="price">${pctPf!==null?pctPf.toFixed(1)+'%':'—'}</td>
+      ${periodCells}
     </tr>`;
   }
-  // Total-Zeile: entspricht dem Portfolio-Gesamtwert. FX-Impact-Spalten
-  // werden über alle Fremdwährungs-Buckets aufsummiert (CHF-Bucket trägt
-  // dabei immer 0 bei, s.o.).
-  html += `<tr class="total-row">
-    <td class="name">Total</td>
-    <td class="price">${fmtChf(totalChf)}</td>
-    ${PERIODS.map(p => {
-      let sum = 0, any = false;
-      for(const ccy of entries){
-        if(ccy === 'CHF') continue;
-        const fx = fxByCurrency[ccy];
-        const nowRate = fx && fx.last ? fx.last.price : null;
-        const refRate = fx && fx[p.key] ? fx[p.key].price : null;
-        if(nowRate===null || refRate===null || !refRate) continue;
-        const pct = (nowRate-refRate)/refRate;
-        sum += byCurrency[ccy] * pct;
-        any = true;
-      }
-      const imp = fmtChfSigned(any ? sum : null);
-      const pctOfTotal = (any && totalChf) ? (sum/totalChf)*100 : null;
-      const f = fmtPct(pctOfTotal);
-      return `<td class="chg ${imp.dir}">${f.text}<span class="abs">${imp.text} CHF</span></td>`;
-    }).join('')}
-  </tr>`;
+
+  // FX Result: Summe des FX-Impacts NUR über USD/EUR (OTH ist eine
+  // Restgrösse über mehrere Währungen, dafür keine eindeutige FX-Bewegung).
+  const fxResultByPeriod = {};
+  for(const p of PERIODS){
+    let sum = 0, any = false;
+    for(const ccy of ['USD','EUR']){
+      const pct = fxPctChange(fxByCurrency[ccy], p.key);
+      if(pct===null) continue;
+      sum += (byCurrency[ccy]||0) * pct;
+      any = true;
+    }
+    fxResultByPeriod[p.key] = any ? sum : null;
+  }
+
+  // Total Result: tatsächliches Portfolio-Ergebnis dieser Periode (gepaarte
+  // Summe über alle Positionen) - identisch zur Methodik im Dashboard.
+  const totalResultByPeriod = {};
+  for(const p of PERIODS){
+    totalResultByPeriod[p.key] = pairedDelta(positions, FIELD_BY_PERIOD[p.key]);
+  }
+
+  // LC Result: Residuum. Nur bestimmbar, wenn sowohl Total als auch FX
+  // Result für diese Periode vorliegen.
+  const lcResultByPeriod = {};
+  for(const p of PERIODS){
+    const total = totalResultByPeriod[p.key], fx = fxResultByPeriod[p.key];
+    lcResultByPeriod[p.key] = (total===null || fx===null) ? null : total - fx;
+  }
+
+  html += resultRow('FX Result', fxResultByPeriod, totalChf);
+  html += resultRow('LC Result', lcResultByPeriod, totalChf);
+  html += resultRow('Total', totalResultByPeriod, totalChf);
 
   body.innerHTML = html;
 }
