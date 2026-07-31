@@ -43,7 +43,7 @@
 
   .mg-block{margin-bottom:28px;}
   .mg-title{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:16px 0 4px;}
-  .mg-table{min-width:760px;}
+  .mg-table{min-width:760px;table-layout:fixed;}
 
   .topnav{
     display:flex;gap:4px;flex-wrap:wrap;align-items:center;
@@ -104,7 +104,7 @@
 
   <div class="section-title">Switzerland</div>
   <div id="marketGroupSections"></div>
-  <p class="note">Gruppierung nach dem Stammdatenfeld "Market Group" (security_master.csv). Die Total-Zeile je Gruppe ist der <strong>arithmetische Durchschnitt</strong> der %-Werte (nicht wertgewichtet) - Value CHF und % PF in der Total-Zeile sind dagegen Summen.</p>
+  <p class="note">Gruppierung nach dem Stammdatenfeld "Market Group" (security_master.csv) - unabhängig von der gehaltenen Quantity, auch Securities mit Quantity = 0 werden berücksichtigt (Value CHF zeigt dann 0, die %-Rendite wird trotzdem angezeigt). Die Total-Zeile je Gruppe ist der <strong>arithmetische Durchschnitt</strong> der %-Werte (nicht wertgewichtet) - Value CHF in der Total-Zeile ist dagegen eine Summe.</p>
 </div>
 
 <script src="assets/github-data.js"></script>
@@ -190,11 +190,23 @@ async function load(){
 
     const byCurrency = {};
     const positions = [];
+    const swissCandidates = [];
     let totalChf = 0;
     for(const m of master){
       const qty = parseFloat(m.Quantity)||0;
-      if(qty === 0) continue;
       const entry = bySecurity[m.SecurityID];
+      const marketGroup = (m.MarketGroup||'').trim();
+
+      // Für die Switzerland-Sektion zählt NUR das MarketGroup-Flag, nicht
+      // ob überhaupt eine Quantity gehalten wird (Punkt 2/3).
+      if(marketGroup){
+        swissCandidates.push({
+          name: m.SecurityName, secId: m.SecurityID, marketGroup,
+          currency: m.Currency, entry, qty,
+        });
+      }
+
+      if(qty === 0) continue;
       if(!entry || !entry.last) continue;
       const valChf = valueAt(qty, entry, 'last', m.Currency);
       if(valChf===null) continue;
@@ -204,7 +216,6 @@ async function load(){
       byCurrency[bucket] = (byCurrency[bucket]||0) + valChf;
 
       positions.push({
-        name: m.SecurityName, secId: m.SecurityID, marketGroup: (m.MarketGroup||'').trim(),
         valChf,
         valDayChf: valueAt(qty, entry, 'day', m.Currency),
         valWeekChf: valueAt(qty, entry, 'week', m.Currency),
@@ -216,7 +227,7 @@ async function load(){
     }
 
     renderFxTable(byCurrency, totalChf, fxByCurrency, positions);
-    renderMarketGroups(positions, totalChf);
+    renderMarketGroups(swissCandidates, fxByCurrency);
     document.getElementById('statusText').textContent = 'live · ' + new Date().toLocaleTimeString('de-CH');
 
     // FX Risks: braucht die vollen Tageskurse der FX-Paare (nicht nur die
@@ -472,12 +483,29 @@ async function loadFxRisks(byCurrency, fxSecurityId){
   document.getElementById('riskBody').innerHTML = riskHtml;
 }
 
-/* Reine LC-%-Rendite einer Position für eine Periode (Wertschriften-eigene
- * Performance in CHF-Termen, nicht der CHF-Impact) - Basis für den
- * arithmetischen Durchschnitt in der Switzerland-Sektion. */
-function positionPct(p, refField){
-  if(p.valChf===null || !p[refField]) return null;
-  return ((p.valChf - p[refField]) / p[refField]) * 100;
+/* Reine %-Rendite einer Security für eine Periode - bewusst UNABHÄNGIG von
+ * der gehaltenen Quantity (funktioniert auch für Securities mit Quantity=0,
+ * die trotzdem in der Switzerland-Sektion auftauchen sollen). Nutzt direkt
+ * die Kurs-/FX-Verhältnisse aus latest_prices.json statt CHF-Werte, die bei
+ * Quantity=0 immer 0 wären. */
+function fxRateStandalone(fxByCurrency, currency, periodKey){
+  if(!currency || currency.toUpperCase()==='CHF') return 1;
+  const fx = fxByCurrency[currency.toUpperCase()];
+  return (fx && fx[periodKey]) ? fx[periodKey].price : null;
+}
+function securityPct(entry, currency, periodKey, fxByCurrency){
+  if(!entry || !entry.last || !entry[periodKey]) return null;
+  const rateNow = fxRateStandalone(fxByCurrency, currency, 'last');
+  const rateRef = fxRateStandalone(fxByCurrency, currency, periodKey);
+  if(rateNow===null || rateRef===null) return null;
+  const nowChf = entry.last.price * rateNow;
+  const refChf = entry[periodKey].price * rateRef;
+  return refChf ? ((nowChf-refChf)/refChf)*100 : null;
+}
+function securityValueChf(entry, currency, qty, fxByCurrency){
+  if(!entry || !entry.last) return null;
+  const rate = fxRateStandalone(fxByCurrency, currency, 'last');
+  return rate!==null ? qty*entry.last.price*rate : null;
 }
 
 function mgCell(pct){
@@ -485,42 +513,53 @@ function mgCell(pct){
   return `<td class="chg ${f.dir}">${f.text}</td>`;
 }
 
-function renderMarketGroupTable(groupLabel, positions, totalChf){
-  const rows = positions.filter(p => p.marketGroup === groupLabel);
+// Gleiche Spaltenbreiten in allen drei Tabellen (Punkt 4): fixes Layout via
+// colgroup, identisch für jede Tabelle, unabhängig vom jeweiligen Inhalt.
+const MG_COLGROUP = `<colgroup>
+  <col style="width:32%">
+  <col style="width:11.33%">
+  <col style="width:9.445%"><col style="width:9.445%"><col style="width:9.445%">
+  <col style="width:9.445%"><col style="width:9.445%"><col style="width:9.445%">
+</colgroup>`;
+
+function renderMarketGroupTable(groupLabel, candidates, fxByCurrency){
+  const rows = candidates.filter(c => c.marketGroup === groupLabel);
   let html = `<div class="mg-block"><div class="mg-title">${groupLabel}</div>`;
   if(!rows.length){
-    html += `<div class="empty" style="padding:16px 0;">Keine Securities mit Market Group "${groupLabel}" im Portfolio.</div></div>`;
+    html += `<div class="empty" style="padding:16px 0;">Keine Securities mit Market Group "${groupLabel}" gefunden.</div></div>`;
     return html;
   }
 
-  html += `<div class="table-wrap"><table class="mg-table"><thead><tr>
-    <th>Security</th><th class="num">Value CHF</th><th class="num">% PF</th>
+  html += `<div class="table-wrap"><table class="mg-table">${MG_COLGROUP}<thead><tr>
+    <th>Security</th><th class="num">Value CHF</th>
     ${PERIODS.map(p => `<th class="num">${p.label}</th>`).join('')}
   </tr></thead><tbody>`;
 
-  for(const p of rows){
-    const pctPf = totalChf ? (p.valChf/totalChf)*100 : null;
+  const rowData = rows.map(c => ({
+    ...c,
+    valueChf: securityValueChf(c.entry, c.currency, c.qty, fxByCurrency),
+    pcts: PERIODS.map(pr => securityPct(c.entry, c.currency, pr.key, fxByCurrency)),
+  }));
+
+  for(const r of rowData){
     html += `<tr>
-      <td class="name"><a href="security.html?id=${encodeURIComponent(p.secId)}">${p.name}</a></td>
-      <td class="price">${fmtChf(p.valChf)}</td>
-      <td class="price">${pctPf!==null?pctPf.toFixed(1)+'%':'—'}</td>
-      ${PERIODS.map(pr => mgCell(positionPct(p, FIELD_BY_PERIOD[pr.key]))).join('')}
+      <td class="name"><a href="security.html?id=${encodeURIComponent(r.secId)}">${r.name}</a></td>
+      <td class="price">${fmtChf(r.valueChf)}</td>
+      ${r.pcts.map(mgCell).join('')}
     </tr>`;
   }
 
-  // Total-Zeile: Value CHF und % PF als Summe, Perioden-Spalten als
-  // ARITHMETISCHER Durchschnitt der %-Werte (nicht wertgewichtet).
-  const sumValueChf = rows.reduce((s,p)=>s+(p.valChf||0),0);
-  const sumPctPf = totalChf ? (sumValueChf/totalChf)*100 : null;
-  const avgCells = PERIODS.map(pr => {
-    const vals = rows.map(p => positionPct(p, FIELD_BY_PERIOD[pr.key])).filter(v => v!==null);
+  // Total-Zeile: Value CHF als Summe, Perioden-Spalten als ARITHMETISCHER
+  // Durchschnitt der %-Werte (nicht wertgewichtet, s. Notiz unten der Seite).
+  const sumValueChf = rowData.reduce((s,r)=>s+(r.valueChf||0),0);
+  const avgCells = PERIODS.map((pr, i) => {
+    const vals = rowData.map(r => r.pcts[i]).filter(v => v!==null);
     const avg = vals.length ? vals.reduce((s,v)=>s+v,0)/vals.length : null;
     return mgCell(avg);
   }).join('');
   html += `<tr class="total-row">
     <td class="name">Total</td>
     <td class="price">${fmtChf(sumValueChf)}</td>
-    <td class="price">${sumPctPf!==null?sumPctPf.toFixed(1)+'%':'—'}</td>
     ${avgCells}
   </tr>`;
 
@@ -528,9 +567,9 @@ function renderMarketGroupTable(groupLabel, positions, totalChf){
   return html;
 }
 
-function renderMarketGroups(positions, totalChf){
+function renderMarketGroups(swissCandidates, fxByCurrency){
   const groups = ['Switzerland Index', 'Switzerland Core', 'Switzerland Growth'];
-  const html = groups.map(g => renderMarketGroupTable(g, positions, totalChf)).join('');
+  const html = groups.map(g => renderMarketGroupTable(g, swissCandidates, fxByCurrency)).join('');
   document.getElementById('marketGroupSections').innerHTML = html;
 }
 
