@@ -8,8 +8,8 @@ Zwei Schritte, in dieser Reihenfolge:
    Das begrenzt das langfristige Wachstum der Datei auf ~1 Zeile/Tag/Security,
    unabhängig davon, wie oft die Collectors an diesem Tag gelaufen sind.
    Die letzten COMPACT_AFTER_DAYS Tage bleiben in voller Granularität
-   (mehrere Kurse/Tag) erhalten, damit Intraday-Charts (10 Tage/30 Tage)
-   weiterhin sinnvoll aussehen.
+   (mehrere Kurse/Tag) erhalten, damit der Intraday-Chart (10 Tage) auf
+   security.html weiterhin sinnvoll aussieht.
 
 2) LÖSCHUNG (Zeilen älter als MAX_AGE_DAYS Tage):
    Wird nach der Kompaktierung auf die dann bereits verdichteten Daten
@@ -25,7 +25,7 @@ ZURICH = ZoneInfo("Europe/Zurich")
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PRICES_PATH = os.path.join(REPO_ROOT, "data", "security_prices.csv")
 
-COMPACT_AFTER_DAYS = 35
+COMPACT_AFTER_DAYS = 11
 MAX_AGE_DAYS = 380
 
 
