@@ -93,14 +93,14 @@
   <div class="table-wrap">
   <table id="riskTable">
     <thead><tr>
-      <th>Currency</th><th class="num">Volatilität (Tag, 1J Std.Abw.)</th>
+      <th>Currency</th><th class="num">Volatilität (annualisiert)</th>
       <th class="num">Impact ± 1 Std.Abw.</th><th class="num">Impact ± 1%</th><th class="num">Impact ± 5%</th>
     </tr></thead>
     <tbody id="riskBody"><tr><td colspan="5" class="empty">Loading…</td></tr></tbody>
   </table>
   </div>
   <div class="fx-charts" id="fxCharts"></div>
-  <p class="note">Volatilität = Standardabweichung der täglichen FX-Kursänderungen über die letzten 360 Tage (oder weniger, falls keine längere Historie vorliegt) - ein Mass für die typische Tagesschwankung. Impact-Spalten zeigen die CHF-Wertveränderung des jeweiligen Fremdwährungs-Bestands (aus der FX-Sektion oben) bei einer angenommenen Kursbewegung dieser Grösse, in beide Richtungen symmetrisch. Charts zeigen den FX-Kurs der letzten 360 Tage (Tagesschlusskurse) mit gleitendem 30-Tage-Durchschnitt.</p>
+  <p class="note">Volatilität = Standardabweichung der täglichen FX-Kursänderungen über die letzten 360 Tage (oder weniger, falls keine längere Historie vorliegt), <strong>annualisiert</strong> mit √252 Handelstagen/Jahr (Standardannahme). Impact-Spalten zeigen die CHF-Wertveränderung des jeweiligen Fremdwährungs-Bestands (aus der FX-Sektion oben) bei einer Kursbewegung dieser Grösse, in beide Richtungen symmetrisch - "± 1 Std.Abw." bezieht sich dabei auf die annualisierte Grösse (ein für 1 Jahr typischer Bewegungsrahmen), "± 1%"/"± 5%" sind unabhängig davon feste Referenzgrössen. Charts zeigen den FX-Kurs der letzten 360 Tage (Tagesschlusskurse) mit gleitendem 30-Tage-Durchschnitt.</p>
 
   <div class="section-title">Switzerland</div>
   <div id="marketGroupSections"></div>
@@ -358,6 +358,13 @@ function stdDev(values){
   return Math.sqrt(variance);
 }
 
+// Annualisierung der aus Tagesrenditen berechneten Standardabweichung:
+// Standardannahme 252 Handelstage/Jahr (üblich für FX/Aktien).
+const TRADING_DAYS_PER_YEAR = 252;
+function annualize(dailySd){
+  return dailySd===null ? null : dailySd * Math.sqrt(TRADING_DAYS_PER_YEAR);
+}
+
 function movingAverage(points, window){
   const out = [];
   for(let i=0;i<points.length;i++){
@@ -470,8 +477,8 @@ async function loadFxRisks(byCurrency, fxSecurityId){
     const daily = collapseToDaily(raw).filter(p => p.dt >= cutoff360);
 
     const rets = dailyReturns(daily);
-    const sd = stdDev(rets);
-    riskHtml += riskRow(ccy, byCurrency[ccy]||0, sd);
+    const sdAnnual = annualize(stdDev(rets));
+    riskHtml += riskRow(ccy, byCurrency[ccy]||0, sdAnnual);
 
     const maPoints = movingAverage(daily, 30);
     const box = document.createElement('div');
@@ -524,9 +531,9 @@ const MG_COLGROUP = `<colgroup>
 
 function renderMarketGroupTable(groupLabel, candidates, fxByCurrency){
   const rows = candidates.filter(c => c.marketGroup === groupLabel);
-  let html = `<div class="mg-block"><div class="mg-title">${groupLabel}</div>`;
+  let html = `<div class="mg-block">`;
   if(!rows.length){
-    html += `<div class="empty" style="padding:16px 0;">Keine Securities mit Market Group "${groupLabel}" gefunden.</div></div>`;
+    html += `<div class="mg-title">${groupLabel.toUpperCase()}</div><div class="empty" style="padding:16px 0;">Keine Securities mit Market Group "${groupLabel}" gefunden.</div></div>`;
     return html;
   }
 
@@ -551,6 +558,7 @@ function renderMarketGroupTable(groupLabel, candidates, fxByCurrency){
 
   // Total-Zeile: Value CHF als Summe, Perioden-Spalten als ARITHMETISCHER
   // Durchschnitt der %-Werte (nicht wertgewichtet, s. Notiz unten der Seite).
+  // Trägt statt einer separaten Überschrift den Gruppennamen direkt im Label.
   const sumValueChf = rowData.reduce((s,r)=>s+(r.valueChf||0),0);
   const avgCells = PERIODS.map((pr, i) => {
     const vals = rowData.map(r => r.pcts[i]).filter(v => v!==null);
@@ -558,7 +566,7 @@ function renderMarketGroupTable(groupLabel, candidates, fxByCurrency){
     return mgCell(avg);
   }).join('');
   html += `<tr class="total-row">
-    <td class="name">Total</td>
+    <td class="name">${groupLabel.toUpperCase()} - Average</td>
     <td class="price">${fmtChf(sumValueChf)}</td>
     ${avgCells}
   </tr>`;
