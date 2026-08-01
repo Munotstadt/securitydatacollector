@@ -20,12 +20,14 @@ from zoneinfo import ZoneInfo
 ZURICH = ZoneInfo("Europe/Zurich")
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PRICES_PATH = os.path.join(REPO_ROOT, "data", "security_prices.csv")
+MASTER_PATH = os.path.join(REPO_ROOT, "data", "security_master.csv")
 OUTPUT_PATH = os.path.join(REPO_ROOT, "data", "latest_prices.json")
 
 # Referenzpunkte, wie sie bisher clientseitig in dashboard.html/portfolio.html
 # berechnet wurden (daysAgo(now, N) + "letzter Kurs auf oder vor diesem Datum").
+# "day" ist NICHT hier drin - der Offset für "day" hängt vom Wochentag und
+# vom Collector-Typ ab, siehe day_offset_for().
 REFERENCE_OFFSETS_DAYS = {
-    "day": 1,
     "week": 7,
     "ten_day": 10,
     "month": 30,
@@ -33,11 +35,42 @@ REFERENCE_OFFSETS_DAYS = {
 }
 
 
+def day_offset_for(now, is_weekday_only):
+    """Normalerweise ist 'Vortag' schlicht 1 Tag zurück. Für Securities, die
+    nur an Wochentagen erfasst werden (Collector_YahooWeekday), würde das am
+    Samstag/Sonntag aber fälschlich Freitag mit Freitag vergleichen (da über
+    das Wochenende keine neuen Kurse dazukommen) und einen irreführenden
+    Flat-0%-Delta erzeugen. Deshalb wird an diesen beiden Tagen für solche
+    Securities weiter zurückgegangen, bis der Cutoff wieder auf Donnerstag
+    fällt - damit wird korrekt der letzte ECHTE Tagesvergleich (Do->Fr)
+    gezeigt, wie es einem "Vortag" an einem Handelstag entspricht."""
+    if is_weekday_only:
+        weekday = now.weekday()  # Mo=0 .. So=6
+        if weekday == 5:  # Samstag -> Donnerstag (2 Tage zurück)
+            return 2
+        if weekday == 6:  # Sonntag -> Donnerstag (3 Tage zurück)
+            return 3
+    return 1
+
+
 def parse_price_date(s):
     try:
         return datetime.strptime(s.strip(), "%d.%m.%Y %H:%M:%S")
     except (ValueError, AttributeError):
         return None
+
+
+def read_weekday_only_flags():
+    """SecurityID -> True, falls DataCollector == 'Collector_YahooWeekday'."""
+    if not os.path.exists(MASTER_PATH):
+        return {}
+    flags = {}
+    with open(MASTER_PATH, newline="", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            flags[row.get("SecurityID", "")] = (
+                row.get("DataCollector", "").strip() == "Collector_YahooWeekday"
+            )
+    return flags
 
 
 def read_prices_by_security():
@@ -89,9 +122,12 @@ def end_of_day(d):
     return d.replace(hour=23, minute=59, second=59, microsecond=999999)
 
 
-def build_entry(observations, now):
+def build_entry(observations, now, is_weekday_only):
     last = observations[-1] if observations else None
     entry = {"last": obs_to_json(last)}
+
+    day_cutoff = end_of_day(now - timedelta(days=day_offset_for(now, is_weekday_only)))
+    entry["day"] = obs_to_json(find_on_or_before(observations, day_cutoff))
 
     for key, offset_days in REFERENCE_OFFSETS_DAYS.items():
         cutoff = end_of_day(now - timedelta(days=offset_days))
@@ -118,11 +154,12 @@ def build_entry(observations, now):
 def run():
     now = datetime.now(ZURICH).replace(tzinfo=None)
     by_security = read_prices_by_security()
+    weekday_only_flags = read_weekday_only_flags()
 
     result = {
         "generated_at": now.isoformat(),
         "securities": {
-            sec_id: build_entry(observations, now)
+            sec_id: build_entry(observations, now, weekday_only_flags.get(sec_id, False))
             for sec_id, observations in by_security.items()
         },
     }
