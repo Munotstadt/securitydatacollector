@@ -104,7 +104,7 @@
 
   <div class="section-title">FX Risks</div>
   <div class="risk-grid" id="riskGrid"><div class="empty">Loading…</div></div>
-  <p class="note">Volatilität = Standardabweichung der täglichen FX-Kursänderungen über die letzten 180 Tage, <strong>annualisiert</strong> mit √252 Handelstagen/Jahr (Standardannahme). Alle drei Impact-Zeilen ("± 1 Std.Abw.", "± 1%", "± 5%") zeigen zusätzlich zum jeweiligen CHF-Betrag den Anteil am Gesamtportfoliowert, im Format "± X.XX% (CHF Impact : CHF Portfoliowert)". "Range ± 1%/± 5%" zeigt zusätzlich die resultierende Kursspanne bei einer Wechselkursbewegung dieser Grösse. Der obere Chart zeigt den FX-Kurs der letzten 360 Tage (Tagesschlusskurse), EUR/CHF bewusst ohne 30-Tage-Durchschnittslinie. Der untere Chart zeigt die rollierende annualisierte 180-Tage-Volatilität über den Verlauf der letzten 360 Tage - so lässt sich erkennen, ob die Volatilität gerade steigt oder sinkt.</p>
+  <p class="note">Volatilität = Standardabweichung der täglichen FX-Kursänderungen über die letzten 180 Tage, <strong>annualisiert</strong> mit √252 Handelstagen/Jahr (Standardannahme). Alle drei Impact-Zeilen ("± 1 Std.Abw.", "± 1%", "± 5%") zeigen den Anteil am Gesamtportfoliowert plus den CHF-Betrag, im Format "± X.XX% (CHF Impact)". "Range ± 1%/± 5%" zeigt zusätzlich die resultierende Kursspanne bei einer Wechselkursbewegung dieser Grösse. Der obere Chart zeigt den FX-Kurs der letzten 360 Tage (Tagesschlusskurse), EUR/CHF bewusst ohne 30-Tage-Durchschnittslinie. Der untere Chart zeigt die rollierende annualisierte 180-Tage-Volatilität über den Verlauf der letzten 360 Tage - so lässt sich erkennen, ob die Volatilität gerade steigt oder sinkt.</p>
 
   <div class="section-title">Switzerland</div>
   <div id="marketGroupSections"></div>
@@ -425,14 +425,14 @@ function riskCard(ccy, secId, valueChf, totalChf, sdAnnual, lastRate){
   const range5 = [lastRate*(1-0.05), lastRate*(1+0.05)];
   const rangeText = ([lo,hi]) => `${fmtDecimal(lo,4)} – ${fmtDecimal(hi,4)}`;
 
-  // Impact-Zeile: CHF-Betrag PLUS Anteil am Gesamtportfolio, im Format
-  // "± X.XX% (CHF Impact : CHF Portfoliowert)" - für alle drei Impact-Grössen
-  // (Std.Abw., ±1%, ±5%) einheitlich.
+  // Impact-Zeile: %-Anteil am Gesamtportfolio + CHF-Betrag, im Format
+  // "± X.XX% (CHF Impact)" - für alle drei Impact-Grössen (Std.Abw., ±1%,
+  // ±5%) einheitlich.
   function impactLine(pctMove){
     const impact = valueChf * pctMove;
     const pctOfPf = totalChf ? (Math.abs(impact)/totalChf)*100 : null;
     const pctText = pctOfPf!==null ? `± ${pctOfPf.toFixed(2)}%` : '± —';
-    return `${pctText} (CHF ${fmtChf(Math.abs(impact))} : CHF ${fmtChf(totalChf)})`;
+    return `${pctText} (CHF ${fmtChf(Math.abs(impact))})`;
   }
 
   return `<div class="risk-card">
