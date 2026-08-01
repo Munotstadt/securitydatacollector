@@ -26,7 +26,11 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PRICES_PATH = os.path.join(REPO_ROOT, "data", "security_prices.csv")
 
 COMPACT_AFTER_DAYS = 11
-MAX_AGE_DAYS = 380
+# 550 statt 380 Tage: der Analyser braucht für den rollierenden
+# 180-Tage-Volatilitäts-Chart (über 360 Tage Verlauf) bis zu ~550 Tage
+# FX-Historie (360 + 180 + Puffer) - bei 380 Tagen würde genau die Daten
+# gelöscht, die dafür noch gebraucht werden.
+MAX_AGE_DAYS = 550
 
 
 def parse_price_date(s):
