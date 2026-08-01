@@ -5096,3 +5096,11 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 62,Swiss Market Index (Equal Weight),378.10,30.06.2026 06:59:00,manual,01.08.2026 07:00:30
 55,Sunrise Communications AG,42.42,31.12.2025 07:11:00,manual,01.08.2026 07:12:02
 40,Helvetia Baloise Holding AG,209.2,31.12.2025 07:14:00,manual,01.08.2026 07:14:49
+8,BTC - Bitcoin,63026.32812,01.08.2026 07:19:02,Yahoo Finance (Daily),01.08.2026 07:19:02
+7,SOL - Solana,73.05,01.08.2026 07:19:02,Yahoo Finance (Daily),01.08.2026 07:19:02
+9,ETH - Ethereum,1867.81006,01.08.2026 07:19:02,Yahoo Finance (Daily),01.08.2026 07:19:02
+48,GBP/CHF,1.0884,01.08.2026 07:19:02,Yahoo Finance (Daily),01.08.2026 07:19:02
+49,Gold (USD/oz),4107.0,01.08.2026 07:19:02,Yahoo Finance (Daily),01.08.2026 07:19:02
+50,JPY/CHF,0.00512,01.08.2026 07:19:02,Yahoo Finance (Daily),01.08.2026 07:19:02
+54,Silver (USD/oz),57.786,01.08.2026 07:19:02,Yahoo Finance (Daily),01.08.2026 07:19:02
+58,Brent Crude Oil Last Day Financ,90.12,01.08.2026 07:19:02,Yahoo Finance (Daily),01.08.2026 07:19:02
