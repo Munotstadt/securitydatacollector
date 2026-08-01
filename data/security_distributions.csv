@@ -46,3 +46,4 @@ SecurityID,SecurityName,DistributionAmount,Currency,ExDate,PayDate,Source,Create
 20,Apple Inc.,0.26,USD,10.11.2025,13.11.2025,manual,01.08.2026 07:04:02
 20,Apple Inc.,0.26,USD,11.08.2025,14.08.2025,manual,01.08.2026 07:04:28
 55,Sunrise Communications AG,3.42,CHF,11.05.2026,13.05.2026,manual,01.08.2026 07:11:03
+55,Sunrise Communications AG,3.33,CHF,15.05.2025,19.05.2025,manual,01.08.2026 07:11:31
