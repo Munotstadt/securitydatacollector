@@ -5105,3 +5105,4 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 54,Silver (USD/oz),57.786,01.08.2026 07:19:02,Yahoo Finance (Daily),01.08.2026 07:19:02
 58,Brent Crude Oil Last Day Financ,90.12,01.08.2026 07:19:02,Yahoo Finance (Daily),01.08.2026 07:19:02
 3,EUR/CHF,0.9159,31.01.2026 07:20:00,manual,01.08.2026 07:20:15
+3,EUR/CHF,0.9092,28.02.2026 07:20:00,manual,01.08.2026 07:20:26
