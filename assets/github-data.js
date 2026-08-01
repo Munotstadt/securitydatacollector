@@ -83,6 +83,29 @@ async function ghPutFile(path, newContent, message, sha) {
   return res.json();
 }
 
+/* Löst einen GitHub-Actions-Workflow manuell aus (identisch zum "Run
+ * workflow"-Button im Actions-Tab). Braucht workflow_dispatch: im
+ * on:-Block der Workflow-Datei sowie einen Token mit Actions:write-Scope
+ * (Fine-grained PAT) bzw. dem klassischen "workflow"-Scope.
+ * WICHTIG: die API bestätigt hier nur "Auftrag angenommen" (Status 204,
+ * kein Body) - NICHT, ob der Lauf am Ende erfolgreich war. Das muss weiter
+ * im Actions-Tab von GitHub selbst geprüft werden. */
+async function ghDispatchWorkflow(workflowFile) {
+  if (!GH.token) throw new Error('Kein GitHub Token gesetzt - bitte in den Einstellungen hinterlegen.');
+  const url = `https://api.github.com/repos/${GH.owner}/${GH.repo}/actions/workflows/${encodeURIComponent(workflowFile)}/dispatches`;
+  const headers = {
+    Authorization: `Bearer ${GH.token}`,
+    Accept: 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+  };
+  const res = await fetch(url, { method: 'POST', headers, body: JSON.stringify({ ref: GH.branch }) });
+  if (!res.ok) {
+    const t = await res.text();
+    throw new Error(`Workflow-Start fehlgeschlagen (${res.status}): ${t}`);
+  }
+  return true;
+}
+
 /* ---- Minimaler CSV Parser/Writer (keine externen Libraries nötig) ---- */
 
 function parseCSV(text) {
