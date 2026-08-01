@@ -5110,3 +5110,4 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 3,EUR/CHF,0.9190,30.04.2026 07:20:00,manual,01.08.2026 07:20:50
 3,EUR/CHF,0.9225,31.05.2026 07:20:00,manual,01.08.2026 07:21:04
 25,Vonovia,24.53,31.12.2025 07:23:00,manual,01.08.2026 07:23:11
+25,Vonovia,19.53,09.06.2026 07:23:00,manual,01.08.2026 07:24:06
