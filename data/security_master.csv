@@ -6,7 +6,7 @@ EUR/CHF,3,897789,CHF,Shares,,,Currency,Collector_YahooWeekday,EURCHF=X,0,27.07.2
 USD/CHF,2,275000,CHF,Shares,,,Currency,Collector_YahooWeekday,USDCHF=X,0,27.07.2026 17:43:37,01.08.2026 06:51:10,,
 iShares Swiss Dividends,10,23793563,CHF,Shares,Switzerland,Core,ETF/Funds,Collector_YahooWeekday,CHDVD.SW,461,27.07.2026 17:44:00,01.08.2026 06:51:10,,Switzerland Core
 STOXX Europe 600 EUR NR,4,31008,EUR,Shares,Europe,,Index,Collector_Other,,0,27.07.2026 20:50:11,01.08.2026 06:51:10,,
-Raiffeisen Futura II - Systematic Invest Equity B (Samantha),41,114426952,CHF,Shares,Fund,Samantha,ETF/Funds,Collector_Other,,0,27.07.2026 20:50:11,01.08.2026 06:51:10,,
+Raiffeisen Futura II - Systematic Invest Equity B (Samantha),41,114426952,CHF,Shares,Fund,Samantha,ETF/Funds,Collector_Other,,10,27.07.2026 20:50:11,01.08.2026 08:00:03,,
 Raiffeisen Futura II - Systematic Invest Equity (Vorsorge),42,114426954,CHF,Shares,World,Vorsorge,ETF/Funds,Collector_Other,,25,27.07.2026 20:50:11,01.08.2026 06:51:10,,
 Raiffeisen Winterthur Hypothek 1 Jahr Zinssatz,44,pending44,CHF,Bonds,Hypothek,1 Jahr,Interests,Collector_Other,,0,27.07.2026 20:50:11,01.08.2026 06:51:10,,
 Raiffeisen Winterthur Hypothek 5 Jahr Zinssatz,45,pending45,CHF,Bonds,Hypothek,5 Jahr,Interests,Collector_Other,,0,27.07.2026 20:50:11,01.08.2026 06:51:10,,
