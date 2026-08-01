@@ -41,3 +41,4 @@ SecurityID,SecurityName,DistributionAmount,Currency,ExDate,PayDate,Source,Create
 21,Microsoft,0.91,USD,20.11.2025,11.12.2025,manual,30.07.2026 21:50:59
 21,Microsoft,0.93,USD,21.08.2025,11.09.2025,manual,30.07.2026 21:51:28
 35,SWC (CH) REF Rsp Swiss Commercial FA CHF,4.15,CHF,22.04.2026,24.04.2026,manual,01.08.2026 06:54:35
+20,Apple Inc.,0.27,USD,11.05.2026,14.05.2026,manual,01.08.2026 07:03:27
