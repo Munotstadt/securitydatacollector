@@ -49,9 +49,11 @@
   thead th{text-align:left;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:12px 8px 8px;border-bottom:1px solid var(--line);}
   thead th.num{text-align:right;}
   tbody td{padding:10px 8px;border-bottom:1px solid var(--line);font-size:13px;}
-  tbody tr.section-row, tbody tr.subgroup-row{cursor:pointer;user-select:none;}
+  tbody tr.section-row, tbody tr.subgroup-row, tbody tr.subsubgroup-row{cursor:pointer;user-select:none;}
   tbody tr.section-row td{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);padding:20px 8px 6px;font-weight:600;}
   tbody tr.subgroup-row td{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:12px 8px 4px;font-weight:600;}
+  tbody tr.subsubgroup-row td{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);padding:8px 8px 4px;font-weight:500;opacity:.85;}
+  tbody tr.subsubgroup-row td.price, tbody tr.subsubgroup-row td.chg{font-family:'IBM Plex Mono',monospace;text-transform:none;letter-spacing:0;}
   /* Titel/Subtitel bewusst linksbündig, NICHT eingezogen - nur die
      Wertschriften-Zeilen selbst sind eingerückt (s. tr.position-row). */
   tbody tr.section-row td.price, tbody tr.subgroup-row td.price,
@@ -440,6 +442,10 @@ function groupRow(label, positions, cls, total, key, ancestors){
   </tr>`;
 }
 
+// Für diese Subgruppen (nur unter "Shares") wird zusätzlich eine dritte
+// Ebene nach Instrument (ETF/Funds, Shares) eingezogen - Punkt 4.
+const INSTRUMENT_SPLIT_SUBGROUPS = new Set(['Switzerland', 'USA']);
+
 function renderBoard(positions, total){
   const body = document.getElementById('boardBody');
   if(!positions.length){ body.innerHTML = '<tr><td colspan="9" class="empty">No positions with Quantity &gt; 0 found.</td></tr>'; return; }
@@ -455,8 +461,10 @@ function renderBoard(positions, total){
   });
 
   let html = '';
+  const allKeys = []; // für Default-Collapse (Punkt 3) gesammelt
   groupNames.forEach((gruppe, gi) => {
     const groupKey = `grp-${gi}`;
+    allKeys.push(groupKey);
     const groupPositions = groups[gruppe];
     html += groupRow(gruppe, groupPositions, 'section-row', total, groupKey, '');
 
@@ -466,9 +474,31 @@ function renderBoard(positions, total){
       const subNames = sortSubgroupNames(gruppe, Object.keys(subgroups));
       subNames.forEach((sub, si) => {
         const subKey = `${groupKey}-${si}`;
+        allKeys.push(subKey);
         html += groupRow(sub, subgroups[sub], 'subgroup-row', total, subKey, groupKey);
-        const subPositions = sortPositionsForDisplay(gruppe, subgroups[sub]);
-        for(const r of subPositions) html += positionRow(r, total, `${groupKey} ${subKey}`);
+
+        if(gruppe === 'Shares' && INSTRUMENT_SPLIT_SUBGROUPS.has(sub)){
+          // Dritte Ebene: nach Instrument aufteilen (ETF/Funds vor Shares,
+          // Rest alphabetisch), jeweils mit eigenem Subtotal + Δ Day/Week.
+          const byInstr = {};
+          for(const p of subgroups[sub]) (byInstr[p.instrument || 'Other'] = byInstr[p.instrument||'Other'] || []).push(p);
+          const instrNames = Object.keys(byInstr).sort((a,b) => {
+            const ia = INSTRUMENT_ORDER.indexOf(a), ib = INSTRUMENT_ORDER.indexOf(b);
+            const oa = ia===-1 ? 99 : ia, ob = ib===-1 ? 99 : ib;
+            if(oa !== ob) return oa-ob;
+            return a.localeCompare(b);
+          });
+          instrNames.forEach((instr, ii) => {
+            const instrKey = `${subKey}-${ii}`;
+            allKeys.push(instrKey);
+            html += groupRow(instr, byInstr[instr], 'subsubgroup-row', total, instrKey, `${groupKey} ${subKey}`);
+            const instrPositions = [...byInstr[instr]].sort((a,b)=>(b.valChf||0)-(a.valChf||0));
+            for(const r of instrPositions) html += positionRow(r, total, `${groupKey} ${subKey} ${instrKey}`);
+          });
+        } else {
+          const subPositions = sortPositionsForDisplay(gruppe, subgroups[sub]);
+          for(const r of subPositions) html += positionRow(r, total, `${groupKey} ${subKey}`);
+        }
       });
     } else {
       const rowsSorted = sortPositionsForDisplay(gruppe, groupPositions);
@@ -476,6 +506,14 @@ function renderBoard(positions, total){
     }
   });
   body.innerHTML = html;
+
+  // Standardmässig alles zugeklappt (Punkt 3) - nur beim allerersten Render;
+  // spätere Neu-Renders (z.B. falls load() erneut liefe) behalten den
+  // aktuellen Auf-/Zu-Zustand des Nutzers bei.
+  if(!renderBoard._initialized){
+    allKeys.forEach(k => collapsedKeys.add(k));
+    renderBoard._initialized = true;
+  }
   attachToggleHandlers(body);
 }
 
@@ -505,5 +543,6 @@ function attachToggleHandlers(tbody){
 
 load();
 </script>
+<script src="assets/version.js"></script>
 </body>
 </html>

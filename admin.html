@@ -84,6 +84,20 @@
 
   <div class="summary" id="summaryBoxes"></div>
 
+  <div class="section-title">Run Workflows</div>
+  <div class="upload-box">
+    <div class="upload-row" id="workflowButtons">
+      <button type="button" class="primary" data-workflow="yahoo_weekday.yml">Run Yahoo Weekday Collector</button>
+      <button type="button" class="primary" data-workflow="yahoo_daily.yml">Run Yahoo Daily Collector</button>
+      <button type="button" class="primary" data-workflow="other_collector.yml">Run Other Collector</button>
+      <button type="button" class="primary" data-workflow="cleanup_weekly.yml">Run Weekly Cleanup</button>
+    </div>
+    <span class="quick-status" id="workflowStatus"></span>
+    <div class="upload-instructions">
+      Triggers the workflow immediately via GitHub's API (same as the "Run workflow" button in the Actions tab). This only confirms that the run was <em>started</em> - it does not wait for or report the result. Check the <a href="https://github.com" target="_blank" rel="noopener">Actions tab</a> on GitHub to see whether it completed successfully.
+    </div>
+  </div>
+
   <div class="section-title">Upload Prices CSV</div>
   <div class="upload-box">
     <div class="upload-row">
@@ -188,6 +202,29 @@ async function load(){
   }
 }
 
+// ---- Run workflows ----
+document.getElementById('workflowButtons').querySelectorAll('button[data-workflow]').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const statusEl = document.getElementById('workflowStatus');
+    if (!ghConfigured() || !GH.token) {
+      statusEl.className='quick-status err'; statusEl.textContent='Please set Repo + Token under ⚙ Repo/Token first.';
+      document.getElementById('settingsPanel').classList.add('show');
+      return;
+    }
+    const workflowFile = btn.dataset.workflow;
+    btn.disabled = true;
+    statusEl.className='quick-status'; statusEl.textContent = `Starting ${workflowFile}…`;
+    try{
+      await ghDispatchWorkflow(workflowFile);
+      statusEl.className='quick-status ok'; statusEl.textContent = `Started ✓ ${workflowFile} (${nowZurichString()}) - check the Actions tab on GitHub for the result.`;
+    }catch(e){
+      statusEl.className='quick-status err'; statusEl.textContent = 'Error: ' + e.message;
+    }finally{
+      btn.disabled = false;
+    }
+  });
+});
+
 // ---- CSV upload ----
 const csvFile = document.getElementById('csvFile');
 const uploadBtn = document.getElementById('uploadBtn');
@@ -246,5 +283,6 @@ document.getElementById('cfgSave').addEventListener('click', () => {
 
 load();
 </script>
+<script src="assets/version.js"></script>
 </body>
 </html>
