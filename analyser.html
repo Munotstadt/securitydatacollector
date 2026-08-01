@@ -44,6 +44,7 @@
   .risk-info td{padding:5px 0;border-bottom:1px solid var(--line);font-size:12.5px;}
   .risk-info td:first-child{color:var(--muted);}
   .risk-info td:last-child{font-family:'IBM Plex Mono',monospace;text-align:right;white-space:nowrap;}
+  .risk-info td .sub2{display:block;font-size:10.5px;color:var(--muted);margin-top:2px;}
   .risk-info tr:last-child td{border-bottom:none;}
 
   .fx-charts{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px;}
@@ -103,7 +104,7 @@
 
   <div class="section-title">FX Risks</div>
   <div class="risk-grid" id="riskGrid"><div class="empty">Loading…</div></div>
-  <p class="note">Volatilität = Standardabweichung der täglichen FX-Kursänderungen über die letzten 180 Tage, <strong>annualisiert</strong> mit √252 Handelstagen/Jahr (Standardannahme). "Impact ± 1 Std.Abw." zeigt die CHF-Wertveränderung des jeweiligen Fremdwährungs-Bestands (aus der FX-Sektion oben) bei einer Bewegung dieser Grösse. "Range ± 1%/± 5%" zeigen die resultierende Kursspanne bei einer Wechselkursbewegung dieser Grösse (nicht CHF-Impact). Der obere Chart zeigt den FX-Kurs der letzten 360 Tage (Tagesschlusskurse), EUR/CHF bewusst ohne 30-Tage-Durchschnittslinie. Der untere Chart zeigt die rollierende annualisierte 180-Tage-Volatilität über den Verlauf der letzten 360 Tage - so lässt sich erkennen, ob die Volatilität gerade steigt oder sinkt.</p>
+  <p class="note">Volatilität = Standardabweichung der täglichen FX-Kursänderungen über die letzten 180 Tage, <strong>annualisiert</strong> mit √252 Handelstagen/Jahr (Standardannahme). Alle drei Impact-Zeilen ("± 1 Std.Abw.", "± 1%", "± 5%") zeigen zusätzlich zum jeweiligen CHF-Betrag den Anteil am Gesamtportfoliowert, im Format "± X.XX% (CHF Impact : CHF Portfoliowert)". "Range ± 1%/± 5%" zeigt zusätzlich die resultierende Kursspanne bei einer Wechselkursbewegung dieser Grösse. Der obere Chart zeigt den FX-Kurs der letzten 360 Tage (Tagesschlusskurse), EUR/CHF bewusst ohne 30-Tage-Durchschnittslinie. Der untere Chart zeigt die rollierende annualisierte 180-Tage-Volatilität über den Verlauf der letzten 360 Tage - so lässt sich erkennen, ob die Volatilität gerade steigt oder sinkt.</p>
 
   <div class="section-title">Switzerland</div>
   <div id="marketGroupSections"></div>
@@ -254,7 +255,7 @@ async function load(){
     // FX Risks: braucht die vollen Tageskurse der FX-Paare (nicht nur die
     // Perioden-Schnappschüsse aus latest_prices.json) - dafür einmalig die
     // komplette security_prices.csv laden und auf USD/CHF + EUR/CHF filtern.
-    loadFxRisks(byCurrency, fxSecurityId).catch(e => {
+    loadFxRisks(byCurrency, totalChf, fxSecurityId).catch(e => {
       document.getElementById('riskBody').innerHTML = `<tr><td colspan="5" class="error">Fehler: ${e.message}</td></tr>`;
     });
   }catch(e){
@@ -415,22 +416,32 @@ function rollingVolatility(dailyAll, window){
   return out.filter(p => p.Price !== null);
 }
 
-function riskCard(ccy, secId, valueChf, sdAnnual, lastRate){
+function riskCard(ccy, secId, valueChf, totalChf, sdAnnual, lastRate){
   const link = secId ? `<a href="security.html?id=${encodeURIComponent(secId)}">${ccy}/CHF</a>` : `${ccy}/CHF`;
   if(sdAnnual===null || lastRate===null){
     return `<div class="risk-card"><div class="risk-card-title">${link}</div><div class="empty" style="padding:10px 0;">Not enough data.</div></div>`;
   }
-  const impSd = valueChf * sdAnnual;
   const range1 = [lastRate*(1-0.01), lastRate*(1+0.01)];
   const range5 = [lastRate*(1-0.05), lastRate*(1+0.05)];
   const rangeText = ([lo,hi]) => `${fmtDecimal(lo,4)} – ${fmtDecimal(hi,4)}`;
+
+  // Impact-Zeile: CHF-Betrag PLUS Anteil am Gesamtportfolio, im Format
+  // "± X.XX% (CHF Impact : CHF Portfoliowert)" - für alle drei Impact-Grössen
+  // (Std.Abw., ±1%, ±5%) einheitlich.
+  function impactLine(pctMove){
+    const impact = valueChf * pctMove;
+    const pctOfPf = totalChf ? (Math.abs(impact)/totalChf)*100 : null;
+    const pctText = pctOfPf!==null ? `± ${pctOfPf.toFixed(2)}%` : '± —';
+    return `${pctText} (CHF ${fmtChf(Math.abs(impact))} : CHF ${fmtChf(totalChf)})`;
+  }
+
   return `<div class="risk-card">
     <div class="risk-card-title">${link}</div>
     <table class="risk-info">
       <tr><td>Volatility (ann., 180d)</td><td>± ${(sdAnnual*100).toFixed(2)}%</td></tr>
-      <tr><td>Impact ± 1 Std.Dev.</td><td>± ${fmtChf(impSd)} CHF</td></tr>
-      <tr><td>Range ± 1%</td><td>${rangeText(range1)}</td></tr>
-      <tr><td>Range ± 5%</td><td>${rangeText(range5)}</td></tr>
+      <tr><td>Impact ± 1 Std.Dev.</td><td>${impactLine(sdAnnual)}</td></tr>
+      <tr><td>Range ± 1%</td><td>${rangeText(range1)}<span class="sub2">${impactLine(0.01)}</span></td></tr>
+      <tr><td>Range ± 5%</td><td>${rangeText(range5)}<span class="sub2">${impactLine(0.05)}</span></td></tr>
     </table>
     <div class="fx-chart-box" id="priceChart-${ccy}"></div>
     <div class="fx-chart-box" id="volChart-${ccy}"></div>
@@ -504,7 +515,7 @@ function drawMiniChart(container, title, points, maPoints, opts={}){
     ${svg}`;
 }
 
-async function loadFxRisks(byCurrency, fxSecurityId){
+async function loadFxRisks(byCurrency, totalChf, fxSecurityId){
   const ids = Object.values(fxSecurityId);
   const grid = document.getElementById('riskGrid');
   if(!ids.length){
@@ -541,7 +552,7 @@ async function loadFxRisks(byCurrency, fxSecurityId){
     const sdAnnual = annualize(stdDev(dailyReturns(daily180)));
     const lastRate = daily360.length ? daily360[daily360.length-1].Price : null;
 
-    cardsHtml += riskCard(ccy, secId, byCurrency[ccy]||0, sdAnnual, lastRate);
+    cardsHtml += riskCard(ccy, secId, byCurrency[ccy]||0, totalChf, sdAnnual, lastRate);
     perCcyData[ccy] = { dailyAll, daily360 };
   }
 
