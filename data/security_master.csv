@@ -56,7 +56,7 @@ Silver (USD/oz),54,pending54,USD,Alternative,Commodities,,other,Collector_YahooD
 Sunrise Communications AG,55,pending55,CHF,Shares,Switzerland,,Shares,Collector_YahooWeekday,SUNN.SW,120,27.07.2026 20:50:11,02.08.2026 07:06:13,,Switzerland Growth
 Swiss Performance Index (Total Return),56,pending56,CHF,Shares,Swiss Equity,Index,Index,Collector_YahooWeekday,^SSHI,0,27.07.2026 20:50:11,02.08.2026 07:06:13,,Switzerland Index
 CBOE Interest Rate 10 Year T Note,57,pending57,USD,Bonds,US Rates,,Interests,Collector_YahooWeekday,^TNX,0,27.07.2026 20:50:11,02.08.2026 07:06:13,,
-Brent Crude Oil Last Day Financ,58,pending58,USD,Alternative,Commodities,,other,Collector_YahooDaily,BZ=F,0,27.07.2026 20:50:11,02.08.2026 07:06:13,,
+Brent Crude Oil Last Day Financ,58,pending58,USD,Alternative,Commodities,,other,Collector_YahooWeekday,BZ=F,0,27.07.2026 20:50:11,02.08.2026 08:27:26,,
 Swiss Life,59,pending59,CHF,Shares,Switzerland,,Shares,Collector_YahooWeekday,SLHN.SW,0,28.07.2026 06:32:28,02.08.2026 07:06:13,,
 MSCI Emerging Markets Index,60,pending60,USD,Shares,,,Index,Collector_YahooWeekday,^891800-USD-STRD,0,30.07.2026 06:33:55,02.08.2026 07:06:13,,
 Swiss Market Index (Price Index),61,pending61,CHF,Shares,,,Index,Collector_YahooWeekday,^SSMI,0,30.07.2026 07:14:39,02.08.2026 07:06:13,,Switzerland Index
