@@ -5173,3 +5173,11 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 25,Vonovia,19.53,09.06.2026 07:23:00,manual,01.08.2026 07:24:06
 25,Vonovia,29.26,14.08.2025 07:23:00,manual,01.08.2026 07:24:36
 25,Vonovia,28.89,27.02.2026 07:23:00,manual,01.08.2026 07:24:54
+8,BTC - Bitcoin,63404.57812,02.08.2026 07:18:11,Yahoo Finance (Daily),02.08.2026 07:18:11
+7,SOL - Solana,73.45,02.08.2026 07:18:11,Yahoo Finance (Daily),02.08.2026 07:18:11
+9,ETH - Ethereum,1875.31995,02.08.2026 07:18:11,Yahoo Finance (Daily),02.08.2026 07:18:11
+48,GBP/CHF,1.0884,02.08.2026 07:18:11,Yahoo Finance (Daily),02.08.2026 07:18:11
+49,Gold (USD/oz),4107.0,02.08.2026 07:18:11,Yahoo Finance (Daily),02.08.2026 07:18:11
+50,JPY/CHF,0.00512,02.08.2026 07:18:11,Yahoo Finance (Daily),02.08.2026 07:18:11
+54,Silver (USD/oz),57.786,02.08.2026 07:18:11,Yahoo Finance (Daily),02.08.2026 07:18:11
+58,Brent Crude Oil Last Day Financ,90.12,02.08.2026 07:18:11,Yahoo Finance (Daily),02.08.2026 07:18:11
