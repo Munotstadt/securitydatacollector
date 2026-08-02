@@ -193,7 +193,7 @@
   <div class="quick-form" id="quickPriceForm">
     <div class="fields">
       <div class="field"><label>Price</label><input type="number" step="any" id="qpPrice"></div>
-      <div class="field"><label>Date/Time</label><input type="datetime-local" id="qpDate"></div>
+      <div class="field"><label>Date/Time</label><input type="text" id="qpDate" placeholder="dd.mm.yyyy hh:mm:ss"></div>
       <div class="field"><label>Source</label><input type="text" id="qpSource" value="manual"></div>
     </div>
     <div class="actions"><span class="quick-status" id="qpStatus"></span><button type="button" id="qpSave">Save Price</button></div>
@@ -204,8 +204,8 @@
     <div class="fields">
       <div class="field"><label>Amount</label><input type="number" step="any" id="qdAmount"></div>
       <div class="field"><label>Currency</label><input type="text" id="qdCurrency"></div>
-      <div class="field"><label>Ex-Date</label><input type="date" id="qdExDate"></div>
-      <div class="field"><label>Pay-Date</label><input type="date" id="qdPayDate"></div>
+      <div class="field"><label>Ex-Date</label><input type="text" id="qdExDate" placeholder="dd.mm.yyyy"></div>
+      <div class="field"><label>Pay-Date</label><input type="text" id="qdPayDate" placeholder="dd.mm.yyyy"></div>
       <div class="field"><label>Source</label><input type="text" id="qdSource" value="manual"></div>
     </div>
     <div class="actions"><span class="quick-status" id="qdStatus"></span><button type="button" id="qdSave">Save Dividend</button></div>
@@ -539,8 +539,11 @@ document.getElementById('qpSave').addEventListener('click', async () => {
   }
   const priceVal = document.getElementById('qpPrice').value;
   if(!priceVal){ statusEl.className='quick-status err'; statusEl.textContent='Please enter a price.'; return; }
-  const dtVal = document.getElementById('qpDate').value;
-  const dt = dtVal ? new Date(dtVal) : new Date();
+  const dtVal = document.getElementById('qpDate').value.trim();
+  const dt = dtVal ? parseSwissDateTime(dtVal) : new Date();
+  if(dtVal && !dt){
+    statusEl.className='quick-status err'; statusEl.textContent='Invalid Date/Time format - expected dd.mm.yyyy hh:mm:ss.'; return;
+  }
   const pad = n => String(n).padStart(2,'0');
   const priceDate = `${pad(dt.getDate())}.${pad(dt.getMonth()+1)}.${dt.getFullYear()} ${pad(dt.getHours())}:${pad(dt.getMinutes())}:${pad(dt.getSeconds())}`;
   const source = document.getElementById('qpSource').value || 'manual';
@@ -569,10 +572,11 @@ document.getElementById('qdSave').addEventListener('click', async () => {
     return;
   }
   const amount = document.getElementById('qdAmount').value;
-  const exDateIso = document.getElementById('qdExDate').value;
-  if(!amount || !exDateIso){ statusEl.className='quick-status err'; statusEl.textContent='Please provide amount and Ex-Date.'; return; }
-  const payDateIso = document.getElementById('qdPayDate').value;
-  const isoToSwiss = iso => { const [y,m,d]=iso.split('-'); return `${d}.${m}.${y}`; };
+  const exDateStr = document.getElementById('qdExDate').value.trim();
+  if(!amount || !exDateStr){ statusEl.className='quick-status err'; statusEl.textContent='Please provide amount and Ex-Date.'; return; }
+  if(!parseSwissDate(exDateStr)){ statusEl.className='quick-status err'; statusEl.textContent='Invalid Ex-Date format - expected dd.mm.yyyy.'; return; }
+  const payDateStr = document.getElementById('qdPayDate').value.trim();
+  if(payDateStr && !parseSwissDate(payDateStr)){ statusEl.className='quick-status err'; statusEl.textContent='Invalid Pay-Date format - expected dd.mm.yyyy.'; return; }
   const currency = document.getElementById('qdCurrency').value || masterRow.Currency || '';
   const source = document.getElementById('qdSource').value || 'manual';
 
@@ -583,7 +587,7 @@ document.getElementById('qdSave').addEventListener('click', async () => {
     const header = parsed.header.length ? parsed.header : ['SecurityID','SecurityName','DistributionAmount','Currency','ExDate','PayDate','Source','Created_at'];
     const newRow = {
       SecurityID: secId, SecurityName: masterRow.SecurityName, DistributionAmount: amount, Currency: currency,
-      ExDate: isoToSwiss(exDateIso), PayDate: payDateIso ? isoToSwiss(payDateIso) : '', Source: source, Created_at: nowZurichString(),
+      ExDate: exDateStr, PayDate: payDateStr, Source: source, Created_at: nowZurichString(),
     };
     const newRows = [...parsed.rows, newRow];
     const csv = toCSV(header, newRows);
@@ -643,7 +647,7 @@ async function load(){
 
   document.getElementById('linkPriceHistory').href = `price_editor.html?id=${encodeURIComponent(secId)}`;
   document.getElementById('linkDividendHistory').href = `distribution_editor.html?id=${encodeURIComponent(secId)}`;
-  document.getElementById('qdExDate').value = nowZurichDateString().split('.').reverse().join('-');
+  document.getElementById('qpDate').value = nowZurichString();
 
   try{
     const [masterText, pricesText, distText] = await Promise.all([
@@ -739,7 +743,7 @@ async function load(){
       const f = fmtPct(chg);
       return `<div class="return-box"><span class="return-label">${r.label}</span><span class="return-value ${f.dir}">${f.text}</span></div>`;
     }).join('');
-    returnsHtml += `<div class="return-box"><span class="return-label">Dividend Yield</span><span class="return-value ${yieldPct!==null&&yieldPct>0?'up':'flat'}">${yieldPct!==null?yieldPct.toFixed(2)+'%':'—'}</span></div>`;
+    returnsHtml += `<div class="return-box"><span class="return-label">Dividend Yield</span><span class="return-value ${yieldPct!==null&&yieldPct>0?'up':'flat'}">${yieldPct?yieldPct.toFixed(2)+'%':'-'}</span></div>`;
     document.getElementById('returnsBoxes').innerHTML = returnsHtml;
 
     renderRange52w(high52wRow, low52wRow, last, decimals);
@@ -862,5 +866,6 @@ async function load(){
 
 load();
 </script>
+<script src="assets/version.js"></script>
 </body>
 </html>
