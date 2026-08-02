@@ -49,3 +49,4 @@ SecurityID,SecurityName,DistributionAmount,Currency,ExDate,PayDate,Source,Create
 55,Sunrise Communications AG,3.33,CHF,15.05.2025,19.05.2025,manual,01.08.2026 07:11:31
 40,Helvetia Baloise Holding AG,7.7,CHF,27.05.2026,29.05.2026,manual,01.08.2026 07:14:32
 25,Vonovia,1.25,EUR,22.05.2026,26.05.2026,manual,01.08.2026 07:22:44
+24,UBS Group AG,0.85657,CHF,15.04.2026,23.04.2026,manual,02.08.2026 08:13:36
