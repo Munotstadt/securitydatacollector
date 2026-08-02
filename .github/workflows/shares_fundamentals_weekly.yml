@@ -1,0 +1,33 @@
+name: Weekly Shares Fundamentals Collector
+
+on:
+  schedule:
+    # Montag, 04:00 UTC - ausserhalb des 02:00-22:00 Preis-Collector-Fensters
+    # bewusst früh, aber knapp danach beginnend; überschneidet sich nicht mit
+    # dem Funds-Collector, der am Dienstag läuft.
+    - cron: '0 4 * * 1'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install yfinance
+        run: pip install yfinance
+
+      - name: Run collect_shares_fundamentals.py
+        run: python scripts/collect_shares_fundamentals.py
+
+      - name: Commit & push (mit Retry)
+        run: |
+          chmod +x scripts/commit_and_push_shares_fundamentals.sh
+          scripts/commit_and_push_shares_fundamentals.sh "Shares Fundamentals Collector: update $(date -u +'%Y-%m-%d %H:%M UTC')"

@@ -1,0 +1,32 @@
+name: Weekly Funds Fundamentals Collector
+
+on:
+  schedule:
+    # Dienstag, 04:00 UTC - ein Tag nach dem Shares-Fundamentals-Collector
+    # (Montag), damit beide zeitlich versetzt laufen.
+    - cron: '0 4 * * 2'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install yfinance
+        run: pip install yfinance
+
+      - name: Run collect_funds_fundamentals.py
+        run: python scripts/collect_funds_fundamentals.py
+
+      - name: Commit & push (mit Retry)
+        run: |
+          chmod +x scripts/commit_and_push_funds_fundamentals.sh
+          scripts/commit_and_push_funds_fundamentals.sh "Funds Fundamentals Collector: update $(date -u +'%Y-%m-%d %H:%M UTC')"
