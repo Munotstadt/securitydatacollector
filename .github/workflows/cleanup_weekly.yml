@@ -1,4 +1,4 @@
-name: Weekly Cleanup (Prices > 380 Tage)
+name: Weekly Cleanup (Prices > 550 Tage)
 
 on:
   schedule:
