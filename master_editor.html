@@ -111,6 +111,8 @@
         <th data-sort="PortfolioSubgruppe2">Subgroup 2</th>
         <th data-sort="Instrument">Instrument</th>
         <th data-sort="Industry">Industry</th>
+        <th data-sort="TER">TER</th>
+        <th data-sort="URLFactsheet">URL Factsheet</th>
         <th data-sort="DataCollector">Data Collector</th>
         <th data-sort="YahooTicker">Yahoo Ticker</th>
         <th data-sort="Comment">Comment</th>
@@ -121,7 +123,7 @@
         <th></th>
       </tr>
     </thead>
-    <tbody id="body"><tr><td colspan="16">Loading…</td></tr></tbody>
+    <tbody id="body"><tr><td colspan="18">Loading…</td></tr></tbody>
   </table>
   </div>
 
@@ -167,18 +169,35 @@ function industrySelect(row) {
   return `<select data-field="Industry" class="industry-select" ${isShares?'':'disabled'}>${opts}</select>`;
 }
 
-/* Wird bei jeder Instrument-Änderung aufgerufen: sperrt/entsperrt das
- * Industry-Dropdown der gleichen Zeile und setzt es zurück auf
- * '_not defined', sobald das Instrument nicht mehr 'Shares' ist. */
-function syncIndustryDisabled(tr, row) {
+/* TER / URL Factsheet: nur aktiv, wenn Instrument === 'ETF/Funds'. */
+function fundOnlyInput(row, field, placeholder, width) {
+  const isFund = row.Instrument === 'ETF/Funds';
+  const value = isFund ? (row[field] || '') : '';
+  const style = width ? ` style="width:${width}"` : '';
+  return `<input type="text" data-field="${field}" class="fund-only-input" value="${value}" placeholder="${placeholder}" ${isFund?'':'disabled'}${style}>`;
+}
+
+/* Wird bei jeder Instrument-Änderung aufgerufen: sperrt/entsperrt sowohl das
+ * Industry-Dropdown (nur 'Shares') als auch TER/URL Factsheet (nur
+ * 'ETF/Funds') der gleichen Zeile und setzt gesperrte Felder zurück. */
+function syncInstrumentDependentFields(tr, row) {
   const industrySel = tr.querySelector('select.industry-select');
-  if (!industrySel) return;
-  const isShares = row.Instrument === 'Shares';
-  industrySel.disabled = !isShares;
-  if (!isShares) {
-    industrySel.value = '_not defined';
-    row.Industry = '_not defined';
+  if (industrySel) {
+    const isShares = row.Instrument === 'Shares';
+    industrySel.disabled = !isShares;
+    if (!isShares) {
+      industrySel.value = '_not defined';
+      row.Industry = '_not defined';
+    }
   }
+  const isFund = row.Instrument === 'ETF/Funds';
+  tr.querySelectorAll('.fund-only-input').forEach(el => {
+    el.disabled = !isFund;
+    if (!isFund) {
+      el.value = '';
+      row[el.dataset.field] = '';
+    }
+  });
 }
 
 /* Dropdown with "Other…" option: if the current value is not in the list of
@@ -203,6 +222,8 @@ function renderRow(row, idx) {
     <td><input type="text" data-field="PortfolioSubgruppe2" value="${row.PortfolioSubgruppe2||''}"></td>
     <td>${selWithOther('Instrument', row.Instrument, INSTRUMENT_OPTS)}</td>
     <td>${industrySelect(row)}</td>
+    <td>${fundOnlyInput(row, 'TER', 'e.g. 0.25%', '80px')}</td>
+    <td>${fundOnlyInput(row, 'URLFactsheet', 'https://...')}</td>
     <td class="collector-col">${sel('DataCollector', row.DataCollector, COLLECTOR_OPTS)}</td>
     <td><input type="text" data-field="YahooTicker" value="${row.YahooTicker||''}"></td>
     <td><input type="text" data-field="Comment" value="${row.Comment||''}"></td>
@@ -249,7 +270,7 @@ function renderAll(filter='') {
 
   body.innerHTML = filtered.length
     ? filtered.map(({r,i}) => renderRow(r, i)).join('')
-    : '<tr><td colspan="16">No matches.</td></tr>';
+    : '<tr><td colspan="18">No matches.</td></tr>';
 
   // Regular fields (text/number/plain enum selects without Other option)
   body.querySelectorAll('input:not(.other-input):not(:disabled), select:not(.other-select)').forEach(el => {
@@ -273,12 +294,12 @@ function renderAll(filter='') {
         wrap.classList.remove('show');
         rows[idx][selEl.dataset.field] = selEl.value;
       }
-      if (selEl.dataset.field === 'Instrument') syncIndustryDisabled(selEl.closest('tr'), rows[idx]);
+      if (selEl.dataset.field === 'Instrument') syncInstrumentDependentFields(selEl.closest('tr'), rows[idx]);
     });
     otherInput.addEventListener('input', () => {
       const idx = Number(otherInput.closest('tr').dataset.idx);
       rows[idx][otherInput.dataset.field] = otherInput.value;
-      if (otherInput.dataset.field === 'Instrument') syncIndustryDisabled(otherInput.closest('tr'), rows[idx]);
+      if (otherInput.dataset.field === 'Instrument') syncInstrumentDependentFields(otherInput.closest('tr'), rows[idx]);
     });
   });
 
@@ -312,7 +333,7 @@ function nextSecurityId() {
 }
 
 async function load() {
-  header = ['SecurityName','SecurityID','MainID','Currency','PortfolioGruppe','PortfolioSubgruppe1','PortfolioSubgruppe2','Instrument','Industry','DataCollector','YahooTicker','Comment','MarketGroup','Quantity','Created_at','Modified_at'];
+  header = ['SecurityName','SecurityID','MainID','Currency','PortfolioGruppe','PortfolioSubgruppe1','PortfolioSubgruppe2','Instrument','Industry','TER','URLFactsheet','DataCollector','YahooTicker','Comment','MarketGroup','Quantity','Created_at','Modified_at'];
   try {
     let text, sha;
     if (ghConfigured()) {
@@ -324,13 +345,13 @@ async function load() {
     const parsed = parseCSV(text);
     header = parsed.header.length ? parsed.header : header;
     // Extend schema forward if these columns don't exist yet in the CSV.
-    ['Comment','MarketGroup','Industry'].forEach(col => { if (!header.includes(col)) header.push(col); });
+    ['Comment','MarketGroup','Industry','TER','URLFactsheet'].forEach(col => { if (!header.includes(col)) header.push(col); });
     rows = parsed.rows;
     fileSha = sha || null;
     renderAll();
     setStatus(`${rows.length} securities loaded.`, 'ok');
   } catch (e) {
-    document.getElementById('body').innerHTML = `<tr><td colspan="16">Error: ${e.message}</td></tr>`;
+    document.getElementById('body').innerHTML = `<tr><td colspan="18">Error: ${e.message}</td></tr>`;
   }
 }
 
@@ -344,7 +365,7 @@ document.getElementById('search').addEventListener('input', (e) => renderAll(e.t
 document.getElementById('addBtn').addEventListener('click', () => {
   const now = nowZurichString();
   rows.push({SecurityName:'',SecurityID:nextSecurityId(),MainID:'',Currency:'CHF',PortfolioGruppe:'Shares',
-    PortfolioSubgruppe1:'',PortfolioSubgruppe2:'',Instrument:'Shares',Industry:'_not defined',DataCollector:'none',
+    PortfolioSubgruppe1:'',PortfolioSubgruppe2:'',Instrument:'Shares',Industry:'_not defined',TER:'',URLFactsheet:'',DataCollector:'none',
     YahooTicker:'',Comment:'',MarketGroup:'',Quantity:'0',Created_at:now,Modified_at:now});
   // Clear the search field, otherwise the new (still mostly empty) row would
   // be immediately hidden again by an active filter.

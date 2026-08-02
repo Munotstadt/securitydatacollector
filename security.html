@@ -25,6 +25,8 @@
   .detail-price{font-family:'IBM Plex Mono',monospace;font-size:30px;font-weight:600;}
   .ccy{color:var(--muted);font-size:13px;}
   .detail-meta{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);}
+  .factsheet-link{display:inline-flex;align-items:center;gap:5px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--accent);text-decoration:none;margin-top:4px;}
+  .factsheet-link:hover{text-decoration:underline;}
   .returns{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;}
   .return-box{display:flex;flex-direction:column;gap:4px;padding:10px 14px;background:var(--panel);border:1px solid var(--line);border-radius:3px;min-width:84px;}
   .return-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);}
@@ -135,6 +137,7 @@
 
   <div class="detail-header">
     <h2 id="detailName">Loading…</h2>
+    <div id="factsheetLinkWrap"></div>
     <div class="detail-stats">
       <span class="detail-price" id="detailPrice">—</span>
       <span class="ccy" id="detailCcy"></span>
@@ -479,6 +482,8 @@ function renderMasterForm(){
     <div class="field"><label>Subgroup 2</label><input type="text" id="mfSub2" value="${masterRow.PortfolioSubgruppe2||''}"></div>
     <div class="field"><label>Instrument</label>${selHtml('mfInstrument', masterRow.Instrument, INSTRUMENT_OPTS)}</div>
     <div class="field"><label>Industry</label>${industrySelectHtml(masterRow)}</div>
+    <div class="field"><label>TER</label>${fundOnlyInputHtml(masterRow, 'mfTer', 'TER', 'e.g. 0.25%')}</div>
+    <div class="field"><label>URL Factsheet</label>${fundOnlyInputHtml(masterRow, 'mfUrlFactsheet', 'URLFactsheet', 'https://...')}</div>
     <div class="field"><label>Data Collector</label>${selHtml('mfCollector', masterRow.DataCollector, COLLECTOR_OPTS)}</div>
     <div class="field"><label>Yahoo Ticker</label><input type="text" id="mfTicker" value="${masterRow.YahooTicker||''}"></div>
     <div class="field"><label>Comment</label><input type="text" id="mfComment" value="${masterRow.Comment||''}"></div>
@@ -495,6 +500,13 @@ function renderMasterForm(){
     const isShares = instrSel.value === 'Shares';
     industrySel.disabled = !isShares;
     if(!isShares) industrySel.value = '_not defined';
+
+    const isFund = instrSel.value === 'ETF/Funds';
+    ['mfTer','mfUrlFactsheet'].forEach(id => {
+      const el = document.getElementById(id);
+      el.disabled = !isFund;
+      if(!isFund) el.value = '';
+    });
   });
 }
 
@@ -504,6 +516,13 @@ function industrySelectHtml(row){
   const value = isShares ? (row.Industry || '_not defined') : '_not defined';
   const opts = INDUSTRY_OPTS.map(o => `<option value="${o}" ${o===value?'selected':''}>${o}</option>`).join('');
   return `<select id="mfIndustry" ${isShares?'':'disabled'}>${opts}</select>`;
+}
+
+/* TER / URL Factsheet: nur aktiv, wenn Instrument === 'ETF/Funds'. */
+function fundOnlyInputHtml(row, id, field, placeholder){
+  const isFund = row.Instrument === 'ETF/Funds';
+  const value = isFund ? (row[field] || '') : '';
+  return `<input type="text" id="${id}" value="${value}" placeholder="${placeholder}" ${isFund?'':'disabled'}>`;
 }
 
 document.getElementById('masterSave').addEventListener('click', async () => {
@@ -526,6 +545,8 @@ document.getElementById('masterSave').addEventListener('click', async () => {
     PortfolioSubgruppe2: document.getElementById('mfSub2').value,
     Instrument: document.getElementById('mfInstrument').value,
     Industry: document.getElementById('mfIndustry').value,
+    TER: document.getElementById('mfTer').value,
+    URLFactsheet: document.getElementById('mfUrlFactsheet').value,
     DataCollector: document.getElementById('mfCollector').value,
     YahooTicker: document.getElementById('mfTicker').value,
     Comment: document.getElementById('mfComment').value,
@@ -539,7 +560,7 @@ document.getElementById('masterSave').addEventListener('click', async () => {
     const fresh = await ghGetFile('data/security_master.csv');
     const parsed = parseCSV(fresh.content);
     const freshHeader = parsed.header.length ? parsed.header : masterHeader;
-    ['Comment','MarketGroup','Industry'].forEach(col => { if (!freshHeader.includes(col)) freshHeader.push(col); });
+    ['Comment','MarketGroup','Industry','TER','URLFactsheet'].forEach(col => { if (!freshHeader.includes(col)) freshHeader.push(col); });
     const freshRows = parsed.rows.map(r => r.SecurityID === secId ? updated : r);
     const csv = toCSV(freshHeader, freshRows);
     await ghPutFile('data/security_master.csv', csv, `security.html: master data updated for ${secId} (${nowZurichString()})`, fresh.sha);
@@ -697,6 +718,11 @@ async function load(){
     document.title = `${name} · Security Detail`;
     document.getElementById('detailCcy').textContent = currency;
     document.getElementById('qdCurrency').value = currency;
+
+    const factsheetUrl = masterRow ? (masterRow.URLFactsheet || '').trim() : '';
+    document.getElementById('factsheetLinkWrap').innerHTML = factsheetUrl
+      ? `<a class="factsheet-link" href="${factsheetUrl}" target="_blank" rel="noopener">📄 View Factsheet ↗</a>`
+      : '';
 
     if(masterRow) renderMasterForm();
     else document.getElementById('masterForm').innerHTML = '<div class="empty">No master data found for this Security ID.</div>';
