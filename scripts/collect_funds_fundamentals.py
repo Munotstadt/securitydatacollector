@@ -68,6 +68,37 @@ def write_pending(path, header, rows):
             writer.writerow(row)
 
 
+def _or_empty(x):
+    """Wie 'x or {}', aber sicher für pandas Series/DataFrame - deren
+    Wahrheitsgehalt ist bei mehr als einem Element nicht eindeutig
+    bestimmbar ('The truth value of a DataFrame is ambiguous'), daher
+    NIEMALS 'x or {}' direkt auf einem möglichen Series/DataFrame-Rückgabewert
+    von yfinance verwenden."""
+    return {} if x is None else x
+
+
+def _safe_get(obj, *keys, default=""):
+    """Wie obj.get(key, default), tolerant gegenüber Series/DataFrame/dict
+    und mehreren möglichen Schlüssel-Schreibweisen. Gibt den ersten
+    gefundenen, nicht-NaN/nicht-None Wert zurück."""
+    for key in keys:
+        try:
+            val = obj.get(key)
+        except AttributeError:
+            continue
+        if val is None:
+            continue
+        # pandas liefert bei fehlenden numerischen Werten oft NaN statt None
+        try:
+            import math
+            if isinstance(val, float) and math.isnan(val):
+                continue
+        except TypeError:
+            pass
+        return val
+    return default
+
+
 def fetch_fund_data(ticker_symbol):
     import yfinance as yf  # lazy import, analog zu collect_yahoo_common.py
     t = yf.Ticker(ticker_symbol)
@@ -75,10 +106,10 @@ def fetch_fund_data(ticker_symbol):
     if fd is None:
         raise ValueError("Keine funds_data verfügbar (kein Fonds/ETF laut Yahoo?).")
 
-    overview = fd.fund_overview or {}
-    operations = fd.fund_operations or {}
-    asset_classes = fd.asset_classes or {}
-    sector_weightings = fd.sector_weightings or {}
+    overview = _or_empty(fd.fund_overview)
+    operations = _or_empty(fd.fund_operations)
+    asset_classes = _or_empty(fd.asset_classes)
+    sector_weightings = _or_empty(fd.sector_weightings)
 
     try:
         currency = yf.Ticker(ticker_symbol).fast_info.get("currency")
@@ -87,15 +118,15 @@ def fetch_fund_data(ticker_symbol):
 
     fund_row = {
         "Currency": currency or "",
-        "NetAssets": operations.get("Total Net Assets") or operations.get("total net assets") or "",
-        "ExpenseRatio": operations.get("Annual Report Expense Ratio") or "",
-        "Category": overview.get("categoryName") or overview.get("category") or "",
-        "EquityPct": asset_classes.get("stock_position", asset_classes.get("stocks", "")),
-        "BondPct": asset_classes.get("bond_position", asset_classes.get("bonds", "")),
-        "CashPct": asset_classes.get("cash_position", asset_classes.get("cash", "")),
+        "NetAssets": _safe_get(operations, "Total Net Assets", "total net assets"),
+        "ExpenseRatio": _safe_get(operations, "Annual Report Expense Ratio"),
+        "Category": _safe_get(overview, "categoryName", "category"),
+        "EquityPct": _safe_get(asset_classes, "stock_position", "stocks"),
+        "BondPct": _safe_get(asset_classes, "bond_position", "bonds"),
+        "CashPct": _safe_get(asset_classes, "cash_position", "cash"),
     }
     for key in SECTOR_KEYS:
-        fund_row[f"Sector_{key}"] = sector_weightings.get(key, "")
+        fund_row[f"Sector_{key}"] = _safe_get(sector_weightings, key)
 
     holdings = []
     top_holdings = fd.top_holdings
