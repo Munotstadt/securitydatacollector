@@ -18,7 +18,14 @@
   .topnav a{ color:var(--muted);text-decoration:none;padding:6px 10px;border-radius:3px;border:1px solid transparent;white-space:nowrap; }
   .topnav a:hover{color:var(--text);border-color:var(--line);}
   .board{width:100%;max-width:900px;}
-  .toprow{display:flex;justify-content:flex-end;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;}
+  .toprow{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;}
+  #securitySwitcher{
+    background:var(--bg);border:1px solid var(--line);color:var(--text);font-family:'IBM Plex Mono',monospace;
+    font-size:12px;padding:6px 28px 6px 12px;border-radius:3px;cursor:pointer;min-width:220px;
+    appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23767E8A'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 10px center;
+  }
   .detail-header{padding-bottom:18px;border-bottom:2px solid var(--accent);}
   .detail-header h2{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:24px;margin:0 0 12px;}
   .detail-stats{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;}
@@ -124,6 +131,7 @@
 
 <div class="board">
   <div class="toprow">
+    <select id="securitySwitcher"><option value="">Switch security…</option></select>
     <button type="button" class="toggle-btn" id="settingsBtn">⚙ Repo/Token</button>
   </div>
 
@@ -470,6 +478,20 @@ function selWithOtherHtml(id, value, options){
 
 let secId = null, masterRow = null, allMasterRows = [], masterHeader = [];
 
+/* Dropdown oben auf der Seite: erlaubt den direkten Wechsel zu einer
+ * anderen Security, ohne den Umweg über Dashboard/Editor. Sortiert nach
+ * Name, aktuelle Security vorausgewählt. */
+function populateSecuritySwitcher(){
+  const sel = document.getElementById('securitySwitcher');
+  const sorted = [...allMasterRows].sort((a,b) => (a.SecurityName||'').localeCompare(b.SecurityName||''));
+  sel.innerHTML = '<option value="">Switch security…</option>' + sorted
+    .map(m => `<option value="${m.SecurityID}" ${m.SecurityID===secId?'selected':''}>${m.SecurityName} · ${m.SecurityID}</option>`).join('');
+}
+document.getElementById('securitySwitcher').addEventListener('change', (e) => {
+  const newId = e.target.value;
+  if(newId && newId !== secId) window.location.href = `security.html?id=${encodeURIComponent(newId)}`;
+});
+
 function renderMasterForm(){
   const el = document.getElementById('masterForm');
   el.innerHTML = `
@@ -699,6 +721,7 @@ async function load(){
     const masterParsed = parseCSV(masterText);
     allMasterRows = masterParsed.rows;
     masterHeader = masterParsed.header;
+    populateSecuritySwitcher();
     const allPrices = parseCSV(pricesText).rows.map(r => ({
       SecurityID: r.SecurityID, Price: parseFloat(r.Price), dt: parseSwissDateTime(r.PriceDate), Source: r.Source || '',
     })).filter(r => r.dt && !isNaN(r.Price));
