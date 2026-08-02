@@ -98,24 +98,14 @@ let fileSha = null;
 const PATH = 'data/security_distributions.csv';
 const MASTER_PATH = 'data/security_master.csv';
 
-/* dd.mm.yyyy <-> yyyy-mm-dd (HTML date input) */
-function swissToIso(s) {
-  const m = (s || '').match(/(\d{2})\.(\d{2})\.(\d{4})/);
-  return m ? `${m[3]}-${m[2]}-${m[1]}` : '';
-}
-function isoToSwiss(s) {
-  const m = (s || '').match(/(\d{4})-(\d{2})-(\d{2})/);
-  return m ? `${m[3]}.${m[2]}.${m[1]}` : '';
-}
-
 function renderRow(row, idx) {
   return `<tr data-idx="${idx}">
-    <td><input type="text" data-field="SecurityID" value="${row.SecurityID||''}" style="width:70px"></td>
+    <td><input type="text" value="${row.SecurityID||''}" disabled style="width:70px"></td>
     <td><input type="text" data-field="SecurityName" value="${row.SecurityName||''}"></td>
     <td><input type="number" step="any" data-field="DistributionAmount" value="${row.DistributionAmount||''}" style="width:100px"></td>
     <td><input type="text" data-field="Currency" value="${row.Currency||''}" style="width:60px"></td>
-    <td><input type="date" data-field="ExDate" value="${swissToIso(row.ExDate)}" style="width:150px"></td>
-    <td><input type="date" data-field="PayDate" value="${swissToIso(row.PayDate)}" style="width:150px"></td>
+    <td><input type="text" data-field="ExDate" value="${row.ExDate||''}" placeholder="dd.mm.yyyy" style="width:110px"></td>
+    <td><input type="text" data-field="PayDate" value="${row.PayDate||''}" placeholder="dd.mm.yyyy" style="width:110px"></td>
     <td><input type="text" data-field="Source" value="${row.Source||''}"></td>
     <td><button data-del="${idx}">✕</button></td>
   </tr>`;
@@ -161,10 +151,10 @@ function renderAll(filterSecId='') {
   body.querySelectorAll('input').forEach(el => {
     el.addEventListener('change', () => {
       const idx = Number(el.closest('tr').dataset.idx);
+      if (!el.disabled) rows[idx][el.dataset.field] = el.value;
       if (el.dataset.field === 'ExDate' || el.dataset.field === 'PayDate') {
-        rows[idx][el.dataset.field] = isoToSwiss(el.value);
-      } else {
-        rows[idx][el.dataset.field] = el.value;
+        const val = el.value.trim();
+        el.style.borderColor = (val && !parseSwissDate(val)) ? '#C0293D' : '';
       }
     });
   });
@@ -238,6 +228,16 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
     document.getElementById('settingsPanel').classList.add('show');
     return;
   }
+  for (const r of rows) {
+    if (r.ExDate && !parseSwissDate(r.ExDate)) {
+      setStatus(`Invalid Ex-Date "${r.ExDate}" for ${r.SecurityName || r.SecurityID} - expected dd.mm.yyyy.`, 'error');
+      return;
+    }
+    if (r.PayDate && !parseSwissDate(r.PayDate)) {
+      setStatus(`Invalid Pay-Date "${r.PayDate}" for ${r.SecurityName || r.SecurityID} - expected dd.mm.yyyy.`, 'error');
+      return;
+    }
+  }
   rows.forEach(r => { if (!r.Created_at) r.Created_at = nowZurichString(); });
   const csv = toCSV(header, rows);
   try {
@@ -270,5 +270,6 @@ document.getElementById('cfgSave').addEventListener('click', () => {
 
 load();
 </script>
+<script src="assets/version.js"></script>
 </body>
 </html>

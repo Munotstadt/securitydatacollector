@@ -104,7 +104,7 @@ const MASTER_PATH = 'data/security_master.csv';
 
 function renderRow(row, idx) {
   return `<tr data-idx="${idx}">
-    <td><input type="text" data-field="SecurityID" value="${row.SecurityID||''}" style="width:70px"></td>
+    <td><input type="text" value="${row.SecurityID||''}" disabled style="width:70px"></td>
     <td><input type="text" data-field="SecurityName" value="${row.SecurityName||''}"></td>
     <td><input type="number" step="any" data-field="Price" value="${row.Price||''}" style="width:100px"></td>
     <td><input type="text" data-field="PriceDate" value="${row.PriceDate||''}" placeholder="dd.mm.yyyy hh:mm:ss" style="width:170px"></td>
@@ -256,5 +256,6 @@ document.getElementById('cfgSave').addEventListener('click', () => {
 
 load();
 </script>
+<script src="assets/version.js"></script>
 </body>
 </html>

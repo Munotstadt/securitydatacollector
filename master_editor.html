@@ -110,6 +110,7 @@
         <th data-sort="PortfolioSubgruppe1">Subgroup 1</th>
         <th data-sort="PortfolioSubgruppe2">Subgroup 2</th>
         <th data-sort="Instrument">Instrument</th>
+        <th data-sort="Industry">Industry</th>
         <th data-sort="DataCollector">Data Collector</th>
         <th data-sort="YahooTicker">Yahoo Ticker</th>
         <th data-sort="Comment">Comment</th>
@@ -120,7 +121,7 @@
         <th></th>
       </tr>
     </thead>
-    <tbody id="body"><tr><td colspan="15">Loading…</td></tr></tbody>
+    <tbody id="body"><tr><td colspan="16">Loading…</td></tr></tbody>
   </table>
   </div>
 
@@ -137,6 +138,9 @@ const CURRENCY_OPTS = ['CHF','EUR','USD','GBP','JPY'];
 const GRUPPE_OPTS = ['Shares','Bonds','Alternative'];
 const INSTRUMENT_OPTS = ['Index','Shares','ETF/Funds','Crypto','Currency','Interests','Commodities','other'];
 const COLLECTOR_OPTS = ['Collector_YahooWeekday','Collector_YahooDaily','Collector_Other','none'];
+// Nur editierbar, wenn Instrument === 'Shares' (Punkt 1) - sonst fix auf
+// '_not defined' gesetzt und das Dropdown gesperrt.
+const INDUSTRY_OPTS = ['Basic materials','Communication','Consumer discretionary','Consumer staples','Energy','Financials','Health Care','Industrials','Real Estate','Technology','Telecommunication','Utilities','_not defined'];
 
 // Simple line-style eye icon (matches the site's IBM Plex Mono / minimal
 // aesthetic better than a raw emoji, which renders inconsistently across
@@ -153,6 +157,28 @@ const PATH = 'data/security_master.csv';
 function sel(name, value, options) {
   const opts = options.map(o => `<option value="${o}" ${o===value?'selected':''}>${o}</option>`).join('');
   return `<select data-field="${name}">${opts}</select>`;
+}
+
+/* Industry-Dropdown: nur aktiv, wenn Instrument === 'Shares' (Punkt 1). */
+function industrySelect(row) {
+  const isShares = row.Instrument === 'Shares';
+  const value = isShares ? (row.Industry || '_not defined') : '_not defined';
+  const opts = INDUSTRY_OPTS.map(o => `<option value="${o}" ${o===value?'selected':''}>${o}</option>`).join('');
+  return `<select data-field="Industry" class="industry-select" ${isShares?'':'disabled'}>${opts}</select>`;
+}
+
+/* Wird bei jeder Instrument-Änderung aufgerufen: sperrt/entsperrt das
+ * Industry-Dropdown der gleichen Zeile und setzt es zurück auf
+ * '_not defined', sobald das Instrument nicht mehr 'Shares' ist. */
+function syncIndustryDisabled(tr, row) {
+  const industrySel = tr.querySelector('select.industry-select');
+  if (!industrySel) return;
+  const isShares = row.Instrument === 'Shares';
+  industrySel.disabled = !isShares;
+  if (!isShares) {
+    industrySel.value = '_not defined';
+    row.Industry = '_not defined';
+  }
 }
 
 /* Dropdown with "Other…" option: if the current value is not in the list of
@@ -176,6 +202,7 @@ function renderRow(row, idx) {
     <td><input type="text" data-field="PortfolioSubgruppe1" value="${row.PortfolioSubgruppe1||''}"></td>
     <td><input type="text" data-field="PortfolioSubgruppe2" value="${row.PortfolioSubgruppe2||''}"></td>
     <td>${selWithOther('Instrument', row.Instrument, INSTRUMENT_OPTS)}</td>
+    <td>${industrySelect(row)}</td>
     <td class="collector-col">${sel('DataCollector', row.DataCollector, COLLECTOR_OPTS)}</td>
     <td><input type="text" data-field="YahooTicker" value="${row.YahooTicker||''}"></td>
     <td><input type="text" data-field="Comment" value="${row.Comment||''}"></td>
@@ -222,7 +249,7 @@ function renderAll(filter='') {
 
   body.innerHTML = filtered.length
     ? filtered.map(({r,i}) => renderRow(r, i)).join('')
-    : '<tr><td colspan="15">No matches.</td></tr>';
+    : '<tr><td colspan="16">No matches.</td></tr>';
 
   // Regular fields (text/number/plain enum selects without Other option)
   body.querySelectorAll('input:not(.other-input):not(:disabled), select:not(.other-select)').forEach(el => {
@@ -246,10 +273,12 @@ function renderAll(filter='') {
         wrap.classList.remove('show');
         rows[idx][selEl.dataset.field] = selEl.value;
       }
+      if (selEl.dataset.field === 'Instrument') syncIndustryDisabled(selEl.closest('tr'), rows[idx]);
     });
     otherInput.addEventListener('input', () => {
       const idx = Number(otherInput.closest('tr').dataset.idx);
       rows[idx][otherInput.dataset.field] = otherInput.value;
+      if (otherInput.dataset.field === 'Instrument') syncIndustryDisabled(otherInput.closest('tr'), rows[idx]);
     });
   });
 
@@ -283,7 +312,7 @@ function nextSecurityId() {
 }
 
 async function load() {
-  header = ['SecurityName','SecurityID','MainID','Currency','PortfolioGruppe','PortfolioSubgruppe1','PortfolioSubgruppe2','Instrument','DataCollector','YahooTicker','Comment','MarketGroup','Quantity','Created_at','Modified_at'];
+  header = ['SecurityName','SecurityID','MainID','Currency','PortfolioGruppe','PortfolioSubgruppe1','PortfolioSubgruppe2','Instrument','Industry','DataCollector','YahooTicker','Comment','MarketGroup','Quantity','Created_at','Modified_at'];
   try {
     let text, sha;
     if (ghConfigured()) {
@@ -295,13 +324,13 @@ async function load() {
     const parsed = parseCSV(text);
     header = parsed.header.length ? parsed.header : header;
     // Extend schema forward if these columns don't exist yet in the CSV.
-    ['Comment','MarketGroup'].forEach(col => { if (!header.includes(col)) header.push(col); });
+    ['Comment','MarketGroup','Industry'].forEach(col => { if (!header.includes(col)) header.push(col); });
     rows = parsed.rows;
     fileSha = sha || null;
     renderAll();
     setStatus(`${rows.length} securities loaded.`, 'ok');
   } catch (e) {
-    document.getElementById('body').innerHTML = `<tr><td colspan="15">Error: ${e.message}</td></tr>`;
+    document.getElementById('body').innerHTML = `<tr><td colspan="16">Error: ${e.message}</td></tr>`;
   }
 }
 
@@ -315,7 +344,7 @@ document.getElementById('search').addEventListener('input', (e) => renderAll(e.t
 document.getElementById('addBtn').addEventListener('click', () => {
   const now = nowZurichString();
   rows.push({SecurityName:'',SecurityID:nextSecurityId(),MainID:'',Currency:'CHF',PortfolioGruppe:'Shares',
-    PortfolioSubgruppe1:'',PortfolioSubgruppe2:'',Instrument:'Shares',DataCollector:'none',
+    PortfolioSubgruppe1:'',PortfolioSubgruppe2:'',Instrument:'Shares',Industry:'_not defined',DataCollector:'none',
     YahooTicker:'',Comment:'',MarketGroup:'',Quantity:'0',Created_at:now,Modified_at:now});
   // Clear the search field, otherwise the new (still mostly empty) row would
   // be immediately hidden again by an active filter.
@@ -369,5 +398,6 @@ document.getElementById('cfgSave').addEventListener('click', () => {
 
 load();
 </script>
+<script src="assets/version.js"></script>
 </body>
 </html>

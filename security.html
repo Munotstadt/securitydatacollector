@@ -449,6 +449,8 @@ const CURRENCY_OPTS = ['CHF','EUR','USD','GBP','JPY'];
 const GRUPPE_OPTS = ['Shares','Bonds','Alternative'];
 const INSTRUMENT_OPTS = ['Index','Shares','ETF/Funds','Crypto','Currency','Interests','Commodities','other'];
 const COLLECTOR_OPTS = ['Collector_YahooWeekday','Collector_YahooDaily','Collector_Other','none'];
+// Nur editierbar, wenn Instrument === 'Shares'.
+const INDUSTRY_OPTS = ['Basic materials','Communication','Consumer discretionary','Consumer staples','Energy','Financials','Health Care','Industrials','Real Estate','Technology','Telecommunication','Utilities','_not defined'];
 
 function selHtml(id, value, options){
   const opts = options.map(o => `<option value="${o}" ${o===value?'selected':''}>${o}</option>`).join('');
@@ -476,6 +478,7 @@ function renderMasterForm(){
     <div class="field"><label>Subgroup 1</label><input type="text" id="mfSub1" value="${masterRow.PortfolioSubgruppe1||''}"></div>
     <div class="field"><label>Subgroup 2</label><input type="text" id="mfSub2" value="${masterRow.PortfolioSubgruppe2||''}"></div>
     <div class="field"><label>Instrument</label>${selHtml('mfInstrument', masterRow.Instrument, INSTRUMENT_OPTS)}</div>
+    <div class="field"><label>Industry</label>${industrySelectHtml(masterRow)}</div>
     <div class="field"><label>Data Collector</label>${selHtml('mfCollector', masterRow.DataCollector, COLLECTOR_OPTS)}</div>
     <div class="field"><label>Yahoo Ticker</label><input type="text" id="mfTicker" value="${masterRow.YahooTicker||''}"></div>
     <div class="field"><label>Comment</label><input type="text" id="mfComment" value="${masterRow.Comment||''}"></div>
@@ -485,6 +488,22 @@ function renderMasterForm(){
   const curSel = document.getElementById('mfCurrency');
   const curWrap = curSel.nextElementSibling;
   curSel.addEventListener('change', () => curWrap.classList.toggle('show', curSel.value === '__other__'));
+
+  const instrSel = document.getElementById('mfInstrument');
+  instrSel.addEventListener('change', () => {
+    const industrySel = document.getElementById('mfIndustry');
+    const isShares = instrSel.value === 'Shares';
+    industrySel.disabled = !isShares;
+    if(!isShares) industrySel.value = '_not defined';
+  });
+}
+
+/* Industry-Dropdown: nur aktiv, wenn Instrument === 'Shares' (Punkt 1). */
+function industrySelectHtml(row){
+  const isShares = row.Instrument === 'Shares';
+  const value = isShares ? (row.Industry || '_not defined') : '_not defined';
+  const opts = INDUSTRY_OPTS.map(o => `<option value="${o}" ${o===value?'selected':''}>${o}</option>`).join('');
+  return `<select id="mfIndustry" ${isShares?'':'disabled'}>${opts}</select>`;
 }
 
 document.getElementById('masterSave').addEventListener('click', async () => {
@@ -506,6 +525,7 @@ document.getElementById('masterSave').addEventListener('click', async () => {
     PortfolioSubgruppe1: document.getElementById('mfSub1').value,
     PortfolioSubgruppe2: document.getElementById('mfSub2').value,
     Instrument: document.getElementById('mfInstrument').value,
+    Industry: document.getElementById('mfIndustry').value,
     DataCollector: document.getElementById('mfCollector').value,
     YahooTicker: document.getElementById('mfTicker').value,
     Comment: document.getElementById('mfComment').value,
@@ -519,7 +539,7 @@ document.getElementById('masterSave').addEventListener('click', async () => {
     const fresh = await ghGetFile('data/security_master.csv');
     const parsed = parseCSV(fresh.content);
     const freshHeader = parsed.header.length ? parsed.header : masterHeader;
-    ['Comment','MarketGroup'].forEach(col => { if (!freshHeader.includes(col)) freshHeader.push(col); });
+    ['Comment','MarketGroup','Industry'].forEach(col => { if (!freshHeader.includes(col)) freshHeader.push(col); });
     const freshRows = parsed.rows.map(r => r.SecurityID === secId ? updated : r);
     const csv = toCSV(freshHeader, freshRows);
     await ghPutFile('data/security_master.csv', csv, `security.html: master data updated for ${secId} (${nowZurichString()})`, fresh.sha);
