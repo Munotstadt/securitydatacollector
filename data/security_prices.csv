@@ -5183,3 +5183,4 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 58,Brent Crude Oil Last Day Financ,90.12,02.08.2026 07:18:11,Yahoo Finance (Daily),02.08.2026 07:18:11
 24,UBS Group AG,36.96,31.12.2025 08:14:00,manual,02.08.2026 08:14:39
 49,Gold (USD/oz),4315.09,31.12.2025 08:22:18,manual,02.08.2026 08:22:31
+49,Gold (USD/oz),4008.49,30.06.2026 08:00:00,manual,02.08.2026 08:23:50
