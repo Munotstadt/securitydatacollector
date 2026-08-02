@@ -5193,3 +5193,6 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 54,Silver (USD/oz),58.6,30.06.2026 08:33:58,manual,02.08.2026 08:35:38
 1,Nestlé SA,69.9,04.08.2025 08:40:54,manual,02.08.2026 08:42:16
 1,Nestlé SA,83.08,30.06.2026 08:42:28,manual,02.08.2026 08:42:53
+8,BTC - Bitcoin,63462.69922,02.08.2026 09:43:02,Yahoo Finance (Daily),02.08.2026 09:43:02
+7,SOL - Solana,73.39,02.08.2026 09:43:02,Yahoo Finance (Daily),02.08.2026 09:43:02
+9,ETH - Ethereum,1875.59998,02.08.2026 09:43:02,Yahoo Finance (Daily),02.08.2026 09:43:02
