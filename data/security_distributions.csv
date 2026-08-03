@@ -53,3 +53,4 @@ SecurityID,SecurityName,DistributionAmount,Currency,ExDate,PayDate,Source,Create
 23,Lonza Group AG,5,CHF,12.05.2026,15.05.2026,manual,03.08.2026 20:11:46
 30,Partners Group Holding AG,46.0000,CHF,22.05.2026,27.05.2026,manual,03.08.2026 20:14:34
 37,Richemont SA,3,CHF,20.09.2025,20.09.2025,manual,03.08.2026 20:16:09
+38,Sika Ltd,3.7000,CHF,26.03.2026,30.03.2026,manual,03.08.2026 20:17:43
