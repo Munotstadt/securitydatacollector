@@ -5754,3 +5754,12 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 8,BTC - Bitcoin,63535.82031,04.08.2026 01:00:25,Yahoo Finance (Daily),04.08.2026 01:00:25
 7,SOL - Solana,73.44,04.08.2026 01:00:25,Yahoo Finance (Daily),04.08.2026 01:00:25
 9,ETH - Ethereum,1857.93005,04.08.2026 01:00:25,Yahoo Finance (Daily),04.08.2026 01:00:25
+43,Rendite Bundesobligationen Eidgenossenschaft 10 Jahre (%),0.476,04.08.2026 01:04:21,SNB,04.08.2026 01:04:21
+4,STOXX Europe 600 EUR NR,1662.35,04.08.2026 01:04:21,onvista,04.08.2026 01:04:21
+41,Raiffeisen Futura II - Systematic Invest Equity B (Samantha),135.3,04.08.2026 01:04:21,Raiffeisen Börse,04.08.2026 01:04:21
+42,Raiffeisen Futura II - Systematic Invest Equity (Vorsorge),137.2,04.08.2026 01:04:21,Raiffeisen Börse,04.08.2026 01:04:21
+44,Raiffeisen Winterthur Hypothek 1 Jahr Zinssatz,1.54,04.08.2026 01:04:21,RB Winterthur,04.08.2026 01:04:21
+45,Raiffeisen Winterthur Hypothek 5 Jahr Zinssatz,1.74,04.08.2026 01:04:21,RB Winterthur,04.08.2026 01:04:21
+46,Raiffeisen Winterthur Hypothek 10 Jahr Zinssatz,2.09,04.08.2026 01:04:21,RB Winterthur,04.08.2026 01:04:21
+47,Raiffeisen Winterthur Hypothek 15 Jahr Zinssatz,2.51,04.08.2026 01:04:21,RB Winterthur,04.08.2026 01:04:21
+29,Gold Vreneli (CHF 20),598.0,04.08.2026 01:04:21,Raiffeisen Börse,04.08.2026 01:04:21
