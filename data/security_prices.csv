@@ -5542,3 +5542,4 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 61,Swiss Market Index (Price Index),14364.71973,03.08.2026 19:46:34,Yahoo Finance (Weekday),03.08.2026 19:46:34
 62,Swiss Market Index (Equal Weight Total Return),387.03,03.08.2026 19:46:34,Yahoo Finance (Weekday),03.08.2026 19:46:34
 63,Constellium,28.18,03.08.2026 19:46:34,Yahoo Finance (Weekday),03.08.2026 19:46:34
+56,Swiss Performance Index (Total Return),18219.4900,31.12.2025 23:59,manual,03.08.2026 20:09:19
