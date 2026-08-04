@@ -6220,3 +6220,4 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 61,Swiss Market Index (Price Index),14479.88965,04.08.2026 14:56:48,Yahoo Finance (Weekday),04.08.2026 14:56:48
 62,Swiss Market Index (Equal Weight Total Return),390.28,04.08.2026 14:56:48,Yahoo Finance (Weekday),04.08.2026 14:56:48
 63,Constellium,28.415,04.08.2026 14:56:48,Yahoo Finance (Weekday),04.08.2026 14:56:48
+12,UBS ETF (CH) SMIM,301.3,31.12.2025 12:00:00,manual,04.08.2026 15:43:52
