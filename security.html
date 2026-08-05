@@ -99,6 +99,8 @@
   .chart-point{cursor:pointer;}
 
   .history-links{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;}
+  .chart-controls-row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin:18px 0 4px;}
+  .chart-controls-row .toggle-row{margin:0;}
 
   .quick-form{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:14px;margin-top:8px;}
   .quick-form .fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;}
@@ -199,15 +201,15 @@
     <div class="chart-empty">Loading chart…</div>
     <div class="chart-tooltip" id="priceChartTooltip"></div>
   </div>
-  <div class="toggle-row" id="priceRangeRow">
-    <button type="button" class="toggle-btn" data-range="10D">10 Days</button>
-    <button type="button" class="toggle-btn" data-range="30D">30 Days</button>
-    <button type="button" class="toggle-btn active" data-range="90D">90 Days</button>
-    <button type="button" class="toggle-btn" data-range="YTD">YTD</button>
-    <button type="button" class="toggle-btn" data-range="12M">12 Months</button>
-    <button type="button" class="toggle-btn" data-range="ALL">All</button>
-  </div>
-  <div class="history-links">
+  <div class="chart-controls-row">
+    <div class="toggle-row" id="priceRangeRow">
+      <button type="button" class="toggle-btn" data-range="10D">10 Days</button>
+      <button type="button" class="toggle-btn" data-range="30D">30 Days</button>
+      <button type="button" class="toggle-btn active" data-range="90D">90 Days</button>
+      <button type="button" class="toggle-btn" data-range="YTD">YTD</button>
+      <button type="button" class="toggle-btn" data-range="12M">12 Months</button>
+      <button type="button" class="toggle-btn" data-range="ALL">All</button>
+    </div>
     <a class="toggle-btn" id="linkPriceHistory" href="price_editor.html">📈 View Price History</a>
   </div>
 
@@ -216,12 +218,12 @@
     <div class="chart-empty">Loading chart…</div>
     <div class="chart-tooltip" id="distChartTooltip"></div>
   </div>
-  <div class="toggle-row" id="distRangeRow">
-    <button type="button" class="toggle-btn" data-range="12M">12 Months</button>
-    <button type="button" class="toggle-btn active" data-range="24M">24 Months</button>
-    <button type="button" class="toggle-btn" data-range="ALL">All</button>
-  </div>
-  <div class="history-links">
+  <div class="chart-controls-row">
+    <div class="toggle-row" id="distRangeRow">
+      <button type="button" class="toggle-btn" data-range="12M">12 Months</button>
+      <button type="button" class="toggle-btn active" data-range="24M">24 Months</button>
+      <button type="button" class="toggle-btn" data-range="ALL">All</button>
+    </div>
     <a class="toggle-btn" id="linkDividendHistory" href="distribution_editor.html">💰 View Dividend History</a>
   </div>
 
@@ -247,6 +249,9 @@
     <div class="section-title">Fundamentals</div>
     <div class="fundamentals-grid" id="sharesFundamentalsGrid"></div>
     <div class="detail-meta" id="sharesDataAsOf" style="margin-top:8px;"></div>
+
+    <div class="section-title" style="margin-top:24px;">Price vs. Analyst Targets & 12-Month Range</div>
+    <div class="chart-wrap" id="analystChartWrap"></div>
   </div>
 
   <div class="section-title">Add Price</div>
@@ -420,12 +425,31 @@ function drawLineChart(container, tooltip, points, decimals, currency){
   svgEl.addEventListener('touchend', () => setTimeout(()=>{ tooltip.style.display='none'; }, 1500));
 }
 
-function computeRolling12m(sorted){
-  return sorted.map(d => {
+function computeRolling12m(sorted, allDist){
+  // Bugfix: allDist wurde bisher komplett ignoriert (Funktion nutzte nur
+  // 'sorted', also den bereits auf den Anzeigezeitraum gefilterten
+  // Datensatz) - dadurch fehlten bei Dividenden nahe dem Fensteranfang
+  // Ausschüttungen, die bis zu 365 Tage VOR dem Fenster lagen, in der
+  // rollierenden Summe. Jetzt wird für die Summenbildung immer die
+  // VOLLSTÄNDIGE Historie herangezogen, nur die angezeigten Punkte bleiben
+  // auf 'sorted' begrenzt.
+  const source = (allDist && allDist.length) ? allDist : sorted;
+  const points = sorted.map(d => {
     const start = daysAgo(d.exDate, 365);
-    const sum = sorted.filter(x => x.exDate > start && x.exDate <= d.exDate).reduce((s,x)=>s+x.amount,0);
+    const sum = source.filter(x => x.exDate > start && x.exDate <= d.exDate).reduce((s,x)=>s+x.amount,0);
     return { exDate: d.exDate, rollingSum: sum };
   });
+
+  // Zusätzlicher Punkt für HEUTE: die rollierende Summe muss fortlaufend bis
+  // zum aktuellen Datum weitergezeichnet werden, auch wenn die letzte
+  // Dividende schon länger zurückliegt (Punkt 2).
+  const now = new Date();
+  if(!points.length || points[points.length-1].exDate.getTime() < now.getTime()){
+    const start = daysAgo(now, 365);
+    const sum = source.filter(x => x.exDate > start && x.exDate <= now).reduce((s,x)=>s+x.amount,0);
+    points.push({ exDate: now, rollingSum: sum });
+  }
+  return points;
 }
 
 function drawDistributionChart(container, tooltip, displayDist, allDist, currency){
@@ -436,10 +460,9 @@ function drawDistributionChart(container, tooltip, displayDist, allDist, currenc
   const rolling = computeRolling12m(sorted, allDist);
   const maxRoll = Math.max(...rolling.map(r=>r.rollingSum), 0)*1.15 || 1;
 
-  // Rechte Achse (rollierende Summe) fix auf 2 Dezimalstellen - linke Achse
-  // (Balkenbeträge) bleibt adaptiv, da einzelne Ausschüttungsbeträge sowohl
-  // sehr klein als auch sehr gross sein können.
-  const leftAxisDecimals = decideAxisDecimals(maxBar);
+  // Beide Achsen fix auf 2 Dezimalstellen (Punkt 1: linke Achse war bisher
+  // adaptiv über decideAxisDecimals, jetzt einheitlich mit der rechten Achse).
+  const leftAxisDecimals = 2;
   const rightAxisDecimals = 2;
   const leftPad = Math.max(56, fmtDecimal(maxBar,leftAxisDecimals).length * 7 + 16);
   const rightPad = Math.max(56, fmtDecimal(maxRoll,rightAxisDecimals).length * 7 + 16);
@@ -982,7 +1005,7 @@ async function load(){
     renderPriceChart();
     renderDistChart();
 
-    loadInstrumentSpecificData().catch(e => console.error('Fundamentals load error:', e));
+    loadInstrumentSpecificData(last, decimals, high52wRow, low52wRow).catch(e => console.error('Fundamentals load error:', e));
 
   }catch(e){
     document.getElementById('detailName').textContent = 'Error';
@@ -994,7 +1017,7 @@ async function load(){
  * separat von der Haupt-load(), damit ein Fehler hier (z.B. weil die
  * Fundamentals-Collectors noch nie gelaufen sind) nicht die restliche
  * Seite blockiert. */
-async function loadInstrumentSpecificData(){
+async function loadInstrumentSpecificData(last, decimals, high52wRow, low52wRow){
   if(!masterRow) return;
   const instrument = masterRow.Instrument;
 
@@ -1008,7 +1031,7 @@ async function loadInstrumentSpecificData(){
   } else if(instrument === 'Shares'){
     document.getElementById('sharesSection').classList.remove('hidden');
     const sharesText = await ghFetchRaw('data/security_shares_fundamentals.csv');
-    renderSharesSection(parseCSV(sharesText).rows);
+    renderSharesSection(parseCSV(sharesText).rows, last, decimals, high52wRow, low52wRow);
   }
 }
 
@@ -1091,7 +1114,7 @@ function renderFundSection(fundRows, holdingRows){
 function fundStat(label, value){
   return `<div class="fund-stat"><div class="fund-stat-label">${label}</div><div class="fund-stat-value">${value}</div></div>`;
 }
-function renderSharesSection(sharesRows){
+function renderSharesSection(sharesRows, last, decimals, high52wRow, low52wRow){
   const latest = latestRowFor(sharesRows);
   const grid = document.getElementById('sharesFundamentalsGrid');
   const asOfEl = document.getElementById('sharesDataAsOf');
@@ -1099,6 +1122,7 @@ function renderSharesSection(sharesRows){
   if(!latest){
     grid.innerHTML = '<div class="empty">No fundamentals collected yet for this security.</div>';
     asOfEl.textContent = '';
+    document.getElementById('analystChartWrap').innerHTML = '<div class="chart-empty">No fundamentals collected yet for this security.</div>';
     return;
   }
 
@@ -1130,6 +1154,71 @@ function renderSharesSection(sharesRows){
   ].join('');
 
   asOfEl.textContent = `Fundamentals as of ${latest.Created_at} · Source: ${latest.Source||'—'}`;
+
+  renderAnalystRangeChart(document.getElementById('analystChartWrap'), {
+    currentPrice: last ? last.Price : null,
+    analystLow: parseFloat(latest.PriceTargetLow),
+    analystHigh: parseFloat(latest.PriceTargetHigh),
+    analystMean: parseFloat(latest.PriceTargetMean),
+    analystMedian: parseFloat(latest.PriceTargetMedian),
+    yearLow: low52wRow ? low52wRow.Price : null,
+    yearHigh: high52wRow ? high52wRow.Price : null,
+  }, decimals);
+}
+
+/* Vergleichs-Chart: aktueller Kurs (Milestone) + Analysten-Range (Low-High,
+ * farbiges Band) + Analysten-Mean/Median (Milestones) + 12-Monats-Range
+ * (Low-High, farbiges Band) - alle auf einer gemeinsamen Skala, die
+ * BEWUSST bei 0 beginnt (nicht beim Minimalwert), damit die absolute
+ * Grössenordnung sichtbar bleibt statt nur die relative Spannbreite. */
+function renderAnalystRangeChart(container, data, decimals){
+  const { currentPrice, analystLow, analystHigh, analystMean, analystMedian, yearLow, yearHigh } = data;
+  const values = [currentPrice, analystLow, analystHigh, analystMean, analystMedian, yearLow, yearHigh]
+    .filter(v => v!==null && v!==undefined && !isNaN(v));
+  if(values.length < 2){
+    container.innerHTML = '<div class="chart-empty">Not enough data for an analyst range chart.</div>';
+    return;
+  }
+
+  const width = 800, height = 190;
+  const padLeft = 16, padRight = 16;
+  const innerW = width - padLeft - padRight;
+  const maxVal = Math.max(...values) * 1.08; // Skala startet bei 0 (Punkt 5)
+  const xScale = v => padLeft + (v/maxVal) * innerW;
+
+  const barY1 = 78, barY2 = 128, barH = 16;
+  const milestoneTop = barY1 - 4, milestoneBottom = barY2 + barH + 4;
+
+  let svg = '';
+  // Baseline-Achse (0 .. Max)
+  svg += `<line x1="${padLeft}" y1="${milestoneBottom+18}" x2="${width-padRight}" y2="${milestoneBottom+18}" stroke="#E3E6EA" stroke-width="1"/>`;
+  svg += `<text x="${padLeft}" y="${milestoneBottom+32}" font-family="IBM Plex Mono, monospace" font-size="10" fill="#767E8A">0</text>`;
+  svg += `<text x="${width-padRight}" y="${milestoneBottom+32}" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10" fill="#767E8A">${fmtDecimal(maxVal,decimals)}</text>`;
+
+  function rangeBar(lo, hi, y, color, label){
+    if(lo==null || hi==null || isNaN(lo) || isNaN(hi)) return '';
+    const x1 = xScale(lo), x2 = xScale(Math.max(hi,lo));
+    return `<text x="${padLeft}" y="${y-6}" font-family="IBM Plex Mono, monospace" font-size="10" fill="#767E8A">${label}</text>
+      <rect x="${x1.toFixed(1)}" y="${y}" width="${Math.max(2,x2-x1).toFixed(1)}" height="${barH}" rx="3" fill="${color}" opacity="0.35"/>
+      <text x="${x1.toFixed(1)}" y="${y+barH+13}" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="9" fill="#767E8A">${fmtDecimal(lo,decimals)}</text>
+      <text x="${x2.toFixed(1)}" y="${y+barH+13}" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="9" fill="#767E8A">${fmtDecimal(hi,decimals)}</text>`;
+  }
+  svg += rangeBar(analystLow, analystHigh, barY1, '#1F6FA8', 'Analyst Low – High');
+  svg += rangeBar(yearLow, yearHigh, barY2, '#2E9E76', '12-Month Low – High');
+
+  function milestone(v, color, dash, label, labelY){
+    if(v==null || isNaN(v)) return '';
+    const x = xScale(v);
+    return `<line x1="${x.toFixed(1)}" y1="${milestoneTop}" x2="${x.toFixed(1)}" y2="${milestoneBottom}" stroke="${color}" stroke-width="1.5" ${dash?`stroke-dasharray="${dash}"`:''}/>
+      <text x="${x.toFixed(1)}" y="${labelY}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" font-weight="600" fill="${color}">${label}</text>`;
+  }
+  // Gestaffelte Y-Positionen für die Beschriftungen, damit sie sich bei
+  // nahe beieinanderliegenden Werten nicht überlappen.
+  svg += milestone(analystMedian, '#8A5B4B', '1,2', `Median ${fmtDecimal(analystMedian,decimals)}`, milestoneTop-32);
+  svg += milestone(analystMean, '#1F6FA8', '3,2', `Mean ${fmtDecimal(analystMean,decimals)}`, milestoneTop-18);
+  svg += milestone(currentPrice, '#E30613', null, `Current ${fmtDecimal(currentPrice,decimals)}`, milestoneTop-4);
+
+  container.innerHTML = `<svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Analyst range chart">${svg}</svg>`;
 }
 
 load();
