@@ -7295,3 +7295,6 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 62,SMI Equal Weight,337.95,22.07.2025 23:59:00,manual,05.08.2026 09:00:00
 62,SMI Equal Weight,340.50,21.07.2025 23:59:00,manual,05.08.2026 09:00:00
 62,SMI Equal Weight,340.95,18.07.2025 23:59:00,manual,05.08.2026 09:00:00
+8,BTC - Bitcoin,64118.67188,05.08.2026 12:25:34,Yahoo Finance (Daily),05.08.2026 12:25:34
+7,SOL - Solana,73.95,05.08.2026 12:25:34,Yahoo Finance (Daily),05.08.2026 12:25:34
+9,ETH - Ethereum,1870.40002,05.08.2026 12:25:34,Yahoo Finance (Daily),05.08.2026 12:25:34
