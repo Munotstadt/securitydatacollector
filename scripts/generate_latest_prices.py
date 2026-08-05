@@ -1,10 +1,23 @@
 """
 Erzeugt data/latest_prices.json: ein kompaktes Pre-Aggregat mit den
-Referenzpunkten, die dashboard.html und portfolio.html für ihre "Last +
-Delta"-Ansicht brauchen (Tag/Woche/10 Tage/Monat sowie 52-Wochen-Hoch/Tief),
-pro SecurityID. Damit müssen diese Seiten nicht mehr die komplette
-security_prices.csv laden und parsen - das bleibt nur für die
-Detail-Charts (security.html) und die Editoren nötig.
+Referenzpunkten, die dashboard.html, portfolio.html und analyser.html für
+ihre "Last + Delta"-Ansichten brauchen, pro SecurityID. Damit müssen diese
+Seiten nicht mehr die komplette security_prices.csv laden und parsen - das
+bleibt nur für die Detail-Charts (security.html) und die Editoren nötig.
+
+PERIODEN-DEFINITIONEN (Stand: präzisiert, siehe Kommentare unten):
+  day            Vortag - letzter Kurs vor dem heutigen Handelstag
+  wtd            Week-to-Date - vs. Schlusskurs des Wochenendes davor
+                 (Sonntag bei 7-Tage-Securities, Freitag bei
+                 Collector_YahooWeekday-Securities)
+  ten_day        10 Days - rollierend, 10 Kalendertage zurück
+  mtd            Month-to-Date - vs. letztem verfügbaren Kurs des VORMONATS
+                 (kalendarisch, z.B. 31.07. für August), nicht rollierend
+  thirty_day     30 Days - rollierend, 30 Kalendertage zurück
+  ninety_day     90 Days - rollierend, 90 Kalendertage zurück
+  ytd            Year-to-Date - vs. letztem Kurs des VORJAHRES (31.12.),
+                 kalendarisch, nicht rollierend
+  three_sixty_day 360 Days - rollierend, 360 Kalendertage zurück
 
 Wird nach jedem Collector-Lauf und nach dem wöchentlichen Cleanup neu
 generiert (siehe commit_and_push_prices.sh / commit_and_push_cleanup.sh),
@@ -23,15 +36,12 @@ PRICES_PATH = os.path.join(REPO_ROOT, "data", "security_prices.csv")
 MASTER_PATH = os.path.join(REPO_ROOT, "data", "security_master.csv")
 OUTPUT_PATH = os.path.join(REPO_ROOT, "data", "latest_prices.json")
 
-# Referenzpunkte, wie sie bisher clientseitig in dashboard.html/portfolio.html
-# berechnet wurden (daysAgo(now, N) + "letzter Kurs auf oder vor diesem Datum").
-# "day" ist NICHT hier drin - der Offset für "day" hängt vom Wochentag und
-# vom Collector-Typ ab, siehe day_offset_for().
-REFERENCE_OFFSETS_DAYS = {
-    "week": 7,
+# Rein rollierende Perioden (fixer Tage-Offset, "vor N Kalendertagen").
+ROLLING_OFFSETS_DAYS = {
     "ten_day": 10,
-    "month": 30,
-    "year": 365,
+    "thirty_day": 30,
+    "ninety_day": 90,
+    "three_sixty_day": 360,
 }
 
 
@@ -51,6 +61,28 @@ def day_offset_for(now, is_weekday_only):
         if weekday == 6:  # Sonntag -> Donnerstag (3 Tage zurück)
             return 3
     return 1
+
+
+def wtd_cutoff(now, is_weekday_only):
+    """Week-to-Date-Referenzpunkt: der Schlusskurs des Wochenendes VOR der
+    aktuellen (kalendarischen, Montag-startenden) Woche - Sonntag für
+    7-Tage-Securities (FX/Krypto/Rohstoffe), Freitag für
+    Collector_YahooWeekday-Securities (da dort übers Wochenende ohnehin
+    keine neuen Kurse entstehen)."""
+    monday_this_week = (now - timedelta(days=now.weekday())).replace(
+        hour=0, minute=0, second=0, microsecond=0
+    )
+    boundary = monday_this_week - timedelta(days=3 if is_weekday_only else 1)
+    return end_of_day(boundary)
+
+
+def mtd_cutoff(now):
+    """Month-to-Date-Referenzpunkt: letzter verfügbarer Kurs des
+    VORMONATS (kalendarisch, z.B. 31.07. für einen Cutoff im August) -
+    nicht rollierend (kein fixer 30-Tage-Offset)."""
+    first_of_this_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    last_of_prev_month = first_of_this_month - timedelta(days=1)
+    return end_of_day(last_of_prev_month)
 
 
 def parse_price_date(s):
@@ -129,7 +161,10 @@ def build_entry(observations, now, is_weekday_only):
     day_cutoff = end_of_day(now - timedelta(days=day_offset_for(now, is_weekday_only)))
     entry["day"] = obs_to_json(find_on_or_before(observations, day_cutoff))
 
-    for key, offset_days in REFERENCE_OFFSETS_DAYS.items():
+    entry["wtd"] = obs_to_json(find_on_or_before(observations, wtd_cutoff(now, is_weekday_only)))
+    entry["mtd"] = obs_to_json(find_on_or_before(observations, mtd_cutoff(now)))
+
+    for key, offset_days in ROLLING_OFFSETS_DAYS.items():
         cutoff = end_of_day(now - timedelta(days=offset_days))
         entry[key] = obs_to_json(find_on_or_before(observations, cutoff))
 
