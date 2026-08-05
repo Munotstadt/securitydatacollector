@@ -52,6 +52,9 @@
   .table-wrap{overflow-x:auto;max-height:60vh;overflow-y:auto;}
   .empty,.error{padding:30px 10px;text-align:center;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:13px;}
   .error{color:#C0293D;}
+  .status-badge{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;padding:2px 8px;border-radius:3px;display:inline-block;}
+  .status-badge.ok{background:rgba(31,138,110,0.12);color:var(--gain);}
+  .status-badge.err{background:rgba(192,41,61,0.12);color:#C0293D;}
 
   .topnav{
     display:flex;gap:4px;flex-wrap:wrap;align-items:center;
@@ -130,6 +133,17 @@
     <tbody id="activityBody"><tr><td colspan="4" class="empty">Loading…</td></tr></tbody>
   </table>
   </div>
+
+  <div class="section-title">Recent Collector Runs</div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Collector</th><th>Run At</th><th>Status</th><th class="num">Data Points</th><th>Detail</th>
+    </tr></thead>
+    <tbody id="runsBody"><tr><td colspan="5" class="empty">Loading…</td></tr></tbody>
+  </table>
+  </div>
+  <p class="upload-instructions">Last 5 runs per collector, newest first. Each collector script writes its own row to <code>data/collector_runs.csv</code> at the end of its run; the weekly cleanup job also trims this file down to the last 20 entries per collector so it doesn't grow indefinitely.</p>
 </div>
 
 <script src="assets/github-data.js"></script>
@@ -192,9 +206,64 @@ async function loadCounts(){
   document.getElementById('activityBody').innerHTML = rowsHtml + totalRow;
 }
 
+// Reihenfolge der Collector-Typen in der Tabelle (unbekannte Typen werden
+// alphabetisch angehängt, falls mal ein neuer Collector dazukommt).
+const COLLECTOR_ORDER = ['Yahoo Weekday', 'Yahoo Daily', 'Other Collector', 'Weekly Cleanup', 'Shares Fundamentals', 'Funds Fundamentals'];
+
+async function loadRecentRuns(){
+  const body = document.getElementById('runsBody');
+  let rows = [];
+  try{
+    const text = await ghFetchRaw('data/collector_runs.csv');
+    rows = parseCSV(text).rows;
+  }catch(e){
+    // Datei existiert evtl. noch nicht (kein Collector seit diesem Update gelaufen) - kein harter Fehler.
+    body.innerHTML = '<tr><td colspan="5" class="empty">No runs recorded yet - data/collector_runs.csv does not exist yet. It gets created automatically the next time a collector runs.</td></tr>';
+    return;
+  }
+  if(!rows.length){
+    body.innerHTML = '<tr><td colspan="5" class="empty">No runs recorded yet.</td></tr>';
+    return;
+  }
+
+  function parseRunAt(s){
+    const dt = parseSwissDateTime(s);
+    return dt || new Date(0);
+  }
+
+  const byType = {};
+  for(const r of rows) (byType[r.CollectorType] = byType[r.CollectorType] || []).push(r);
+
+  const types = Object.keys(byType).sort((a,b) => {
+    const ia = COLLECTOR_ORDER.indexOf(a), ib = COLLECTOR_ORDER.indexOf(b);
+    if(ia===-1 && ib===-1) return a.localeCompare(b);
+    if(ia===-1) return 1;
+    if(ib===-1) return -1;
+    return ia-ib;
+  });
+
+  let html = '';
+  for(const type of types){
+    const last5 = [...byType[type]].sort((a,b) => parseRunAt(b.RunAt)-parseRunAt(a.RunAt)).slice(0,5);
+    for(const r of last5){
+      const isOk = (r.Status||'').toUpperCase() === 'OK';
+      const badge = `<span class="status-badge ${isOk?'ok':'err'}">${isOk?'OK':'ERROR'}</span>`;
+      html += `<tr>
+        <td>${type}</td>
+        <td>${r.RunAt||'—'}</td>
+        <td>${badge}</td>
+        <td class="num">${r.DataPoints||'—'}</td>
+        <td>${r.Detail||''}</td>
+      </tr>`;
+    }
+  }
+  body.innerHTML = html || '<tr><td colspan="5" class="empty">No runs recorded yet.</td></tr>';
+}
+
 async function load(){
   try{
     await loadCounts();
+    await loadRecentRuns();
     document.getElementById('statusText').textContent = 'live · ' + new Date().toLocaleTimeString('en-US');
   }catch(e){
     document.getElementById('activityBody').innerHTML = `<tr><td colspan="4" class="error">Error: ${e.message}</td></tr>`;
