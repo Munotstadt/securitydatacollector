@@ -210,12 +210,50 @@ async function loadCounts(){
 // alphabetisch angehängt, falls mal ein neuer Collector dazukommt).
 const COLLECTOR_ORDER = ['Yahoo Weekday', 'Yahoo Daily', 'Other Collector', 'Weekly Cleanup', 'Shares Fundamentals', 'Funds Fundamentals'];
 
+// Feste, bekannte Spaltenreihenfolge, wie run_log.py sie schreibt. BEWUSST
+// nicht der Datei-Header selbst massgebend: falls collector_runs.csv aus
+// einer Zeit vor Trigger/RunID/RunNumber stammt, hat die Datei noch den
+// alten 5-Spalten-Header, aber neuere Zeilen enthalten schon 8 Werte -
+// parseCSV() (Header-basiert) würde die zusätzlichen 3 Werte sonst
+// stillschweigend verwerfen, weil der Header sie nicht kennt.
+const RUN_LOG_COLUMNS = ['CollectorType','RunAt','Status','DataPoints','Detail','Trigger','RunID','RunNumber'];
+
+function parseRunLogCSV(text){
+  const lines = text.replace(/\r\n/g, '\n').split('\n').filter(l => l.length > 0);
+  if(lines.length <= 1) return [];
+  // Erste Zeile überspringen (Header, egal wie viele Spalten er deklariert) -
+  // stattdessen jede Datenzeile positionell gegen RUN_LOG_COLUMNS mappen.
+  const splitLine = (line) => {
+    const cells = []; let cur = '', inQuotes = false;
+    for(let i=0;i<line.length;i++){
+      const c = line[i];
+      if(inQuotes){
+        if(c === '"' && line[i+1] === '"'){ cur += '"'; i++; }
+        else if(c === '"'){ inQuotes = false; }
+        else cur += c;
+      } else {
+        if(c === '"') inQuotes = true;
+        else if(c === ','){ cells.push(cur); cur=''; }
+        else cur += c;
+      }
+    }
+    cells.push(cur);
+    return cells;
+  };
+  return lines.slice(1).map(line => {
+    const cells = splitLine(line);
+    const obj = {};
+    RUN_LOG_COLUMNS.forEach((col, i) => { obj[col] = cells[i] !== undefined ? cells[i] : ''; });
+    return obj;
+  });
+}
+
 async function loadRecentRuns(){
   const body = document.getElementById('runsBody');
   let rows = [];
   try{
     const text = await ghFetchRaw('data/collector_runs.csv');
-    rows = parseCSV(text).rows;
+    rows = parseRunLogCSV(text);
   }catch(e){
     // Datei existiert evtl. noch nicht (kein Collector seit diesem Update gelaufen) - kein harter Fehler.
     body.innerHTML = '<tr><td colspan="7" class="empty">No runs recorded yet - data/collector_runs.csv does not exist yet. It gets created automatically the next time a collector runs.</td></tr>';
