@@ -426,6 +426,9 @@ function drawLineChart(container, tooltip, points, decimals, currency){
   svgEl.addEventListener('touchend', () => setTimeout(()=>{ tooltip.style.display='none'; }, 1500));
 }
 
+/* Absoluter Monatsindex (Jahr*12+Monat) - für monatsgranulare Fenster. */
+function monthKey(d){ return d.getFullYear()*12 + d.getMonth(); }
+
 function computeRolling12m(sorted, allDist){
   // Bugfix: allDist wurde bisher komplett ignoriert (Funktion nutzte nur
   // 'sorted', also den bereits auf den Anzeigezeitraum gefilterten
@@ -435,20 +438,30 @@ function computeRolling12m(sorted, allDist){
   // VOLLSTÄNDIGE Historie herangezogen, nur die angezeigten Punkte bleiben
   // auf 'sorted' begrenzt.
   const source = (allDist && allDist.length) ? allDist : sorted;
-  const points = sorted.map(d => {
-    const start = daysAgo(d.exDate, 365);
-    const sum = source.filter(x => x.exDate > start && x.exDate <= d.exDate).reduce((s,x)=>s+x.amount,0);
-    return { exDate: d.exDate, rollingSum: sum };
-  });
+
+  // Monatsgranulares Fenster statt tagesgenau 365 Tage: verhindert einen
+  // künstlichen Spike, wenn zwei Dividenden knapp über/unter einem Jahr
+  // auseinanderliegen (z.B. 12.06.2025 und 06.06.2026 - tagesgenau wären
+  // für 6 Tage BEIDE im 365-Tage-Fenster, was die Summe kurzzeitig
+  // fälschlich verdoppelt und danach wieder abfallen lässt). Auf
+  // Monatsebene gehören beide klar zu unterschiedlichen 12-Monats-Fenstern
+  // (Juni 2025 fällt aus dem Fenster, sobald Juni 2026 der aktuelle Monat
+  // ist), daher kein Sprung mehr.
+  function rollingSumForMonth(curMonth){
+    const startMonth = curMonth - 11;
+    return source
+      .filter(x => { const m = monthKey(x.exDate); return m >= startMonth && m <= curMonth; })
+      .reduce((s,x)=>s+x.amount, 0);
+  }
+
+  const points = sorted.map(d => ({ exDate: d.exDate, rollingSum: rollingSumForMonth(monthKey(d.exDate)) }));
 
   // Zusätzlicher Punkt für HEUTE: die rollierende Summe muss fortlaufend bis
   // zum aktuellen Datum weitergezeichnet werden, auch wenn die letzte
   // Dividende schon länger zurückliegt (Punkt 2).
   const now = new Date();
   if(!points.length || points[points.length-1].exDate.getTime() < now.getTime()){
-    const start = daysAgo(now, 365);
-    const sum = source.filter(x => x.exDate > start && x.exDate <= now).reduce((s,x)=>s+x.amount,0);
-    points.push({ exDate: now, rollingSum: sum });
+    points.push({ exDate: now, rollingSum: rollingSumForMonth(monthKey(now)) });
   }
   return points;
 }
