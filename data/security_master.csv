@@ -51,7 +51,7 @@ Gold (USD/oz),49,pending49,USD,Alternative,Commodities,,other,Collector_YahooWee
 JPY/CHF,50,pending50,CHF,Alternative,,,Currency,Collector_YahooWeekday,JPYCHF=X,0,27.07.2026 20:50:11,02.08.2026 08:28:54,,,,,
 MSCI ACWI - Emerging Markets (USD),51,Pending51,USD,Shares,Emerging Markets,,Index,Collector_YahooWeekday,^892400-USD-STRD,0,27.07.2026 20:50:11,02.08.2026 08:28:54,All Country world Index,,,,
 MSCI World,52,Pending52,USD,Shares,Global Equity,Index,Index,Collector_YahooWeekday,^990100-USD-STRD,0,27.07.2026 20:50:11,02.08.2026 08:28:54,,,,,
-Nasdaq Composite,53,Pending53,USD,Shares,US Equity,Index,Index,Collector_YahooWeekday,^IXIC,0,27.07.2026 20:50:11,02.08.2026 08:28:54,,,,,
+Nasdaq Composite,53,Pending53,USD,Shares,US Equity,Index,Index,Collector_YahooWeekday,^IXIC,0,27.07.2026 20:50:11,05.08.2026 11:42:26,,USA Index,_not defined,,
 Silver (USD/oz),54,pending54,USD,Alternative,Commodities,,other,Collector_YahooWeekday,SI=F,0,27.07.2026 20:50:11,02.08.2026 08:36:16,,,_not defined,,
 Sunrise Communications AG,55,pending55,CHF,Shares,Switzerland,,Shares,Collector_YahooWeekday,SUNN.SW,120,27.07.2026 20:50:11,02.08.2026 08:28:54,,Switzerland Growth,,,
 Swiss Performance Index (Total Return),56,pending56,CHF,Shares,Swiss Equity,Index,Index,Collector_YahooWeekday,^SSHI,0,27.07.2026 20:50:11,02.08.2026 08:28:54,,Switzerland Index,,,
