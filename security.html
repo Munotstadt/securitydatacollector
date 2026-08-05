@@ -32,6 +32,28 @@
   .detail-price{font-family:'IBM Plex Mono',monospace;font-size:30px;font-weight:600;}
   .ccy{color:var(--muted);font-size:13px;}
   .detail-meta{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);}
+
+  .pie-row{display:flex;gap:32px;flex-wrap:wrap;margin-top:10px;}
+  .pie-block{flex:1;min-width:260px;}
+  .pie-block-title{font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;}
+  .ccy-chart-wrap{display:flex;gap:24px;align-items:center;flex-wrap:wrap;}
+  .ccy-legend{list-style:none;padding:0;margin:0;font-family:'IBM Plex Mono',monospace;font-size:12px;flex:1;min-width:140px;}
+  .ccy-legend li{display:flex;align-items:center;gap:8px;padding:5px 0;}
+  .ccy-swatch{width:11px;height:11px;border-radius:2px;flex-shrink:0;}
+  .ccy-legend .ccy-name{flex:0 0 auto;min-width:60px;}
+  .ccy-legend .ccy-val{flex:1;text-align:right;}
+
+  #holdingsTable{width:100%;border-collapse:collapse;margin-top:4px;}
+  #holdingsTable th{text-align:left;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:8px 6px;border-bottom:1px solid var(--line);}
+  #holdingsTable th.num{text-align:right;}
+  #holdingsTable td{padding:7px 6px;border-bottom:1px solid var(--line);font-size:13px;}
+  #holdingsTable td.num{font-family:'IBM Plex Mono',monospace;text-align:right;}
+  #holdingsTable td.rank{color:var(--muted);font-family:'IBM Plex Mono',monospace;}
+
+  .fundamentals-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:10px;}
+  .fund-stat{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:10px 12px;}
+  .fund-stat-label{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);}
+  .fund-stat-value{font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;margin-top:3px;}
   .factsheet-link{display:inline-flex;align-items:center;gap:5px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--accent);text-decoration:none;margin-top:4px;}
   .factsheet-link:hover{text-decoration:underline;}
   .returns{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;}
@@ -201,6 +223,30 @@
   </div>
   <div class="history-links">
     <a class="toggle-btn" id="linkDividendHistory" href="distribution_editor.html">💰 View Dividend History</a>
+  </div>
+
+  <div id="fundSection" class="hidden">
+    <div class="section-title">Fund Details</div>
+    <div class="pie-row">
+      <div class="pie-block">
+        <div class="pie-block-title">Asset Allocation</div>
+        <div class="ccy-chart-wrap" id="assetAllocationChart"></div>
+      </div>
+    </div>
+    <div class="section-title" style="margin-top:20px;">Top 10 Holdings</div>
+    <div class="table-wrap">
+    <table id="holdingsTable">
+      <thead><tr><th>#</th><th>Symbol</th><th>Name</th><th class="num">% of Assets</th></tr></thead>
+      <tbody id="holdingsBody"><tr><td colspan="4" class="empty">Loading…</td></tr></tbody>
+    </table>
+    </div>
+    <div class="detail-meta" id="fundDataAsOf" style="margin-top:8px;"></div>
+  </div>
+
+  <div id="sharesSection" class="hidden">
+    <div class="section-title">Fundamentals</div>
+    <div class="fundamentals-grid" id="sharesFundamentalsGrid"></div>
+    <div class="detail-meta" id="sharesDataAsOf" style="margin-top:8px;"></div>
   </div>
 
   <div class="section-title">Add Price</div>
@@ -936,10 +982,154 @@ async function load(){
     renderPriceChart();
     renderDistChart();
 
+    loadInstrumentSpecificData().catch(e => console.error('Fundamentals load error:', e));
+
   }catch(e){
     document.getElementById('detailName').textContent = 'Error';
     document.getElementById('priceChartWrap').innerHTML = `<div class="error">Error: ${e.message}</div>`;
   }
+}
+
+/* Fund-/Shares-spezifische Zusatzdaten unter dem Dividend-Chart. Läuft
+ * separat von der Haupt-load(), damit ein Fehler hier (z.B. weil die
+ * Fundamentals-Collectors noch nie gelaufen sind) nicht die restliche
+ * Seite blockiert. */
+async function loadInstrumentSpecificData(){
+  if(!masterRow) return;
+  const instrument = masterRow.Instrument;
+
+  if(instrument === 'ETF/Funds'){
+    document.getElementById('fundSection').classList.remove('hidden');
+    const [fundText, holdingsText] = await Promise.all([
+      ghFetchRaw('data/security_funds_fundamentals.csv'),
+      ghFetchRaw('data/security_fund_holdings.csv'),
+    ]);
+    renderFundSection(parseCSV(fundText).rows, parseCSV(holdingsText).rows);
+  } else if(instrument === 'Shares'){
+    document.getElementById('sharesSection').classList.remove('hidden');
+    const sharesText = await ghFetchRaw('data/security_shares_fundamentals.csv');
+    renderSharesSection(parseCSV(sharesText).rows);
+  }
+}
+
+/* Neuste Zeile für diese Security anhand von Created_at (dd.mm.yyyy hh:mm:ss). */
+function latestRowFor(rows){
+  const mine = rows.filter(r => r.SecurityID === secId);
+  if(!mine.length) return null;
+  return mine.reduce((a,b) => {
+    const da = parseSwissDateTime(a.Created_at), db = parseSwissDateTime(b.Created_at);
+    if(!da) return b; if(!db) return a;
+    return db > da ? b : a;
+  });
+}
+
+const ASSET_CLASS_COLORS = { Equity:'#1F6FA8', Bonds:'#8A5B4B', Cash:'#A3A9B0' };
+function describeArcPathSec(cx, cy, r, startAngle, endAngle){
+  const toXY = (angle) => { const rad=(angle-90)*Math.PI/180; return {x:cx+r*Math.cos(rad), y:cy+r*Math.sin(rad)}; };
+  const start = toXY(endAngle), end = toXY(startAngle);
+  const largeArc = (endAngle-startAngle) <= 180 ? 0 : 1;
+  if(endAngle-startAngle >= 359.999) return `M ${cx-r} ${cy} A ${r} ${r} 0 1 1 ${cx+r} ${cy} A ${r} ${r} 0 1 1 ${cx-r} ${cy} Z`;
+  return `M ${cx} ${cy} L ${start.x.toFixed(2)} ${start.y.toFixed(2)} A ${r} ${r} 0 ${largeArc} 0 ${end.x.toFixed(2)} ${end.y.toFixed(2)} Z`;
+}
+
+function renderFundSection(fundRows, holdingRows){
+  const latestFund = latestRowFor(fundRows);
+  const el = document.getElementById('assetAllocationChart');
+  const asOfEl = document.getElementById('fundDataAsOf');
+
+  if(!latestFund){
+    el.innerHTML = '<div class="chart-empty">No fund fundamentals collected yet for this security.</div>';
+  } else {
+    const parts = {
+      Equity: parseFloat(latestFund.EquityPct) || 0,
+      Bonds: parseFloat(latestFund.BondPct) || 0,
+      Cash: parseFloat(latestFund.CashPct) || 0,
+    };
+    const total = parts.Equity + parts.Bonds + parts.Cash;
+    if(total > 0){
+      const size=160, r=70, cx=size/2, cy=size/2;
+      let angle=0, slices='';
+      Object.entries(parts).forEach(([key,val]) => {
+        if(val<=0) return;
+        const endAngle = angle + (val/total)*360;
+        slices += `<path d="${describeArcPathSec(cx,cy,r,angle,endAngle)}" fill="${ASSET_CLASS_COLORS[key]}"/>`;
+        angle = endAngle;
+      });
+      const legend = Object.entries(parts).filter(([,v])=>v>0).map(([key,val]) =>
+        `<li><span class="ccy-swatch" style="background:${ASSET_CLASS_COLORS[key]}"></span><span class="ccy-name">${key}</span><span class="ccy-val">${val.toFixed(1)}%</span></li>`
+      ).join('');
+      el.innerHTML = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${slices}</svg><ul class="ccy-legend">${legend}</ul>`;
+    } else {
+      el.innerHTML = '<div class="chart-empty">No asset allocation data available.</div>';
+    }
+  }
+
+  const myHoldings = holdingRows.filter(r => r.SecurityID === secId);
+  let latestBatchTime = null;
+  for(const h of myHoldings){
+    const dt = parseSwissDateTime(h.Created_at);
+    if(dt && (!latestBatchTime || dt > latestBatchTime)) latestBatchTime = dt;
+  }
+  const latestHoldings = latestBatchTime
+    ? myHoldings.filter(h => { const dt = parseSwissDateTime(h.Created_at); return dt && Math.abs(dt-latestBatchTime) < 60000; })
+    : [];
+  latestHoldings.sort((a,b) => (parseFloat(b.HoldingPct)||0) - (parseFloat(a.HoldingPct)||0));
+
+  const body = document.getElementById('holdingsBody');
+  body.innerHTML = latestHoldings.length
+    ? latestHoldings.slice(0,10).map((h,i) => `<tr>
+        <td class="rank">${i+1}</td>
+        <td>${h.HoldingSymbol||''}</td>
+        <td>${h.HoldingName||''}</td>
+        <td class="num">${h.HoldingPct ? (parseFloat(h.HoldingPct)*(parseFloat(h.HoldingPct)<=1?100:1)).toFixed(2)+'%' : '—'}</td>
+      </tr>`).join('')
+    : '<tr><td colspan="4" class="empty">No holdings collected yet for this security.</td></tr>';
+
+  asOfEl.textContent = latestFund ? `Fund data as of ${latestFund.Created_at} · Source: ${latestFund.Source||'—'}` : '';
+}
+
+function fundStat(label, value){
+  return `<div class="fund-stat"><div class="fund-stat-label">${label}</div><div class="fund-stat-value">${value}</div></div>`;
+}
+function renderSharesSection(sharesRows){
+  const latest = latestRowFor(sharesRows);
+  const grid = document.getElementById('sharesFundamentalsGrid');
+  const asOfEl = document.getElementById('sharesDataAsOf');
+
+  if(!latest){
+    grid.innerHTML = '<div class="empty">No fundamentals collected yet for this security.</div>';
+    asOfEl.textContent = '';
+    return;
+  }
+
+  const fmtNum = (v, decimals=2) => { const n=parseFloat(v); return isNaN(n) ? '—' : n.toLocaleString('en-US',{minimumFractionDigits:decimals,maximumFractionDigits:decimals}); };
+  const fmtMarketCap = v => {
+    const n = parseFloat(v);
+    if(isNaN(n)) return '—';
+    if(n >= 1e9) return (n/1e9).toFixed(2)+'B';
+    if(n >= 1e6) return (n/1e6).toFixed(2)+'M';
+    return n.toLocaleString('en-US');
+  };
+  const fmtPct = v => { const n=parseFloat(v); return isNaN(n) ? '—' : (n*(Math.abs(n)<=1?100:1)).toFixed(1)+'%'; };
+
+  grid.innerHTML = [
+    fundStat('Market Cap', fmtMarketCap(latest.MarketCap)),
+    fundStat('P/E (Trailing)', fmtNum(latest.PE_Trailing)),
+    fundStat('P/E (Forward)', fmtNum(latest.PE_Forward)),
+    fundStat('P/B Ratio', fmtNum(latest.PB_Ratio)),
+    fundStat('EPS (Trailing)', fmtNum(latest.EPS_Trailing)),
+    fundStat('EPS (Forward)', fmtNum(latest.EPS_Forward)),
+    fundStat('Dividend Payout Ratio', fmtPct(latest.DividendPayoutRatio)),
+    fundStat('Ex-Dividend Date', latest.ExDividendDate || '—'),
+    fundStat('Earnings Date', latest.EarningsDate || '—'),
+    fundStat('Analyst Rec. (Mean)', latest.RecommendationMean ? `${fmtNum(latest.RecommendationMean,2)} (${latest.RecommendationKey||'—'})` : '—'),
+    fundStat('Number of Analysts', latest.NumberOfAnalysts || '—'),
+    fundStat('Price Target (Low – High)', (latest.PriceTargetLow && latest.PriceTargetHigh) ? `${fmtNum(latest.PriceTargetLow)} – ${fmtNum(latest.PriceTargetHigh)}` : '—'),
+    fundStat('Price Target (Mean)', fmtNum(latest.PriceTargetMean)),
+    fundStat('Price Target (Median)', fmtNum(latest.PriceTargetMedian)),
+  ].join('');
+
+  asOfEl.textContent = `Fundamentals as of ${latest.Created_at} · Source: ${latest.Source||'—'}`;
 }
 
 load();
