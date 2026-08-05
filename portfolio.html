@@ -22,6 +22,7 @@
   .summary-value.up, .summary-pct.up{color:var(--gain);}
   .summary-value.down, .summary-pct.down{color:var(--loss);}
   .summary-value.flat, .summary-pct.flat{color:var(--muted);}
+  .summary-fx{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);margin-top:3px;}
 
   .section-title{font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;margin:28px 0 4px;padding-bottom:8px;border-bottom:1px solid var(--line);}
 
@@ -49,15 +50,21 @@
   thead th{text-align:left;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:12px 8px 8px;border-bottom:1px solid var(--line);}
   thead th.num{text-align:right;}
   tbody td{padding:10px 8px;border-bottom:1px solid var(--line);font-size:13px;}
+  tbody tr.position-row td{padding:6px 8px;}
   tbody tr.section-row, tbody tr.subgroup-row, tbody tr.subsubgroup-row{cursor:pointer;user-select:none;}
-  tbody tr.section-row td{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);padding:20px 8px 6px;font-weight:600;}
-  tbody tr.subgroup-row td{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:12px 8px 4px;font-weight:600;}
-  tbody tr.subsubgroup-row td{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);padding:8px 8px 4px;font-weight:500;opacity:.85;}
+  /* Font-Size bewusst NICHT hier gesetzt (Punkt 4: soll auf die gleiche
+     Grösse wie Positionszeilen fallen - td erbt 13px, .chg-Zellen erben
+     12px von der globalen .chg-Regel, exakt wie bei den Positionen). */
+  tbody tr.section-row td{font-family:'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);padding:20px 8px 6px;font-weight:600;}
+  tbody tr.subgroup-row td{font-family:'IBM Plex Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:12px 8px 4px;font-weight:600;}
+  tbody tr.subsubgroup-row td{font-family:'IBM Plex Mono',monospace;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);padding:8px 8px 4px;font-weight:500;opacity:.85;}
   tbody tr.subsubgroup-row td.price, tbody tr.subsubgroup-row td.chg{font-family:'IBM Plex Mono',monospace;text-transform:none;letter-spacing:0;}
   /* Titel/Subtitel bewusst linksbündig, NICHT eingezogen - nur die
      Wertschriften-Zeilen selbst sind eingerückt (s. tr.position-row). */
   tbody tr.section-row td.price, tbody tr.subgroup-row td.price,
   tbody tr.section-row td.chg, tbody tr.subgroup-row td.chg{font-family:'IBM Plex Mono',monospace;text-transform:none;letter-spacing:0;}
+  tbody tr.grand-total-row td{font-family:'IBM Plex Mono',monospace;text-transform:none;letter-spacing:0;color:var(--text);font-weight:700;padding:14px 8px;border-top:2px solid var(--accent);border-bottom:2px solid var(--accent);background:var(--panel);}
+  tbody tr.grand-total-row td.chg{font-weight:700;}
   tbody tr.position-row td.name{padding-left:26px;}
   .chevron{display:inline-block;width:10px;margin-right:4px;transition:transform .15s;}
   tr.collapsed .chevron{transform:rotate(-90deg);}
@@ -239,40 +246,71 @@ async function load(){
       });
     }
 
-    renderSummary(totalChf, positions);
+    /* FX-Anteil je Periode (analog analyser.html "FX Result"): reine
+     * Wechselkursbewegung, nur über USD/EUR-Buckets (OTH ausgeklammert, da
+     * Restgrösse ohne eindeutige FX-Bewegung). */
+    function fxPctChange(fx, periodKey){
+      const nowRate = fx && fx.last ? fx.last.price : null;
+      const refRate = fx && fx[periodKey] ? fx[periodKey].price : null;
+      if(nowRate===null || refRate===null || !refRate) return null;
+      return (nowRate-refRate)/refRate;
+    }
+    function fxResultForPeriod(byCurrency, periodKey){
+      let sum = 0, any = false;
+      for(const ccy of ['USD','EUR']){
+        const pct = fxPctChange(fxByCurrency[ccy], periodKey);
+        if(pct===null) continue;
+        sum += (byCurrency[ccy]||0) * pct;
+        any = true;
+      }
+      return any ? sum : null;
+    }
+    const fxResults = {
+      day: fxResultForPeriod(byCurrency, 'day'),
+      week: fxResultForPeriod(byCurrency, 'week'),
+      ten_day: fxResultForPeriod(byCurrency, 'ten_day'),
+      month: fxResultForPeriod(byCurrency, 'month'),
+    };
+
+    renderSummary(totalChf, positions, fxResults);
     renderCurrencyChart(byCurrency, totalChf);
     renderInstrumentChart(byInstrument, totalChf);
     renderPerformers(positions);
     renderBoard(positions, totalChf);
 
-    document.getElementById('statusText').textContent = 'live · ' + new Date().toLocaleTimeString('en-US');
+    document.getElementById('statusText').textContent = pricesJson.generated_at
+      ? 'data as of ' + fmtShortDateTime(new Date(pricesJson.generated_at))
+      : 'live';
   }catch(e){
     document.getElementById('boardBody').innerHTML = `<tr><td colspan="9" class="error">Error: ${e.message}</td></tr>`;
     document.getElementById('statusText').textContent = 'Error';
   }
 }
 
-function summaryTile(label, positions, refField){
+function summaryTile(label, positions, refField, fxImpact){
   const { delta, pct } = deltaFromPaired(positions, refField);
   const f = fmtPct(pct);
   const dir = delta===null ? 'flat' : f.dir;
+  const fxLine = (fxImpact!==null && fxImpact!==undefined)
+    ? `<div class="summary-fx">FX: ${fmtChfDelta(fxImpact).text} CHF</div>` : '';
   return `<div class="summary-box">
     <div class="summary-label">${label}</div>
     <div class="summary-value ${dir}">${delta!==null?fmtChf(delta):'n/a'}</div>
     <div class="summary-pct ${dir}">${f.text}</div>
+    ${fxLine}
   </div>`;
 }
 
-function renderSummary(total, positions){
+function renderSummary(total, positions, fxResults){
   const html = `
     <div class="summary-box">
       <div class="summary-label">Portfolio Value</div>
       <div class="summary-value">${fmtChf(total)} CHF</div>
     </div>
-    ${summaryTile('Δ Day', positions, 'valDayChf')}
-    ${summaryTile('Δ Week', positions, 'valWeekChf')}
-    ${summaryTile('Δ 10 Days', positions, 'valTenChf')}
-    ${summaryTile('Δ Month', positions, 'valMonthChf')}
+    ${summaryTile('Δ Day', positions, 'valDayChf', fxResults.day)}
+    ${summaryTile('Δ Week', positions, 'valWeekChf', fxResults.week)}
+    ${summaryTile('Δ 10 Days', positions, 'valTenChf', fxResults.ten_day)}
+    ${summaryTile('Δ Month', positions, 'valMonthChf', fxResults.month)}
     <div class="summary-box">
       <div class="summary-label">Number of Positions</div>
       <div class="summary-value">${positions.length}</div>
@@ -426,19 +464,41 @@ function sortPositionsForDisplay(gruppe, positions){
 
 function sumChf(positions){ return positions.reduce((s,p)=> s + (p.valChf||0), 0); }
 
-/* Gruppen-/Subgruppen-Zeile: jetzt zusätzlich mit Δ Day / Δ Week (Punkt 4). */
+/* Gesamt-Total-Zeile: bewusst KEIN data-key/Chevron (nicht klappbar, immer
+ * sichtbar) - im Gegensatz zu Gruppen-/Subgruppen-Zeilen. */
+function totalRow(positions, total){
+  const sum = sumChf(positions);
+  const dDay = deltaFromPaired(positions, 'valDayChf');
+  const dWeek = deltaFromPaired(positions, 'valWeekChf');
+  const dTen = deltaFromPaired(positions, 'valTenChf');
+  const dMonth = deltaFromPaired(positions, 'valMonthChf');
+  return `<tr class="grand-total-row">
+    <td class="name">Total</td><td></td><td></td>
+    <td class="price">100.0%</td>
+    <td class="price">${fmtChf(sum)}</td>
+    ${deltaCell(dDay.delta, dDay.pct)}
+    ${deltaCell(dWeek.delta, dWeek.pct)}
+    ${deltaCell(dTen.delta, dTen.pct)}
+    ${deltaCell(dMonth.delta, dMonth.pct)}
+  </tr>`;
+}
+
+/* Gruppen-/Subgruppen-Zeile: jetzt mit allen 4 Perioden (Day/Week/10 Days/Month). */
 function groupRow(label, positions, cls, total, key, ancestors){
   const sum = sumChf(positions);
   const pctPf = total ? (sum/total)*100 : null;
   const dDay = deltaFromPaired(positions, 'valDayChf');
   const dWeek = deltaFromPaired(positions, 'valWeekChf');
+  const dTen = deltaFromPaired(positions, 'valTenChf');
+  const dMonth = deltaFromPaired(positions, 'valMonthChf');
   return `<tr class="${cls}" data-key="${key}" data-ancestors="${ancestors}">
     <td class="name"><span class="chevron">▾</span>${label}</td><td></td><td></td>
     <td class="price">${pctPf!==null?pctPf.toFixed(1)+'%':'—'}</td>
     <td class="price">${fmtChf(sum)}</td>
     ${deltaCell(dDay.delta, dDay.pct)}
     ${deltaCell(dWeek.delta, dWeek.pct)}
-    <td></td><td></td>
+    ${deltaCell(dTen.delta, dTen.pct)}
+    ${deltaCell(dMonth.delta, dMonth.pct)}
   </tr>`;
 }
 
@@ -505,6 +565,10 @@ function renderBoard(positions, total){
       for(const r of rowsSorted) html += positionRow(r, total, groupKey);
     }
   });
+
+  // Gesamt-Total über alle Positionen - immer sichtbar, kein Klapp-Verhalten.
+  html += totalRow(positions, total);
+
   body.innerHTML = html;
 
   // Standardmässig alles zugeklappt (Punkt 3) - nur beim allerersten Render;
