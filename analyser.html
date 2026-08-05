@@ -94,10 +94,10 @@
   <table id="fxTable">
     <thead><tr>
       <th>Currency</th><th class="num">Value CHF</th><th class="num">PF %</th>
-      <th class="num">Δ Tag</th><th class="num">Δ Woche</th><th class="num">Δ 10 Tage</th>
-      <th class="num">Δ Monat</th><th class="num">Δ YTD</th><th class="num">Δ 1 Jahr</th>
+      <th class="num">Δ Day</th><th class="num">10D</th><th class="num">30D</th>
+      <th class="num">90D</th><th class="num">360D</th>
     </tr></thead>
-    <tbody id="fxBody"><tr><td colspan="9" class="empty">Loading…</td></tr></tbody>
+    <tbody id="fxBody"><tr><td colspan="8" class="empty">Loading…</td></tr></tbody>
   </table>
   </div>
   <p class="note">Value CHF / PF % entsprechen der Währungsaufteilung aus dem Portfolio-Dashboard (kleine Zahl darunter bei USD/EUR = aktueller FX-Kurs). FX-Performance je Periode ist die reine Wechselkursbewegung (unabhängig vom Kursverlauf der Wertschriften), CHF-Impact = Value CHF × FX-%, darunter jeweils der FX-Kurs zu Periodenbeginn. CHF und OTH haben keine eindeutige FX-Bewegung (CHF per Definition, OTH da Restgrösse über mehrere Währungen) - Periodenspalten bleiben dort leer. FX Result = Summe des USD/EUR-FX-Impacts. Total = tatsächliches Portfolio-Ergebnis (identisch zum Dashboard), Value CHF in dieser Zeile = Gesamtportfoliowert. LC Result = Total − FX Result (Rest-Effekt aus Kursbewegung + OTH-Bucket). Alle drei Ergebniszeilen sind in CHF sowie als Anteil am aktuellen Portfoliowert ausgewiesen.</p>
@@ -126,16 +126,15 @@ function fmtChfSigned(v){
 }
 
 const PERIODS = [
-  { key:'day',    label:'Δ Tag' },
-  { key:'week',   label:'Δ Woche' },
-  { key:'ten_day',label:'Δ 10 Tage' },
-  { key:'month',  label:'Δ Monat' },
-  { key:'ytd',    label:'Δ YTD' },
-  { key:'year',   label:'Δ 1 Jahr' },
+  { key:'day',            label:'Δ Day' },
+  { key:'ten_day',        label:'10D' },
+  { key:'thirty_day',     label:'30D' },
+  { key:'ninety_day',     label:'90D' },
+  { key:'three_sixty_day',label:'360D' },
 ];
 const FIELD_BY_PERIOD = {
-  day:'valDayChf', week:'valWeekChf', ten_day:'valTenChf',
-  month:'valMonthChf', ytd:'valYtdChf', year:'valYearChf',
+  day:'valDayChf', ten_day:'valTenChf', thirty_day:'valThirtyChf',
+  ninety_day:'valNinetyChf', three_sixty_day:'val360Chf',
 };
 
 /* Gepaarte Summe (wie in portfolio.html): nur Positionen, die SOWOHL einen
@@ -239,11 +238,10 @@ async function load(){
       positions.push({
         valChf,
         valDayChf: valueAt(qty, entry, 'day', m.Currency),
-        valWeekChf: valueAt(qty, entry, 'week', m.Currency),
         valTenChf: valueAt(qty, entry, 'ten_day', m.Currency),
-        valMonthChf: valueAt(qty, entry, 'month', m.Currency),
-        valYtdChf: valueAt(qty, entry, 'ytd', m.Currency),
-        valYearChf: valueAt(qty, entry, 'year', m.Currency),
+        valThirtyChf: valueAt(qty, entry, 'thirty_day', m.Currency),
+        valNinetyChf: valueAt(qty, entry, 'ninety_day', m.Currency),
+        val360Chf: valueAt(qty, entry, 'three_sixty_day', m.Currency),
       });
     }
 
@@ -259,7 +257,7 @@ async function load(){
       document.getElementById('riskBody').innerHTML = `<tr><td colspan="5" class="error">Fehler: ${e.message}</td></tr>`;
     });
   }catch(e){
-    document.getElementById('fxBody').innerHTML = `<tr><td colspan="9" class="error">Fehler: ${e.message}</td></tr>`;
+    document.getElementById('fxBody').innerHTML = `<tr><td colspan="8" class="error">Fehler: ${e.message}</td></tr>`;
     document.getElementById('statusText').textContent = 'Fehler';
   }
 }
@@ -304,7 +302,7 @@ function resultRow(label, valuesByPeriod, totalChf, valueChfDisplay){
 
 function renderFxTable(byCurrency, totalChf, fxByCurrency, positions, fxSecurityId){
   const body = document.getElementById('fxBody');
-  if(!totalChf){ body.innerHTML = '<tr><td colspan="9" class="empty">Keine Daten.</td></tr>'; return; }
+  if(!totalChf){ body.innerHTML = '<tr><td colspan="8" class="empty">Keine Daten.</td></tr>'; return; }
 
   const order = ['USD','EUR','CHF','OTH'];
   let html = '';
@@ -632,14 +630,14 @@ function yieldCell(pct){
   return `<td class="price">${pct!==null ? pct.toFixed(2)+'%' : '-'}</td>`;
 }
 
-// Gleiche Spaltenbreiten in allen Market-Group-Tabellen (Punkt 4 aus dem
-// vorherigen Auftrag): fixes Layout via colgroup, identisch für jede
-// Tabelle, unabhängig vom jeweiligen Inhalt. Spalten: Security, Yield, 6x Periode.
+// Gleiche Spaltenbreiten in allen Market-Group-Tabellen: fixes Layout via
+// colgroup, identisch für jede Tabelle, unabhängig vom jeweiligen Inhalt.
+// Spalten: Security, Yield, 5x Periode.
 const MG_COLGROUP = `<colgroup>
   <col style="width:34%">
   <col style="width:10%">
-  <col style="width:9.333%"><col style="width:9.333%"><col style="width:9.333%">
-  <col style="width:9.333%"><col style="width:9.333%"><col style="width:9.333%">
+  <col style="width:11.2%"><col style="width:11.2%"><col style="width:11.2%">
+  <col style="width:11.2%"><col style="width:11.2%">
 </colgroup>`;
 
 function renderMarketGroupTable(groupLabel, candidates, fxByCurrency, distBySecId){

@@ -63,6 +63,17 @@
      Wertschriften-Zeilen selbst sind eingerückt (s. tr.position-row). */
   tbody tr.section-row td.price, tbody tr.subgroup-row td.price,
   tbody tr.section-row td.chg, tbody tr.subgroup-row td.chg{font-family:'IBM Plex Mono',monospace;text-transform:none;letter-spacing:0;}
+  /* Punkt: bei den Top-Level-Gruppen (Shares/Bonds/Alternative) sollen die
+     %- und Value-Zellen schwarz sein statt die vom Zeilen-Label geerbte
+     Akzentfarbe (Rot) - der Name bleibt bewusst weiterhin farbig für die
+     visuelle Hierarchie. */
+  tbody tr.section-row td.price{color:var(--text);}
+
+  .definitions{margin-top:16px;padding:14px 16px;background:var(--panel);border:1px solid var(--line);border-radius:4px;}
+  .definitions summary{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);cursor:pointer;}
+  .definitions dl{margin:12px 0 0;font-size:12.5px;}
+  .definitions dt{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--text);margin-top:8px;}
+  .definitions dd{margin:2px 0 0;color:var(--muted);}
   tbody tr.grand-total-row td{font-family:'IBM Plex Mono',monospace;text-transform:none;letter-spacing:0;color:var(--text);font-weight:700;padding:14px 8px;border-top:2px solid var(--accent);border-bottom:2px solid var(--accent);background:var(--panel);}
   tbody tr.grand-total-row td.chg{font-weight:700;}
   tbody tr.position-row td.name{padding-left:26px;}
@@ -135,13 +146,31 @@
   <table id="boardTable">
     <thead><tr>
       <th>Position</th><th class="num">Quantity</th><th class="num">Price</th><th class="num">% PF</th>
-      <th class="num">Value CHF</th><th class="num">Δ Day</th><th class="num">Δ Week</th>
-      <th class="num">Δ 10 Days</th><th class="num">Δ Month</th>
+      <th class="num">Value CHF</th><th class="num">Δ Day</th><th class="num">WTD</th>
+      <th class="num">10D</th><th class="num">MTD</th><th class="num">90D</th><th class="num">360D</th>
     </tr></thead>
-    <tbody id="boardBody"><tr><td colspan="9" class="empty">Loading…</td></tr></tbody>
+    <tbody id="boardBody"><tr><td colspan="11" class="empty">Loading…</td></tr></tbody>
   </table>
   </div>
   <p class="note">Click a group or subgroup header to expand/collapse it. FX conversion uses the self-collected "XXX/CHF" security prices at the matching reference date. Δ values (including group/subtotal rows) are only computed across positions that actually have a price at the given reference date - if missing, that position is treated as "n/a" for that one period instead of being counted as 0 or distorting the total.</p>
+
+  <details class="definitions">
+    <summary>Period Definitions</summary>
+    <dl>
+      <dt>Δ Day</dt>
+      <dd>vs. previous trading day's closing price.</dd>
+      <dt>WTD (Week-to-Date)</dt>
+      <dd>vs. the closing price of the weekend before this week - Sunday for 7-day-collected securities (FX/crypto/commodities), Friday for weekday-only securities.</dd>
+      <dt>10D (10 Days)</dt>
+      <dd>vs. the closing price 10 calendar days ago - rolling, not calendar-aligned.</dd>
+      <dt>MTD (Month-to-Date)</dt>
+      <dd>vs. the last available price of the prior calendar month (e.g. 31.07. as the reference for August) - not a rolling 30-day offset.</dd>
+      <dt>90D (90 Days)</dt>
+      <dd>vs. the closing price 90 calendar days ago - rolling.</dd>
+      <dt>360D (360 Days)</dt>
+      <dd>vs. the closing price 360 calendar days ago - rolling.</dd>
+    </dl>
+  </details>
 </div>
 
 <script src="assets/github-data.js"></script>
@@ -223,9 +252,11 @@ async function load(){
       const last = { Price: entry.last.price };
       const valChf = valueAt(qty, entry, 'last', m.Currency);
       const valDayChf = valueAt(qty, entry, 'day', m.Currency);
-      const valWeekChf = valueAt(qty, entry, 'week', m.Currency);
+      const valWtdChf = valueAt(qty, entry, 'wtd', m.Currency);
       const valTenChf = valueAt(qty, entry, 'ten_day', m.Currency);
-      const valMonthChf = valueAt(qty, entry, 'month', m.Currency);
+      const valMtdChf = valueAt(qty, entry, 'mtd', m.Currency);
+      const valNinetyChf = valueAt(qty, entry, 'ninety_day', m.Currency);
+      const val360Chf = valueAt(qty, entry, 'three_sixty_day', m.Currency);
 
       if(valChf!==null){
         totalChf += valChf;
@@ -242,7 +273,7 @@ async function load(){
       positions.push({
         name:m.SecurityName, secId:m.SecurityID, currency:m.Currency, qty, last, gruppe, subgruppe,
         instrument: m.Instrument || '',
-        valChf, valDayChf, valWeekChf, valTenChf, valMonthChf,
+        valChf, valDayChf, valWtdChf, valTenChf, valMtdChf, valNinetyChf, val360Chf,
       });
     }
 
@@ -267,9 +298,11 @@ async function load(){
     }
     const fxResults = {
       day: fxResultForPeriod(byCurrency, 'day'),
-      week: fxResultForPeriod(byCurrency, 'week'),
+      wtd: fxResultForPeriod(byCurrency, 'wtd'),
       ten_day: fxResultForPeriod(byCurrency, 'ten_day'),
-      month: fxResultForPeriod(byCurrency, 'month'),
+      mtd: fxResultForPeriod(byCurrency, 'mtd'),
+      ninety_day: fxResultForPeriod(byCurrency, 'ninety_day'),
+      three_sixty_day: fxResultForPeriod(byCurrency, 'three_sixty_day'),
     };
 
     renderSummary(totalChf, positions, fxResults);
@@ -282,17 +315,22 @@ async function load(){
       ? 'data as of ' + fmtShortDateTime(new Date(pricesJson.generated_at))
       : 'live';
   }catch(e){
-    document.getElementById('boardBody').innerHTML = `<tr><td colspan="9" class="error">Error: ${e.message}</td></tr>`;
+    document.getElementById('boardBody').innerHTML = `<tr><td colspan="11" class="error">Error: ${e.message}</td></tr>`;
     document.getElementById('statusText').textContent = 'Error';
   }
 }
 
-function summaryTile(label, positions, refField, fxImpact){
+function summaryTile(label, positions, refField, fxImpact, totalChf){
   const { delta, pct } = deltaFromPaired(positions, refField);
   const f = fmtPct(pct);
   const dir = delta===null ? 'flat' : f.dir;
-  const fxLine = (fxImpact!==null && fxImpact!==undefined)
-    ? `<div class="summary-fx">FX: ${fmtChfDelta(fxImpact).text} CHF</div>` : '';
+  let fxLine = '';
+  if(fxImpact!==null && fxImpact!==undefined){
+    const fxChf = fmtChfDelta(fxImpact);
+    const fxPctOfPf = totalChf ? (fxImpact/totalChf)*100 : null;
+    const fxPctText = fxPctOfPf!==null ? fmtPct(fxPctOfPf).text : '—';
+    fxLine = `<div class="summary-fx">FX: ${fxChf.text}/${fxPctText}</div>`;
+  }
   return `<div class="summary-box">
     <div class="summary-label">${label}</div>
     <div class="summary-value ${dir}">${delta!==null?fmtChf(delta):'n/a'}</div>
@@ -307,14 +345,12 @@ function renderSummary(total, positions, fxResults){
       <div class="summary-label">Portfolio Value</div>
       <div class="summary-value">${fmtChf(total)} CHF</div>
     </div>
-    ${summaryTile('Δ Day', positions, 'valDayChf', fxResults.day)}
-    ${summaryTile('Δ Week', positions, 'valWeekChf', fxResults.week)}
-    ${summaryTile('Δ 10 Days', positions, 'valTenChf', fxResults.ten_day)}
-    ${summaryTile('Δ Month', positions, 'valMonthChf', fxResults.month)}
-    <div class="summary-box">
-      <div class="summary-label">Number of Positions</div>
-      <div class="summary-value">${positions.length}</div>
-    </div>
+    ${summaryTile('Δ Day', positions, 'valDayChf', fxResults.day, total)}
+    ${summaryTile('WTD', positions, 'valWtdChf', fxResults.wtd, total)}
+    ${summaryTile('10D', positions, 'valTenChf', fxResults.ten_day, total)}
+    ${summaryTile('MTD', positions, 'valMtdChf', fxResults.mtd, total)}
+    ${summaryTile('90D', positions, 'valNinetyChf', fxResults.ninety_day, total)}
+    ${summaryTile('360D', positions, 'val360Chf', fxResults.three_sixty_day, total)}
   `;
   document.getElementById('summaryBoxes').innerHTML = html;
 }
@@ -401,12 +437,12 @@ function renderPerformers(positions){
     }).join('');
   }
 
-  // 2x2-Raster: oben Tag (links Top / rechts Bottom), unten Woche (links Top / rechts Bottom).
+  // 2x2-Raster: oben Tag (links Top / rechts Bottom), unten 10 Tage (links Top / rechts Bottom).
   const html = `
     <div class="perf-col"><h3>Top 5 · Day</h3><ul class="perf-list">${listHtml(rankedList('valDayChf', true))}</ul></div>
     <div class="perf-col"><h3>Bottom 5 · Day</h3><ul class="perf-list">${listHtml(rankedList('valDayChf', false))}</ul></div>
-    <div class="perf-col"><h3>Top 5 · Week</h3><ul class="perf-list">${listHtml(rankedList('valWeekChf', true))}</ul></div>
-    <div class="perf-col"><h3>Bottom 5 · Week</h3><ul class="perf-list">${listHtml(rankedList('valWeekChf', false))}</ul></div>
+    <div class="perf-col"><h3>Top 5 · 10D</h3><ul class="perf-list">${listHtml(rankedList('valTenChf', true))}</ul></div>
+    <div class="perf-col"><h3>Bottom 5 · 10D</h3><ul class="perf-list">${listHtml(rankedList('valTenChf', false))}</ul></div>
   `;
   document.getElementById('perfGrid').innerHTML = html;
 }
@@ -419,7 +455,8 @@ function deltaCell(delta, pct){
 
 function positionRow(r, total, ancestors){
   const pctPf = (r.valChf!==null && total) ? (r.valChf/total)*100 : null;
-  const dDay = deltaOf1(r, 'valDayChf'), dWeek = deltaOf1(r, 'valWeekChf'), dTen = deltaOf1(r, 'valTenChf'), dMonth = deltaOf1(r, 'valMonthChf');
+  const dDay = deltaOf1(r, 'valDayChf'), dWtd = deltaOf1(r, 'valWtdChf'), dTen = deltaOf1(r, 'valTenChf'),
+        dMtd = deltaOf1(r, 'valMtdChf'), dNinety = deltaOf1(r, 'valNinetyChf'), d360 = deltaOf1(r, 'val360Chf');
   return `<tr class="position-row" data-ancestors="${ancestors}">
     <td class="name"><a href="security.html?id=${encodeURIComponent(r.secId)}">${r.name}</a></td>
     <td class="price">${r.qty}</td>
@@ -427,9 +464,11 @@ function positionRow(r, total, ancestors){
     <td class="price">${pctPf!==null?pctPf.toFixed(1)+'%':'—'}</td>
     <td class="price">${fmtChf(r.valChf)}</td>
     ${deltaCell(dDay.delta, dDay.pct)}
-    ${deltaCell(dWeek.delta, dWeek.pct)}
+    ${deltaCell(dWtd.delta, dWtd.pct)}
     ${deltaCell(dTen.delta, dTen.pct)}
-    ${deltaCell(dMonth.delta, dMonth.pct)}
+    ${deltaCell(dMtd.delta, dMtd.pct)}
+    ${deltaCell(dNinety.delta, dNinety.pct)}
+    ${deltaCell(d360.delta, d360.pct)}
   </tr>`;
 }
 function deltaOf1(p, field){
@@ -469,36 +508,44 @@ function sumChf(positions){ return positions.reduce((s,p)=> s + (p.valChf||0), 0
 function totalRow(positions, total){
   const sum = sumChf(positions);
   const dDay = deltaFromPaired(positions, 'valDayChf');
-  const dWeek = deltaFromPaired(positions, 'valWeekChf');
+  const dWtd = deltaFromPaired(positions, 'valWtdChf');
   const dTen = deltaFromPaired(positions, 'valTenChf');
-  const dMonth = deltaFromPaired(positions, 'valMonthChf');
+  const dMtd = deltaFromPaired(positions, 'valMtdChf');
+  const dNinety = deltaFromPaired(positions, 'valNinetyChf');
+  const d360 = deltaFromPaired(positions, 'val360Chf');
   return `<tr class="grand-total-row">
     <td class="name">Total</td><td></td><td></td>
     <td class="price">100.0%</td>
     <td class="price">${fmtChf(sum)}</td>
     ${deltaCell(dDay.delta, dDay.pct)}
-    ${deltaCell(dWeek.delta, dWeek.pct)}
+    ${deltaCell(dWtd.delta, dWtd.pct)}
     ${deltaCell(dTen.delta, dTen.pct)}
-    ${deltaCell(dMonth.delta, dMonth.pct)}
+    ${deltaCell(dMtd.delta, dMtd.pct)}
+    ${deltaCell(dNinety.delta, dNinety.pct)}
+    ${deltaCell(d360.delta, d360.pct)}
   </tr>`;
 }
 
-/* Gruppen-/Subgruppen-Zeile: jetzt mit allen 4 Perioden (Day/Week/10 Days/Month). */
+/* Gruppen-/Subgruppen-Zeile: mit allen 6 Perioden. */
 function groupRow(label, positions, cls, total, key, ancestors){
   const sum = sumChf(positions);
   const pctPf = total ? (sum/total)*100 : null;
   const dDay = deltaFromPaired(positions, 'valDayChf');
-  const dWeek = deltaFromPaired(positions, 'valWeekChf');
+  const dWtd = deltaFromPaired(positions, 'valWtdChf');
   const dTen = deltaFromPaired(positions, 'valTenChf');
-  const dMonth = deltaFromPaired(positions, 'valMonthChf');
+  const dMtd = deltaFromPaired(positions, 'valMtdChf');
+  const dNinety = deltaFromPaired(positions, 'valNinetyChf');
+  const d360 = deltaFromPaired(positions, 'val360Chf');
   return `<tr class="${cls}" data-key="${key}" data-ancestors="${ancestors}">
     <td class="name"><span class="chevron">▾</span>${label}</td><td></td><td></td>
     <td class="price">${pctPf!==null?pctPf.toFixed(1)+'%':'—'}</td>
     <td class="price">${fmtChf(sum)}</td>
     ${deltaCell(dDay.delta, dDay.pct)}
-    ${deltaCell(dWeek.delta, dWeek.pct)}
+    ${deltaCell(dWtd.delta, dWtd.pct)}
     ${deltaCell(dTen.delta, dTen.pct)}
-    ${deltaCell(dMonth.delta, dMonth.pct)}
+    ${deltaCell(dMtd.delta, dMtd.pct)}
+    ${deltaCell(dNinety.delta, dNinety.pct)}
+    ${deltaCell(d360.delta, d360.pct)}
   </tr>`;
 }
 
@@ -508,7 +555,7 @@ const INSTRUMENT_SPLIT_SUBGROUPS = new Set(['Switzerland', 'USA']);
 
 function renderBoard(positions, total){
   const body = document.getElementById('boardBody');
-  if(!positions.length){ body.innerHTML = '<tr><td colspan="9" class="empty">No positions with Quantity &gt; 0 found.</td></tr>'; return; }
+  if(!positions.length){ body.innerHTML = '<tr><td colspan="11" class="empty">No positions with Quantity &gt; 0 found.</td></tr>'; return; }
 
   const groups = {};
   for(const p of positions) (groups[p.gruppe]=groups[p.gruppe]||[]).push(p);

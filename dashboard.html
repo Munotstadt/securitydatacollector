@@ -9,7 +9,7 @@
   :root{ --bg:#fff;--panel:#F7F8FA;--line:#E3E6EA;--text:#1A1D22;--muted:#767E8A;--accent:#E30613;--gain:#1F8A6E;--loss:#C0293D; }
   *{box-sizing:border-box;}
   body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;padding:40px 16px 80px;display:flex;flex-direction:column;align-items:center;}
-  .board{width:100%;max-width:900px;}
+  .board{width:100%;max-width:960px;}
   .eyebrow{display:flex;align-items:center;justify-content:space-between;padding-bottom:16px;border-bottom:2px solid var(--accent);}
   .brand h1{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:20px;text-transform:uppercase;letter-spacing:.02em;margin:0;}
   .brand span{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);}
@@ -32,6 +32,11 @@
   .error{color:var(--loss);}
   .footer{margin-top:20px;display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);}
   .footer button{background:none;border:1px solid var(--line);color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:12px;padding:6px 12px;border-radius:3px;cursor:pointer;}
+  .definitions{margin-top:28px;padding:14px 16px;background:var(--panel);border:1px solid var(--line);border-radius:4px;}
+  .definitions summary{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);cursor:pointer;}
+  .definitions dl{margin:12px 0 0;font-size:12.5px;}
+  .definitions dt{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--text);margin-top:8px;}
+  .definitions dd{margin:2px 0 0;color:var(--muted);}
   @media (max-width:700px){
     #boardTable thead th:nth-child(4), #boardTable tbody td:nth-child(4){display:none;}
   }
@@ -69,34 +74,41 @@
   <input type="text" id="search" class="search-input" placeholder="Wertschrift suchen…">
   <table id="boardTable">
     <thead><tr>
-      <th>Security</th><th class="num">Last</th><th class="num">Δ Vortag</th>
-      <th class="num">Δ Woche</th><th class="num">Δ Monat</th><th class="num">Zeit</th>
+      <th>Security</th><th class="num">Last</th><th class="num">Δ Day</th>
+      <th class="num">WTD</th><th class="num">MTD</th><th class="num">YTD</th><th class="num">Zeit</th>
     </tr></thead>
-    <tbody id="boardBody"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
+    <tbody id="boardBody"><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
   </table>
   <div class="footer">
     <span id="lastSynced">—</span>
     <button id="refreshBtn">Refresh</button>
   </div>
+
+  <details class="definitions">
+    <summary>Period Definitions</summary>
+    <dl>
+      <dt>Δ Day</dt>
+      <dd>vs. previous trading day's closing price.</dd>
+      <dt>WTD (Week-to-Date)</dt>
+      <dd>vs. the closing price of the weekend before this week - Sunday for 7-day-collected securities (FX/crypto/commodities), Friday for weekday-only securities.</dd>
+      <dt>MTD (Month-to-Date)</dt>
+      <dd>vs. the last available price of the prior calendar month (e.g. 31.07. as the reference for August) - not a rolling 30-day offset.</dd>
+      <dt>YTD (Year-to-Date)</dt>
+      <dd>vs. the last available price of the prior calendar year (31.12.) - not a rolling 365-day offset.</dd>
+    </dl>
+  </details>
 </div>
 
 <script src="assets/github-data.js"></script>
 <script>
 const REFRESH_MS = 5 * 60 * 1000;
 
-function daysAgo(d, n){ const r = new Date(d); r.setDate(r.getDate()-n); return r; }
-function startOfYear(d){ return new Date(d.getFullYear(),0,1); }
 function pctChange(now, ref){ return (ref===0||ref==null||now==null) ? null : ((now-ref)/ref)*100; }
 function fmtPct(v){
   if (v===null||v===undefined||isNaN(v)) return {text:'—',dir:'flat'};
   const r = Math.round(v*100)/100;
   const dir = r>0?'up':(r<0?'down':'flat');
   return {text:`${r>0?'+':''}${r.toFixed(2)}%`, dir};
-}
-function findOnOrBefore(sorted, date){
-  let best=null;
-  for(const r of sorted){ if(r.dt<=date && (!best||r.dt>best.dt)) best=r; }
-  return best;
 }
 
 async function load(){
@@ -114,13 +126,14 @@ async function load(){
       const entry = bySecurity[m.SecurityID];
       const last = entry ? toObs(entry.last) : null;
       const day = entry ? toObs(entry.day) : null;
-      const refWeek = entry ? toObs(entry.week) : null;
-      const refMonth = entry ? toObs(entry.month) : null;
+      const wtd = entry ? toObs(entry.wtd) : null;
+      const mtd = entry ? toObs(entry.mtd) : null;
+      const ytd = entry ? toObs(entry.ytd) : null;
 
       const instrument = m.Instrument || 'Sonstige';
       (groups[instrument] = groups[instrument] || []).push({
         name: m.SecurityName, currency: m.Currency, secId: m.SecurityID, instrument,
-        last, prev: day, refWeek, refMonth,
+        last, prev: day, wtd, mtd, ytd,
       });
     }
 
@@ -129,7 +142,7 @@ async function load(){
     const genAt = pricesJson.generated_at ? fmtShortDateTime(new Date(pricesJson.generated_at)) : '—';
     document.getElementById('lastSynced').textContent = `Zuletzt aktualisiert (Collector): ${genAt} · geladen: ` + new Date().toLocaleTimeString('de-CH');
   }catch(e){
-    document.getElementById('boardBody').innerHTML = `<tr><td colspan="6" class="error">Fehler: ${e.message}</td></tr>`;
+    document.getElementById('boardBody').innerHTML = `<tr><td colspan="7" class="error">Fehler: ${e.message}</td></tr>`;
     document.getElementById('statusText').textContent = 'Fehler';
   }
 }
@@ -148,26 +161,28 @@ function renderBoard(groups){
     const rows = groups[instrument].filter(r => !filter || r.name.toLowerCase().includes(filter));
     if(!rows.length) continue;
     any = true;
-    html += `<tr class="section-row"><td colspan="6">${instrument}</td></tr>`;
+    html += `<tr class="section-row"><td colspan="7">${instrument}</td></tr>`;
     for(const r of rows){
       const lastAmt = r.last ? r.last.Price : null;
-      const dPrev = fmtPct(pctChange(lastAmt, r.prev ? r.prev.Price : null));
-      const dWeek = fmtPct(pctChange(lastAmt, r.refWeek ? r.refWeek.Price : null));
-      const dMonth = fmtPct(pctChange(lastAmt, r.refMonth ? r.refMonth.Price : null));
-      const dirClass = dPrev.dir;
+      const dDay = fmtPct(pctChange(lastAmt, r.prev ? r.prev.Price : null));
+      const dWtd = fmtPct(pctChange(lastAmt, r.wtd ? r.wtd.Price : null));
+      const dMtd = fmtPct(pctChange(lastAmt, r.mtd ? r.mtd.Price : null));
+      const dYtd = fmtPct(pctChange(lastAmt, r.ytd ? r.ytd.Price : null));
+      const dirClass = dDay.dir;
       const decimals = r.instrument === 'Currency' ? 4 : 2;
       const timeStr = r.last ? fmtShortDateTime(r.last.dt) : '—';
       html += `<tr class="${dirClass}">
         <td class="name"><a href="security.html?id=${encodeURIComponent(r.secId)}">${r.name}</a></td>
         <td class="price">${lastAmt!==null ? fmtDecimal(lastAmt, decimals) : '—'}<span class="ccy">${r.currency||''}</span></td>
-        <td class="chg ${dPrev.dir}">${dPrev.text}</td>
-        <td class="chg ${dWeek.dir}">${dWeek.text}</td>
-        <td class="chg ${dMonth.dir}">${dMonth.text}</td>
+        <td class="chg ${dDay.dir}">${dDay.text}</td>
+        <td class="chg ${dWtd.dir}">${dWtd.text}</td>
+        <td class="chg ${dMtd.dir}">${dMtd.text}</td>
+        <td class="chg ${dYtd.dir}">${dYtd.text}</td>
         <td class="time">${timeStr}</td>
       </tr>`;
     }
   }
-  body.innerHTML = any ? html : '<tr><td colspan="6" class="empty">Keine Treffer.</td></tr>';
+  body.innerHTML = any ? html : '<tr><td colspan="7" class="empty">Keine Treffer.</td></tr>';
 }
 
 document.getElementById('search').addEventListener('input', () => renderBoard(currentGroups));
@@ -175,5 +190,6 @@ document.getElementById('refreshBtn').addEventListener('click', load);
 load();
 setInterval(load, REFRESH_MS);
 </script>
+<script src="assets/version.js"></script>
 </body>
 </html>
