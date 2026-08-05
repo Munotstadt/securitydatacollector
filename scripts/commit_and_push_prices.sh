@@ -20,7 +20,9 @@ set -euo pipefail
 
 COMMIT_MSG="${1:?Usage: commit_and_push_prices.sh <commit-message>}"
 PENDING_PATH="${PENDING_PATH:-${RUNNER_TEMP:-/tmp}/pending_prices.csv}"
+PENDING_LOG_PATH="${RUNNER_TEMP:-/tmp}/pending_collector_run.csv"
 PRICES_PATH="data/security_prices.csv"
+RUN_LOG_PATH="data/collector_runs.csv"
 MAX_RETRIES=8
 BRANCH="${GITHUB_REF_NAME:-main}"
 
@@ -40,11 +42,22 @@ for attempt in $(seq 1 "$MAX_RETRIES"); do
   # Pending-Zeilen (ohne Header) an die frisch geholte CSV anhängen.
   tail -n +2 "$PENDING_PATH" >> "$PRICES_PATH"
 
+  # Collector-Run-Log-Eintrag (Punkt: admin.html "letzte Läufe"-Tabelle) -
+  # falls vom aufrufenden Python-Skript geschrieben, mit anhängen. Datei
+  # ggf. neu anlegen (Header), falls sie noch nicht existiert.
+  if [ -s "$PENDING_LOG_PATH" ]; then
+    if [ ! -f "$RUN_LOG_PATH" ]; then
+      head -n 1 "$PENDING_LOG_PATH" > "$RUN_LOG_PATH"
+    fi
+    tail -n +2 "$PENDING_LOG_PATH" >> "$RUN_LOG_PATH"
+  fi
+
   # Pre-Aggregat neu generieren, damit dashboard.html/portfolio.html nicht
   # mehr die komplette CSV laden müssen (siehe generate_latest_prices.py).
   python scripts/generate_latest_prices.py
 
   git add "$PRICES_PATH" data/latest_prices.json
+  [ -f "$RUN_LOG_PATH" ] && git add "$RUN_LOG_PATH"
   if git diff --cached --quiet; then
     echo "Keine Änderungen nach dem Anhängen - fertig."
     exit 0

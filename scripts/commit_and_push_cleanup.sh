@@ -25,6 +25,7 @@ for attempt in $(seq 1 "$MAX_RETRIES"); do
   python scripts/generate_latest_prices.py
 
   git add data/security_prices.csv data/latest_prices.json
+  [ -f data/collector_runs.csv ] && git add data/collector_runs.csv
   if git diff --cached --quiet; then
     echo "Keine Änderungen - fertig."
     exit 0

@@ -183,6 +183,12 @@ def run():
     if errors:
         print(f"{errors} von {len(active)} Securities konnten nicht abgerufen werden.")
 
+    return len(new_fund_rows), len(new_holding_rows), errors
+
 
 if __name__ == "__main__":
-    run()
+    from run_log import write_pending_log
+    fund_rows_added, holdings_added, errors = run()
+    status = "OK" if errors == 0 else "ERROR"
+    detail = f"{errors} security(ies) failed" if errors else ""
+    write_pending_log("Funds Fundamentals", status, f"{fund_rows_added} funds / {holdings_added} holdings", detail)

@@ -24,6 +24,12 @@ from zoneinfo import ZoneInfo
 ZURICH = ZoneInfo("Europe/Zurich")
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PRICES_PATH = os.path.join(REPO_ROOT, "data", "security_prices.csv")
+RUN_LOG_PATH = os.path.join(REPO_ROOT, "data", "collector_runs.csv")
+RUN_LOG_HEADER = ["CollectorType", "RunAt", "Status", "DataPoints", "Detail"]
+# Wie viele Läufe PRO Collector-Typ maximal behalten werden - admin.html
+# zeigt nur die letzten 5, dieser Puffer ist grosszügiger, damit zwischen
+# zwei Cleanup-Läufen (wöchentlich) nichts vorzeitig fehlt.
+TRIM_KEEP_PER_TYPE = 20
 
 COMPACT_AFTER_DAYS = 11
 # 550 statt 380 Tage: der Analyser braucht für den rollierenden
@@ -31,6 +37,44 @@ COMPACT_AFTER_DAYS = 11
 # FX-Historie (360 + 180 + Puffer) - bei 380 Tagen würde genau die Daten
 # gelöscht, die dafür noch gebraucht werden.
 MAX_AGE_DAYS = 550
+
+
+def now_zurich_str():
+    return datetime.now(ZURICH).strftime("%d.%m.%Y %H:%M:%S")
+
+
+def append_and_trim_run_log(new_row):
+    """Hängt new_row an data/collector_runs.csv an und kürzt die Datei
+    danach auf die letzten TRIM_KEEP_PER_TYPE Einträge PRO Collector-Typ
+    (nicht nur für den Cleanup-Job selbst, sondern für ALLE Typen, die sich
+    seit dem letzten Cleanup-Lauf angesammelt haben - andere Collectors
+    hängen nur an, ohne selbst zu kürzen)."""
+    rows = []
+    if os.path.exists(RUN_LOG_PATH):
+        with open(RUN_LOG_PATH, newline="", encoding="utf-8") as f:
+            rows = list(csv.DictReader(f))
+    rows.append(new_row)
+
+    def parse_dt(r):
+        try:
+            return datetime.strptime(r.get("RunAt", ""), "%d.%m.%Y %H:%M:%S")
+        except ValueError:
+            return datetime.min
+
+    by_type = {}
+    for r in rows:
+        by_type.setdefault(r.get("CollectorType", ""), []).append(r)
+
+    trimmed = []
+    for entries in by_type.values():
+        entries.sort(key=parse_dt, reverse=True)
+        trimmed.extend(entries[:TRIM_KEEP_PER_TYPE])
+    trimmed.sort(key=parse_dt, reverse=True)
+
+    with open(RUN_LOG_PATH, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=RUN_LOG_HEADER)
+        writer.writeheader()
+        writer.writerows(trimmed)
 
 
 def parse_price_date(s):
@@ -104,6 +148,14 @@ def run():
         f"auf 1 Kurs/Tag kompaktiert, zusätzlich {removed} Zeile(n) älter als {MAX_AGE_DAYS} Tage "
         f"gelöscht, {len(rows)} Zeile(n) verbleiben."
     )
+
+    append_and_trim_run_log({
+        "CollectorType": "Weekly Cleanup",
+        "RunAt": now_zurich_str(),
+        "Status": "OK",
+        "DataPoints": f"-{compacted_away} compacted / -{removed} deleted",
+        "Detail": f"{len(rows)} remaining",
+    })
 
 
 if __name__ == "__main__":
