@@ -933,15 +933,14 @@ async function load(){
     const dist12m = distRows.filter(d => d.exDate > oneYearAgo && d.exDate <= now).reduce((s,d)=>s+d.amount,0);
     const yieldPct = last.Price ? (dist12m/last.Price)*100 : null;
 
-    // Yield Change: aktuelle 12M-Rendite vs. die 12M-Rendite von vor genau
-    // 12 Monaten (jeweils Ausschüttungssumme der VORANGEHENDEN 12 Monate
-    // geteilt durch den damaligen Kurs) - zeigt, ob die Dividendenrendite
-    // strukturell steigt oder fällt, nicht nur ob der Kurs schwankt.
+    // Dividend Change: Wachstum der Ausschüttungssumme selbst (letzte 12
+    // Monate vs. die 12 Monate davor), NICHT die Differenz der Rendite in
+    // Prozentpunkten - eine Rendite-Differenz vermischt Dividendenwachstum
+    // mit Kursbewegung und war dadurch missverständlich (Bsp. Sunrise:
+    // Ausschüttung 3.33 -> 3.42 muss +2.7% zeigen, unabhängig vom Kurs).
     const twoYearsAgo = daysAgo(now, 730);
-    const priorYearRef = findOnOrBefore(daily, endOfDay(oneYearAgo));
     const dist12mPrior = distRows.filter(d => d.exDate > twoYearsAgo && d.exDate <= oneYearAgo).reduce((s,d)=>s+d.amount,0);
-    const yieldPctPrior = (priorYearRef && priorYearRef.Price) ? (dist12mPrior/priorYearRef.Price)*100 : null;
-    const yieldChangePct = (yieldPct!==null && yieldPctPrior!==null) ? yieldPct - yieldPctPrior : null;
+    const dividendChangePct = dist12mPrior ? ((dist12m-dist12mPrior)/dist12mPrior)*100 : null;
 
     const returns = [
       { label:'Day', ref: prev }, { label:'WTD', ref: refWtd }, { label:'10D', ref: refTen },
@@ -1057,7 +1056,7 @@ async function load(){
 
     document.getElementById('dividendYieldStats').innerHTML = [
       fundStat('Yield (12M)', yieldPct ? yieldPct.toFixed(2)+'%' : '-'),
-      fundStat('Yield Change (vs. 12M ago)', yieldChangePct!==null ? `${yieldChangePct>0?'+':''}${yieldChangePct.toFixed(2)} pp` : '-'),
+      fundStat('Dividend Change (vs. 12M ago)', dividendChangePct!==null ? `${dividendChangePct>0?'+':''}${dividendChangePct.toFixed(2)}%` : '-'),
     ].join('');
 
     // CSV-Download der kompletten Preishistorie dieser Security: SecurityID,
