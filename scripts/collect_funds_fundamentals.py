@@ -121,9 +121,9 @@ def fetch_fund_data(ticker_symbol):
         "NetAssets": _safe_get(operations, "Total Net Assets", "total net assets"),
         "ExpenseRatio": _safe_get(operations, "Annual Report Expense Ratio"),
         "Category": _safe_get(overview, "categoryName", "category"),
-        "EquityPct": _safe_get(asset_classes, "stock_position", "stocks"),
-        "BondPct": _safe_get(asset_classes, "bond_position", "bonds"),
-        "CashPct": _safe_get(asset_classes, "cash_position", "cash"),
+        "EquityPct": _safe_get(asset_classes, "stockPosition", "stock_position", "stocks"),
+        "BondPct": _safe_get(asset_classes, "bondPosition", "bond_position", "bonds"),
+        "CashPct": _safe_get(asset_classes, "cashPosition", "cash_position", "cash"),
     }
     for key in SECTOR_KEYS:
         fund_row[f"Sector_{key}"] = _safe_get(sector_weightings, key)
