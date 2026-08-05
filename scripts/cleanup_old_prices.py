@@ -1,19 +1,20 @@
 """
 Wöchentlicher Cleanup-Job (läuft 1x pro Woche, siehe Workflow cleanup_weekly.yml).
-Zwei Schritte, in dieser Reihenfolge:
+Drei Stufen, nach Alter der PriceDate-Zeile:
 
-1) KOMPAKTIERUNG (Zeilen älter als COMPACT_AFTER_DAYS Tage):
+1) VOLLE GRANULARITÄT (Zeilen jünger als COMPACT_AFTER_DAYS Tage):
+   Bleiben unverändert - mehrere Kurse/Tag pro Security, damit der
+   Intraday-Chart (10 Tage) auf security.html weiterhin sinnvoll aussieht.
+
+2) TAGES-KOMPAKTIERUNG (COMPACT_AFTER_DAYS bis MONTHLY_AFTER_DAYS Tage alt):
    Pro SecurityID + Kalendertag wird nur noch der zeitlich LETZTE Kurs des
    Tages behalten, alle anderen Beobachtungen dieses Tages werden gelöscht.
-   Das begrenzt das langfristige Wachstum der Datei auf ~1 Zeile/Tag/Security,
-   unabhängig davon, wie oft die Collectors an diesem Tag gelaufen sind.
-   Die letzten COMPACT_AFTER_DAYS Tage bleiben in voller Granularität
-   (mehrere Kurse/Tag) erhalten, damit der Intraday-Chart (10 Tage) auf
-   security.html weiterhin sinnvoll aussieht.
 
-2) LÖSCHUNG (Zeilen älter als MAX_AGE_DAYS Tage):
-   Wird nach der Kompaktierung auf die dann bereits verdichteten Daten
-   angewendet - unverändert wie bisher.
+3) MONATS-KOMPAKTIERUNG (älter als MONTHLY_AFTER_DAYS Tage):
+   Pro SecurityID + Kalendermonat wird nur noch der zeitlich LETZTE Kurs
+   des Monats behalten. Es wird ab hier NICHTS mehr endgültig gelöscht -
+   die Langzeit-Historie bleibt auf Monatsbasis für immer erhalten, statt
+   wie früher komplett zu verfallen.
 """
 
 import csv
@@ -34,11 +35,12 @@ RUN_LOG_HEADER = ["CollectorType", "RunAt", "Status", "DataPoints", "Detail", "T
 TRIM_KEEP_PER_TYPE = 100
 
 COMPACT_AFTER_DAYS = 11
-# 550 statt 380 Tage: der Analyser braucht für den rollierenden
-# 180-Tage-Volatilitäts-Chart (über 360 Tage Verlauf) bis zu ~550 Tage
-# FX-Historie (360 + 180 + Puffer) - bei 380 Tagen würde genau die Daten
-# gelöscht, die dafür noch gebraucht werden.
-MAX_AGE_DAYS = 550
+# Ab hier wird nicht mehr gelöscht, sondern nur noch weiter auf 1 Kurs/Monat
+# verdichtet (vorher: MAX_AGE_DAYS, ab dem komplett gelöscht wurde). 550
+# Tage, weil der Analyser für den rollierenden 180-Tage-Volatilitäts-Chart
+# (über 360 Tage Verlauf) bis zu ~550 Tage volle FX-Historie braucht
+# (360+180+Puffer) - erst danach ist gröbere Auflösung unproblematisch.
+MONTHLY_AFTER_DAYS = 550
 
 
 def now_zurich_str():
@@ -86,41 +88,25 @@ def parse_price_date(s):
         return None
 
 
-def compact_rows(rows, cutoff_recent):
-    """Für Zeilen mit PriceDate < cutoff_recent: nur die zeitlich letzte
-    Zeile pro (SecurityID, Kalendertag) behalten. Zeilen >= cutoff_recent
-    sowie Zeilen mit unparsbarem Datum bleiben unverändert erhalten."""
-    old_by_key = {}  # (SecurityID, date) -> (dt, row)
-    recent_or_unparsable = []
+def compact_by_key(rows, key_fn):
+    """Generische Kompaktierung: pro key_fn(row) wird nur die Zeile mit dem
+    zeitlich spätesten PriceDate behalten. Erwartet, dass ALLE übergebenen
+    Zeilen bereits ein parsbares Datum haben (Aufrufer filtert vorher)."""
+    latest_by_key = {}  # key -> (dt, row)
     compacted_away = 0
 
     for row in rows:
-        dt = parse_price_date(row.get("PriceDate", ""))
-        if dt is None or dt >= cutoff_recent:
-            recent_or_unparsable.append(row)
-            continue
-        key = (row.get("SecurityID", ""), dt.date())
-        existing = old_by_key.get(key)
+        dt = parse_price_date(row["PriceDate"])
+        key = key_fn(row, dt)
+        existing = latest_by_key.get(key)
         if existing is None or dt > existing[0]:
             if existing is not None:
                 compacted_away += 1
-            old_by_key[key] = (dt, row)
+            latest_by_key[key] = (dt, row)
         else:
             compacted_away += 1
 
-    compacted_rows = [row for _dt, row in old_by_key.values()]
-    return recent_or_unparsable + compacted_rows, compacted_away
-
-
-def delete_old_rows(rows, cutoff_expiry):
-    kept, removed = [], 0
-    for row in rows:
-        dt = parse_price_date(row.get("PriceDate", ""))
-        if dt is None or dt >= cutoff_expiry:
-            kept.append(row)
-        else:
-            removed += 1
-    return kept, removed
+    return [row for _dt, row in latest_by_key.values()], compacted_away
 
 
 def run():
@@ -135,10 +121,28 @@ def run():
 
     now = datetime.now(ZURICH).replace(tzinfo=None)
     cutoff_recent = now - timedelta(days=COMPACT_AFTER_DAYS)
-    cutoff_expiry = now - timedelta(days=MAX_AGE_DAYS)
+    cutoff_monthly = now - timedelta(days=MONTHLY_AFTER_DAYS)
 
-    rows, compacted_away = compact_rows(rows, cutoff_recent)
-    rows, removed = delete_old_rows(rows, cutoff_expiry)
+    # In drei Alters-Buckets aufteilen. Zeilen mit unparsbarem Datum werden
+    # sicherheitshalber wie "aktuell" behandelt (nicht verändert/gelöscht).
+    recent, daily_zone, monthly_zone = [], [], []
+    for row in rows:
+        dt = parse_price_date(row.get("PriceDate", ""))
+        if dt is None or dt >= cutoff_recent:
+            recent.append(row)
+        elif dt >= cutoff_monthly:
+            daily_zone.append(row)
+        else:
+            monthly_zone.append(row)
+
+    daily_compacted, compacted_away = compact_by_key(
+        daily_zone, lambda row, dt: (row.get("SecurityID", ""), dt.date())
+    )
+    monthly_compacted, monthly_compacted_away = compact_by_key(
+        monthly_zone, lambda row, dt: (row.get("SecurityID", ""), dt.year, dt.month)
+    )
+
+    rows = recent + daily_compacted + monthly_compacted
 
     with open(PRICES_PATH, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=header)
@@ -146,16 +150,17 @@ def run():
         writer.writerows(rows)
 
     print(
-        f"Cleanup abgeschlossen: {compacted_away} Zeile(n) älter als {COMPACT_AFTER_DAYS} Tage "
-        f"auf 1 Kurs/Tag kompaktiert, zusätzlich {removed} Zeile(n) älter als {MAX_AGE_DAYS} Tage "
-        f"gelöscht, {len(rows)} Zeile(n) verbleiben."
+        f"Cleanup abgeschlossen: {compacted_away} Zeile(n) ({COMPACT_AFTER_DAYS}-{MONTHLY_AFTER_DAYS} Tage alt) "
+        f"auf 1 Kurs/Tag kompaktiert, zusätzlich {monthly_compacted_away} Zeile(n) (älter als "
+        f"{MONTHLY_AFTER_DAYS} Tage) auf 1 Kurs/Monat kompaktiert (keine endgültige Löschung mehr), "
+        f"{len(rows)} Zeile(n) verbleiben."
     )
 
     append_and_trim_run_log({
         "CollectorType": "Weekly Cleanup",
         "RunAt": now_zurich_str(),
         "Status": "OK",
-        "DataPoints": f"-{compacted_away} compacted / -{removed} deleted",
+        "DataPoints": f"-{compacted_away} daily-compacted / -{monthly_compacted_away} monthly-compacted",
         "Detail": f"{len(rows)} remaining",
         "Trigger": trigger_label(),
         "RunID": os.environ.get("GITHUB_RUN_ID", ""),
