@@ -211,7 +211,10 @@
       <button type="button" class="toggle-btn" data-range="12M">12 Months</button>
       <button type="button" class="toggle-btn" data-range="ALL">All</button>
     </div>
-    <a class="toggle-btn" id="linkPriceHistory" href="price_editor.html">📈 View Price History</a>
+    <div class="history-links">
+      <a class="toggle-btn" id="linkPriceHistory" href="price_editor.html">📈 View Price History</a>
+      <button type="button" class="toggle-btn" id="downloadPriceHistory">⬇ Download Price History</button>
+    </div>
   </div>
 
   <div class="section-title">Dividend Chart</div>
@@ -227,6 +230,7 @@
     </div>
     <a class="toggle-btn" id="linkDividendHistory" href="distribution_editor.html">💰 View Dividend History</a>
   </div>
+  <div class="fundamentals-grid" id="dividendYieldStats" style="margin-top:14px;"></div>
 
   <div id="fundSection" class="hidden">
     <div class="section-title">Fund Details</div>
@@ -884,15 +888,37 @@ async function load(){
     // (z.B. USD/CHF) fälschlich als "nicht vorhanden" gilt, nur weil er
     // zeitlich nach dem Referenz-Zeitstempel der Wertschrift liegt.
     function endOfDay(d){ const r = new Date(d); r.setHours(23,59,59,999); return r; }
-    const cutoffWeek = endOfDay(daysAgo(now,7));
-    const cutoffMonth = endOfDay(daysAgo(now,30));
-    const cutoffYtd = endOfDay(daysAgo(startOfYear(now), 1)); // 31.12. Vorjahr, 23:59:59
-    const cutoff1y = endOfDay(daysAgo(now,365));
 
-    const refWeek = findOnOrBefore(daily, cutoffWeek);
-    const refMonth = findOnOrBefore(daily, cutoffMonth);
-    const refYtd = findOnOrBefore(daily, cutoffYtd);
-    const ref1y = findOnOrBefore(daily, cutoff1y);
+    // Perioden angeglichen an Dashboard/Portfolio/Analyser (Day/WTD/10D/
+    // MTD/90D/360D statt der alten Day/Week/Month/YTD/1 Year).
+    function mondayOfThisWeek(d){
+      const diff = (d.getDay()+6)%7; // Mo=0 .. So=6
+      const r = new Date(d); r.setDate(r.getDate()-diff); r.setHours(0,0,0,0);
+      return r;
+    }
+    const isWeekdayOnly = masterRow && masterRow.DataCollector === 'Collector_YahooWeekday';
+    function wtdCutoff(d){
+      const monday = mondayOfThisWeek(d);
+      const boundary = new Date(monday); boundary.setDate(boundary.getDate() - (isWeekdayOnly?3:1));
+      return endOfDay(boundary);
+    }
+    function mtdCutoff(d){
+      const firstOfMonth = new Date(d.getFullYear(), d.getMonth(), 1);
+      const lastOfPrevMonth = new Date(firstOfMonth); lastOfPrevMonth.setDate(lastOfPrevMonth.getDate()-1);
+      return endOfDay(lastOfPrevMonth);
+    }
+
+    const cutoffWtd = wtdCutoff(now);
+    const cutoffTen = endOfDay(daysAgo(now,10));
+    const cutoffMtd = mtdCutoff(now);
+    const cutoffNinety = endOfDay(daysAgo(now,90));
+    const cutoff360 = endOfDay(daysAgo(now,360));
+
+    const refWtd = findOnOrBefore(daily, cutoffWtd);
+    const refTen = findOnOrBefore(daily, cutoffTen);
+    const refMtd = findOnOrBefore(daily, cutoffMtd);
+    const refNinety = findOnOrBefore(daily, cutoffNinety);
+    const ref360 = findOnOrBefore(daily, cutoff360);
 
     const last52w = rows.filter(r => r.dt >= daysAgo(now,365));
     const high52wRow = last52w.length ? last52w.reduce((a,b)=> b.Price>a.Price ? b : a) : null;
@@ -907,9 +933,19 @@ async function load(){
     const dist12m = distRows.filter(d => d.exDate > oneYearAgo && d.exDate <= now).reduce((s,d)=>s+d.amount,0);
     const yieldPct = last.Price ? (dist12m/last.Price)*100 : null;
 
+    // Yield Change: aktuelle 12M-Rendite vs. die 12M-Rendite von vor genau
+    // 12 Monaten (jeweils Ausschüttungssumme der VORANGEHENDEN 12 Monate
+    // geteilt durch den damaligen Kurs) - zeigt, ob die Dividendenrendite
+    // strukturell steigt oder fällt, nicht nur ob der Kurs schwankt.
+    const twoYearsAgo = daysAgo(now, 730);
+    const priorYearRef = findOnOrBefore(daily, endOfDay(oneYearAgo));
+    const dist12mPrior = distRows.filter(d => d.exDate > twoYearsAgo && d.exDate <= oneYearAgo).reduce((s,d)=>s+d.amount,0);
+    const yieldPctPrior = (priorYearRef && priorYearRef.Price) ? (dist12mPrior/priorYearRef.Price)*100 : null;
+    const yieldChangePct = (yieldPct!==null && yieldPctPrior!==null) ? yieldPct - yieldPctPrior : null;
+
     const returns = [
-      { label:'Day', ref: prev }, { label:'Week', ref: refWeek },
-      { label:'Month', ref: refMonth }, { label:'YTD', ref: refYtd }, { label:'1 Year', ref: ref1y },
+      { label:'Day', ref: prev }, { label:'WTD', ref: refWtd }, { label:'10D', ref: refTen },
+      { label:'MTD', ref: refMtd }, { label:'90D', ref: refNinety }, { label:'360D', ref: ref360 },
     ];
     let returnsHtml = returns.map(r => {
       const chg = pctChange(last.Price, r.ref);
@@ -962,9 +998,9 @@ async function load(){
 
     const cutoffDay = endOfDay(daysAgo(now,1));
     const periods = [
-      { label:'Day', ref:prev, cutoff:cutoffDay }, { label:'Week', ref:refWeek, cutoff:cutoffWeek },
-      { label:'Month', ref:refMonth, cutoff:cutoffMonth },
-      { label:'YTD', ref:refYtd, cutoff:cutoffYtd }, { label:'1 Year', ref:ref1y, cutoff:cutoff1y },
+      { label:'Day', ref:prev, cutoff:cutoffDay }, { label:'WTD', ref:refWtd, cutoff:cutoffWtd },
+      { label:'10D', ref:refTen, cutoff:cutoffTen }, { label:'MTD', ref:refMtd, cutoff:cutoffMtd },
+      { label:'90D', ref:refNinety, cutoff:cutoffNinety }, { label:'360D', ref:ref360, cutoff:cutoff360 },
     ];
     document.getElementById('perfBody').innerHTML = periods.map(p => {
       const r = computePeriod(p.ref, p.cutoff);
@@ -1018,6 +1054,44 @@ async function load(){
 
     renderPriceChart();
     renderDistChart();
+
+    document.getElementById('dividendYieldStats').innerHTML = [
+      fundStat('Yield (12M)', yieldPct ? yieldPct.toFixed(2)+'%' : '-'),
+      fundStat('Yield Change (vs. 12M ago)', yieldChangePct!==null ? `${yieldChangePct>0?'+':''}${yieldChangePct.toFixed(2)} pp` : '-'),
+    ].join('');
+
+    // CSV-Download der kompletten Preishistorie dieser Security: SecurityID,
+    // MainID, Name (aus den Stammdaten) + Price, PriceDate, Source (aus den
+    // Kursdaten selbst) - eine Zeile pro Preis-Datenpunkt.
+    document.getElementById('downloadPriceHistory').addEventListener('click', () => {
+      if(!masterRow || !rows.length) return;
+      const pad = n => String(n).padStart(2,'0');
+      function fmtPriceDateFull(dt){
+        return `${pad(dt.getDate())}.${pad(dt.getMonth()+1)}.${dt.getFullYear()} ${pad(dt.getHours())}:${pad(dt.getMinutes())}:${pad(dt.getSeconds())}`;
+      }
+      function csvCell(v){
+        const s = String(v ?? '');
+        return /[",\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s;
+      }
+      const header = ['SecurityID','MainID','Name','Price','PriceDate','Source'];
+      const sorted = [...rows].sort((a,b) => a.dt - b.dt);
+      const lines = [header.join(',')];
+      for(const r of sorted){
+        lines.push([
+          masterRow.SecurityID, masterRow.MainID||'', masterRow.SecurityName||'',
+          r.Price, fmtPriceDateFull(r.dt), r.Source||'',
+        ].map(csvCell).join(','));
+      }
+      const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${masterRow.SecurityID}_${(masterRow.SecurityName||'security').replace(/[^a-z0-9]+/gi,'_')}_prices.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
 
     loadInstrumentSpecificData(last, decimals, high52wRow, low52wRow).catch(e => console.error('Fundamentals load error:', e));
 
