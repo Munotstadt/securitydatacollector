@@ -7471,3 +7471,4 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 62,Swiss Market Index (Equal Weight Total Return),391.92001,05.08.2026 15:16:25,Yahoo Finance (Weekday),05.08.2026 15:16:25
 63,Constellium,29.68,05.08.2026 15:16:25,Yahoo Finance (Weekday),05.08.2026 15:16:25
 15,VanEck S&P Global Mining UCITS ETF (GDIG),46.94,30.06.2026 15:20:28,manual,05.08.2026 15:20:28
+15,VanEck S&P Global Mining UCITS ETF (GDIG),52,29.05.2026 15:20:45,manual,05.08.2026 15:21:04
