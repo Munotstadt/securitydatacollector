@@ -138,12 +138,12 @@
   <div class="table-wrap">
   <table>
     <thead><tr>
-      <th>Collector</th><th>Run At</th><th>Status</th><th class="num">Data Points</th><th>Detail</th>
+      <th>Collector</th><th>Run At</th><th>Status</th><th>Trigger</th><th class="num">Data Points</th><th>Detail</th><th>Run</th>
     </tr></thead>
-    <tbody id="runsBody"><tr><td colspan="5" class="empty">Loading…</td></tr></tbody>
+    <tbody id="runsBody"><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
   </table>
   </div>
-  <p class="upload-instructions">Last 5 runs per collector, newest first. Each collector script writes its own row to <code>data/collector_runs.csv</code> at the end of its run; the weekly cleanup job also trims this file down to the last 20 entries per collector so it doesn't grow indefinitely.</p>
+  <p class="upload-instructions">Last 5 runs per collector, newest first. Each collector script writes its own row to <code>data/collector_runs.csv</code> at the end of its run (including whether it was triggered by the schedule or manually, and a link to the exact GitHub Actions run); the weekly cleanup job also trims this file down to the last 100 entries per collector so it doesn't grow indefinitely.</p>
 </div>
 
 <script src="assets/github-data.js"></script>
@@ -218,11 +218,11 @@ async function loadRecentRuns(){
     rows = parseCSV(text).rows;
   }catch(e){
     // Datei existiert evtl. noch nicht (kein Collector seit diesem Update gelaufen) - kein harter Fehler.
-    body.innerHTML = '<tr><td colspan="5" class="empty">No runs recorded yet - data/collector_runs.csv does not exist yet. It gets created automatically the next time a collector runs.</td></tr>';
+    body.innerHTML = '<tr><td colspan="7" class="empty">No runs recorded yet - data/collector_runs.csv does not exist yet. It gets created automatically the next time a collector runs.</td></tr>';
     return;
   }
   if(!rows.length){
-    body.innerHTML = '<tr><td colspan="5" class="empty">No runs recorded yet.</td></tr>';
+    body.innerHTML = '<tr><td colspan="7" class="empty">No runs recorded yet.</td></tr>';
     return;
   }
 
@@ -248,16 +248,22 @@ async function loadRecentRuns(){
     for(const r of last5){
       const isOk = (r.Status||'').toUpperCase() === 'OK';
       const badge = `<span class="status-badge ${isOk?'ok':'err'}">${isOk?'OK':'ERROR'}</span>`;
+      const trigger = r.Trigger || '—';
+      const runLink = r.RunID
+        ? `<a href="https://github.com/${GH.owner}/${GH.repo}/actions/runs/${encodeURIComponent(r.RunID)}" target="_blank" rel="noopener">${r.RunNumber ? '#'+r.RunNumber : 'view'} ↗</a>`
+        : '—';
       html += `<tr>
         <td>${type}</td>
         <td>${r.RunAt||'—'}</td>
         <td>${badge}</td>
+        <td>${trigger}</td>
         <td class="num">${r.DataPoints||'—'}</td>
         <td>${r.Detail||''}</td>
+        <td>${runLink}</td>
       </tr>`;
     }
   }
-  body.innerHTML = html || '<tr><td colspan="5" class="empty">No runs recorded yet.</td></tr>';
+  body.innerHTML = html || '<tr><td colspan="7" class="empty">No runs recorded yet.</td></tr>';
 }
 
 async function load(){
