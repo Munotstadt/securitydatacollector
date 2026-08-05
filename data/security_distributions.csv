@@ -56,3 +56,4 @@ SecurityID,SecurityName,DistributionAmount,Currency,ExDate,PayDate,Source,Create
 38,Sika Ltd,3.7000,CHF,26.03.2026,30.03.2026,manual,03.08.2026 20:17:43
 39,Alcon AG,0.28,CHF,05.05.2026,07.05.2026,manual,03.08.2026 20:18:32
 23,Lonza Group AG,4,CHF,13.05.2025,15.05.2025,manual,05.08.2026 10:10:25
+25,Vonovia,1.22,EUR,29.05.2025,25.06.2025,manual,05.08.2026 10:16:00
