@@ -88,6 +88,7 @@
   .hidden{display:none !important;}
 
   .chart-wrap{margin:10px 0;background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:16px 12px 8px;position:relative;}
+  #analystChartWrap{background:#fff;}
   .chart-wrap svg{display:block;width:100%;height:auto;}
   .chart-empty{padding:30px 10px;text-align:center;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:13px;}
   .chart-legend{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;}
@@ -231,7 +232,7 @@
     <div class="section-title">Fund Details</div>
     <div class="pie-row">
       <div class="pie-block">
-        <div class="pie-block-title">Asset Allocation</div>
+        <div class="pie-block-title">Sector Allocation</div>
         <div class="ccy-chart-wrap" id="assetAllocationChart"></div>
       </div>
     </div>
@@ -250,7 +251,7 @@
     <div class="fundamentals-grid" id="sharesFundamentalsGrid"></div>
     <div class="detail-meta" id="sharesDataAsOf" style="margin-top:8px;"></div>
 
-    <div class="section-title" style="margin-top:24px;">Price vs. Analyst Targets & 12-Month Range</div>
+    <div class="section-title" style="margin-top:24px;">Analyst Targets</div>
     <div class="chart-wrap" id="analystChartWrap"></div>
   </div>
 
@@ -1046,7 +1047,18 @@ function latestRowFor(rows){
   });
 }
 
-const ASSET_CLASS_COLORS = { Equity:'#1F6FA8', Bonds:'#8A5B4B', Cash:'#A3A9B0' };
+const SECTOR_COLORS = {
+  realestate: '#5B4B8A', consumer_cyclical: '#1F6FA8', basic_materials: '#B08D57',
+  consumer_defensive: '#2E9E76', technology: '#D98E04', communication_services: '#8A5B4B',
+  financial_services: '#C0293D', utilities: '#767E8A', industrials: '#4B4B8A',
+  energy: '#A3A9B0', healthcare: '#1F8A6E',
+};
+const SECTOR_LABELS = {
+  realestate: 'Real Estate', consumer_cyclical: 'Consumer Cyclical', basic_materials: 'Basic Materials',
+  consumer_defensive: 'Consumer Defensive', technology: 'Technology', communication_services: 'Communication Services',
+  financial_services: 'Financial Services', utilities: 'Utilities', industrials: 'Industrials',
+  energy: 'Energy', healthcare: 'Healthcare',
+};
 function describeArcPathSec(cx, cy, r, startAngle, endAngle){
   const toXY = (angle) => { const rad=(angle-90)*Math.PI/180; return {x:cx+r*Math.cos(rad), y:cy+r*Math.sin(rad)}; };
   const start = toXY(endAngle), end = toXY(startAngle);
@@ -1063,27 +1075,33 @@ function renderFundSection(fundRows, holdingRows){
   if(!latestFund){
     el.innerHTML = '<div class="chart-empty">No fund fundamentals collected yet for this security.</div>';
   } else {
-    const parts = {
-      Equity: parseFloat(latestFund.EquityPct) || 0,
-      Bonds: parseFloat(latestFund.BondPct) || 0,
-      Cash: parseFloat(latestFund.CashPct) || 0,
-    };
-    const total = parts.Equity + parts.Bonds + parts.Cash;
+    const parts = {};
+    for(const key of Object.keys(SECTOR_COLORS)){
+      const val = parseFloat(latestFund[`Sector_${key}`]);
+      if(!isNaN(val) && val > 0) parts[key] = val;
+    }
+    // Grösste Sektoren zuerst - macht die Legende leichter lesbar als
+    // alphabetische/CSV-Spaltenreihenfolge.
+    const sortedKeys = Object.keys(parts).sort((a,b) => parts[b]-parts[a]);
+    const total = sortedKeys.reduce((s,k) => s+parts[k], 0);
+
     if(total > 0){
       const size=160, r=70, cx=size/2, cy=size/2;
       let angle=0, slices='';
-      Object.entries(parts).forEach(([key,val]) => {
-        if(val<=0) return;
+      sortedKeys.forEach(key => {
+        const val = parts[key];
         const endAngle = angle + (val/total)*360;
-        slices += `<path d="${describeArcPathSec(cx,cy,r,angle,endAngle)}" fill="${ASSET_CLASS_COLORS[key]}"/>`;
+        slices += `<path d="${describeArcPathSec(cx,cy,r,angle,endAngle)}" fill="${SECTOR_COLORS[key]}"/>`;
         angle = endAngle;
       });
-      const legend = Object.entries(parts).filter(([,v])=>v>0).map(([key,val]) =>
-        `<li><span class="ccy-swatch" style="background:${ASSET_CLASS_COLORS[key]}"></span><span class="ccy-name">${key}</span><span class="ccy-val">${val.toFixed(1)}%</span></li>`
-      ).join('');
+      const legend = sortedKeys.map(key => {
+        const val = parts[key];
+        const pctDisplay = val<=1 ? val*100 : val; // defensiv: Werte kommen als Bruchzahl (0-1) von yfinance
+        return `<li><span class="ccy-swatch" style="background:${SECTOR_COLORS[key]}"></span><span class="ccy-name">${SECTOR_LABELS[key]}</span><span class="ccy-val">${pctDisplay.toFixed(1)}%</span></li>`;
+      }).join('');
       el.innerHTML = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${slices}</svg><ul class="ccy-legend">${legend}</ul>`;
     } else {
-      el.innerHTML = '<div class="chart-empty">No asset allocation data available.</div>';
+      el.innerHTML = '<div class="chart-empty">No sector allocation data available.</div>';
     }
   }
 
@@ -1190,15 +1208,19 @@ function renderAnalystRangeChart(container, data, decimals){
   const milestoneTop = barY1 - 4, milestoneBottom = barY2 + barH + 4;
 
   let svg = '';
-  // Baseline-Achse (0 .. Max)
+  // Baseline-Achse (0 .. Max) - Achsen-Labels fix auf 0 Dezimalstellen (Punkt 4).
   svg += `<line x1="${padLeft}" y1="${milestoneBottom+18}" x2="${width-padRight}" y2="${milestoneBottom+18}" stroke="#E3E6EA" stroke-width="1"/>`;
   svg += `<text x="${padLeft}" y="${milestoneBottom+32}" font-family="IBM Plex Mono, monospace" font-size="10" fill="#767E8A">0</text>`;
-  svg += `<text x="${width-padRight}" y="${milestoneBottom+32}" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10" fill="#767E8A">${fmtDecimal(maxVal,decimals)}</text>`;
+  svg += `<text x="${width-padRight}" y="${milestoneBottom+32}" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10" fill="#767E8A">${fmtDecimal(maxVal,0)}</text>`;
 
   function rangeBar(lo, hi, y, color, label){
     if(lo==null || hi==null || isNaN(lo) || isNaN(hi)) return '';
-    const x1 = xScale(lo), x2 = xScale(Math.max(hi,lo));
+    const x0 = xScale(0), x1 = xScale(lo), x2 = xScale(Math.max(hi,lo));
+    // Strecke von 0 bis Low grau eingefärbt (Punkt 3) - macht sichtbar, wie
+    // weit der Kurs/12M-Tiefpunkt vom Nullpunkt entfernt liegt, statt die
+    // Skala direkt beim Low beginnen zu lassen.
     return `<text x="${padLeft}" y="${y-6}" font-family="IBM Plex Mono, monospace" font-size="10" fill="#767E8A">${label}</text>
+      <rect x="${x0.toFixed(1)}" y="${y}" width="${Math.max(0,x1-x0).toFixed(1)}" height="${barH}" rx="3" fill="#A3A9B0" opacity="0.25"/>
       <rect x="${x1.toFixed(1)}" y="${y}" width="${Math.max(2,x2-x1).toFixed(1)}" height="${barH}" rx="3" fill="${color}" opacity="0.35"/>
       <text x="${x1.toFixed(1)}" y="${y+barH+13}" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="9" fill="#767E8A">${fmtDecimal(lo,decimals)}</text>
       <text x="${x2.toFixed(1)}" y="${y+barH+13}" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="9" fill="#767E8A">${fmtDecimal(hi,decimals)}</text>`;
