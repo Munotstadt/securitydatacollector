@@ -172,31 +172,34 @@
   <div class="detail-meta" id="yieldNote" style="margin-top:8px;"></div>
   <div class="detail-meta" id="pointCountNote" style="margin-top:2px;"></div>
 
-  <div class="toggle-row" id="viewToggle">
-    <button type="button" class="toggle-btn active" data-view="price">Price</button>
-    <button type="button" class="toggle-btn" data-view="dividends">Dividends</button>
+  <div class="section-title">Price Chart</div>
+  <div class="chart-wrap" id="priceChartWrap">
+    <div class="chart-empty">Loading chart…</div>
+    <div class="chart-tooltip" id="priceChartTooltip"></div>
   </div>
   <div class="toggle-row" id="priceRangeRow">
     <button type="button" class="toggle-btn" data-range="10D">10 Days</button>
     <button type="button" class="toggle-btn" data-range="30D">30 Days</button>
+    <button type="button" class="toggle-btn active" data-range="90D">90 Days</button>
     <button type="button" class="toggle-btn" data-range="YTD">YTD</button>
-    <button type="button" class="toggle-btn active" data-range="12M">12 Months</button>
+    <button type="button" class="toggle-btn" data-range="12M">12 Months</button>
     <button type="button" class="toggle-btn" data-range="ALL">All</button>
   </div>
-  <div class="toggle-row hidden" id="distRangeRow">
+  <div class="history-links">
+    <a class="toggle-btn" id="linkPriceHistory" href="price_editor.html">📈 View Price History</a>
+  </div>
+
+  <div class="section-title">Dividend Chart</div>
+  <div class="chart-wrap" id="distChartWrap">
+    <div class="chart-empty">Loading chart…</div>
+    <div class="chart-tooltip" id="distChartTooltip"></div>
+  </div>
+  <div class="toggle-row" id="distRangeRow">
     <button type="button" class="toggle-btn" data-range="12M">12 Months</button>
     <button type="button" class="toggle-btn active" data-range="24M">24 Months</button>
     <button type="button" class="toggle-btn" data-range="ALL">All</button>
   </div>
-
-  <div class="section-title" id="chartTitle">Price Chart</div>
-  <div class="chart-wrap" id="chartWrap">
-    <div class="chart-empty">Loading chart…</div>
-    <div class="chart-tooltip" id="chartTooltip"></div>
-  </div>
-
   <div class="history-links">
-    <a class="toggle-btn" id="linkPriceHistory" href="price_editor.html">📈 View Price History</a>
     <a class="toggle-btn" id="linkDividendHistory" href="distribution_editor.html">💰 View Dividend History</a>
   </div>
 
@@ -277,6 +280,7 @@ function filterByRange(daily, rows, range){
   if(range === 'ALL') return daily;
   let cutoff;
   if(range === '30D') cutoff = daysAgo(now, 30);
+  else if(range === '90D') cutoff = daysAgo(now, 90);
   else if(range === 'YTD') cutoff = startOfYear(now);
   else if(range === '12M') cutoff = daysAgo(now, 365);
   else return daily;
@@ -386,17 +390,21 @@ function drawDistributionChart(container, tooltip, displayDist, allDist, currenc
   const rolling = computeRolling12m(sorted, allDist);
   const maxRoll = Math.max(...rolling.map(r=>r.rollingSum), 0)*1.15 || 1;
 
-  // Dynamischer linker/rechter Rand, analog drawLineChart: verhindert
-  // Abschneiden bei breiten Beträgen (linke Achse: Balkenbeträge, rechte
-  // Achse: rollierende 12-Monats-Summe, potenziell deutlich grösser).
+  // Rechte Achse (rollierende Summe) fix auf 2 Dezimalstellen - linke Achse
+  // (Balkenbeträge) bleibt adaptiv, da einzelne Ausschüttungsbeträge sowohl
+  // sehr klein als auch sehr gross sein können.
   const leftAxisDecimals = decideAxisDecimals(maxBar);
-  const rightAxisDecimals = decideAxisDecimals(maxRoll);
+  const rightAxisDecimals = 2;
   const leftPad = Math.max(56, fmtDecimal(maxBar,leftAxisDecimals).length * 7 + 16);
   const rightPad = Math.max(56, fmtDecimal(maxRoll,rightAxisDecimals).length * 7 + 16);
   const pad = {top:14, right:rightPad, bottom:26, left:leftPad};
   const innerW = width-pad.left-pad.right, innerH = height-pad.top-pad.bottom;
 
-  const minX = sorted[0].exDate.getTime(), maxX = sorted[sorted.length-1].exDate.getTime();
+  // X-Achse reicht bis HEUTE, nicht nur bis zur letzten Ausschüttung - sonst
+  // wirkt der Chart bei länger zurückliegenden letzten Dividenden verzerrt
+  // gestaucht/abgeschnitten.
+  const now = new Date();
+  const minX = sorted[0].exDate.getTime(), maxX = Math.max(now.getTime(), sorted[sorted.length-1].exDate.getTime());
   const xSpan = (maxX-minX) || 1;
 
   // Punkt 10: schmalere Balken + seitliches Innenpolster, damit die äusseren
@@ -429,14 +437,27 @@ function drawDistributionChart(container, tooltip, displayDist, allDist, currenc
     const vr = (i/4)*maxRoll, yr = yScaleRoll(vr);
     rightLabels += `<text x="${width-pad.right+8}" y="${(yr+3).toFixed(1)}" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="10" fill="#C0293D">${fmtDecimal(vr,rightAxisDecimals)}</text>`;
   }
-  const mid = sorted[Math.floor(sorted.length/2)];
-  const xLabels = [
-    { d: sorted[0], anchor: 'start' },
-    { d: mid, anchor: 'middle' },
-    { d: sorted[sorted.length-1], anchor: 'end' },
-  ].map(({d, anchor}) => {
-    const x = xScale(d.exDate.getTime());
-    return `<text x="${x.toFixed(1)}" y="${height-8}" text-anchor="${anchor}" font-family="IBM Plex Mono, monospace" font-size="10" fill="#767E8A">${fmtDateOnly(d.exDate)}</text>`;
+
+  // X-Achse quartalsweise beschriftet (MM/YY), nicht mehr nur 3 Punkte -
+  // bei sehr langen Zeiträumen (z.B. "All") wird ausgedünnt, damit sich die
+  // Labels nicht überlappen.
+  const fmtMY = d => `${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getFullYear()).slice(-2)}`;
+  let quarters = [];
+  let cursor = new Date(new Date(minX).getFullYear(), new Date(minX).getMonth(), 1);
+  const endD = new Date(maxX);
+  while(cursor.getTime() <= endD.getTime()){
+    quarters.push(new Date(cursor));
+    cursor = new Date(cursor.getFullYear(), cursor.getMonth()+3, 1);
+  }
+  if(!quarters.length || (endD.getTime() - quarters[quarters.length-1].getTime()) > 40*86400000){
+    quarters.push(endD);
+  }
+  const maxLabels = 9;
+  const step = Math.max(1, Math.ceil(quarters.length/maxLabels));
+  const xLabels = quarters.filter((_,i) => i % step === 0 || i === quarters.length-1).map((qd, idx, arr) => {
+    const x = xScale(qd.getTime());
+    const anchor = qd.getTime()===minX ? 'start' : (qd.getTime()===maxX ? 'end' : 'middle');
+    return `<text x="${x.toFixed(1)}" y="${height-8}" text-anchor="${anchor}" font-family="IBM Plex Mono, monospace" font-size="10" fill="#767E8A">${fmtMY(qd)}</text>`;
   }).join('');
 
   container.innerHTML = `<svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Distribution chart">
@@ -764,7 +785,7 @@ async function load(){
 
     if(rows.length === 0){
       document.getElementById('detailPrice').textContent = '—';
-      document.getElementById('chartWrap').innerHTML = '<div class="chart-empty">No price data for this security.</div>';
+      document.getElementById('priceChartWrap').innerHTML = '<div class="chart-empty">No price data for this security.</div>';
       document.getElementById('perfBody').innerHTML = '<tr><td colspan="6" class="empty">No data.</td></tr>';
       return;
     }
@@ -812,7 +833,7 @@ async function load(){
       const f = fmtPct(chg);
       return `<div class="return-box"><span class="return-label">${r.label}</span><span class="return-value ${f.dir}">${f.text}</span></div>`;
     }).join('');
-    returnsHtml += `<div class="return-box"><span class="return-label">Dividend Yield</span><span class="return-value ${yieldPct!==null&&yieldPct>0?'up':'flat'}">${yieldPct?yieldPct.toFixed(2)+'%':'-'}</span></div>`;
+    returnsHtml += `<div class="return-box"><span class="return-label">Yield</span><span class="return-value ${yieldPct!==null&&yieldPct>0?'up':'flat'}">${yieldPct?yieldPct.toFixed(2)+'%':'-'}</span></div>`;
     document.getElementById('returnsBoxes').innerHTML = returnsHtml;
 
     renderRange52w(high52wRow, low52wRow, last, decimals);
@@ -884,52 +905,40 @@ async function load(){
       ? `Dividend yield (last 12 months vs. price ${currency}): ${yieldPct.toFixed(2)}%`
       : 'No dividend data available.';
 
-    let currentView = 'price', currentPriceRange = '12M', currentDistRange = '24M';
-    const chartWrap = document.getElementById('chartWrap');
-    const chartTooltip = document.getElementById('chartTooltip');
-    const chartTitle = document.getElementById('chartTitle');
-    const priceRangeRow = document.getElementById('priceRangeRow');
-    const distRangeRow = document.getElementById('distRangeRow');
+    let currentPriceRange = '90D', currentDistRange = '24M';
+    const priceChartWrap = document.getElementById('priceChartWrap');
+    const priceChartTooltip = document.getElementById('priceChartTooltip');
+    const distChartWrap = document.getElementById('distChartWrap');
+    const distChartTooltip = document.getElementById('distChartTooltip');
 
-    function renderChart(){
-      if(currentView === 'dividends'){
-        chartTitle.textContent = 'Dividend Chart';
-        priceRangeRow.classList.add('hidden'); distRangeRow.classList.remove('hidden');
-        drawDistributionChart(chartWrap, chartTooltip, filterDistByRange(distRows, currentDistRange), distRows, currency);
-      } else {
-        chartTitle.textContent = 'Price Chart';
-        priceRangeRow.classList.remove('hidden'); distRangeRow.classList.add('hidden');
-        drawLineChart(chartWrap, chartTooltip, filterByRange(daily, rows, currentPriceRange), decimals, currency);
-      }
+    function renderPriceChart(){
+      drawLineChart(priceChartWrap, priceChartTooltip, filterByRange(daily, rows, currentPriceRange), decimals, currency);
+    }
+    function renderDistChart(){
+      drawDistributionChart(distChartWrap, distChartTooltip, filterDistByRange(distRows, currentDistRange), distRows, currency);
     }
 
-    document.querySelectorAll('#viewToggle .toggle-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        currentView = btn.dataset.view;
-        document.querySelectorAll('#viewToggle .toggle-btn').forEach(b=>b.classList.toggle('active', b===btn));
-        renderChart();
-      });
-    });
     document.querySelectorAll('#priceRangeRow .toggle-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         currentPriceRange = btn.dataset.range;
         document.querySelectorAll('#priceRangeRow .toggle-btn').forEach(b=>b.classList.toggle('active', b===btn));
-        renderChart();
+        renderPriceChart();
       });
     });
     document.querySelectorAll('#distRangeRow .toggle-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         currentDistRange = btn.dataset.range;
         document.querySelectorAll('#distRangeRow .toggle-btn').forEach(b=>b.classList.toggle('active', b===btn));
-        renderChart();
+        renderDistChart();
       });
     });
 
-    renderChart();
+    renderPriceChart();
+    renderDistChart();
 
   }catch(e){
     document.getElementById('detailName').textContent = 'Error';
-    document.getElementById('chartWrap').innerHTML = `<div class="error">Error: ${e.message}</div>`;
+    document.getElementById('priceChartWrap').innerHTML = `<div class="error">Error: ${e.message}</div>`;
   }
 }
 
