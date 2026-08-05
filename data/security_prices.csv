@@ -7357,3 +7357,6 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 61,Swiss Market Index (Price Index),14466.40039,05.08.2026 12:59:09,Yahoo Finance (Weekday),05.08.2026 12:59:09
 62,Swiss Market Index (Equal Weight Total Return),391.26999,05.08.2026 12:59:09,Yahoo Finance (Weekday),05.08.2026 12:59:09
 63,Constellium,29.68,05.08.2026 12:59:09,Yahoo Finance (Weekday),05.08.2026 12:59:09
+8,BTC - Bitcoin,64447.64844,05.08.2026 14:22:18,Yahoo Finance (Daily),05.08.2026 14:22:18
+7,SOL - Solana,74.15,05.08.2026 14:22:18,Yahoo Finance (Daily),05.08.2026 14:22:18
+9,ETH - Ethereum,1878.67004,05.08.2026 14:22:18,Yahoo Finance (Daily),05.08.2026 14:22:18
