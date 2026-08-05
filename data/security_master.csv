@@ -62,4 +62,4 @@ MSCI Emerging Markets Index,60,pending60,USD,Shares,,,Index,Collector_YahooWeekd
 Swiss Market Index (Price Index),61,pending61,CHF,Shares,,,Index,Collector_YahooWeekday,^SSMI,0,30.07.2026 07:14:39,05.08.2026 15:43:15,,Switzerland Index,,,
 Swiss Market Index (Equal Weight Total Return),62,pending62,CHF,Shares,,,Index,Collector_YahooWeekday,SMIEWTR.SW,0,01.08.2026 06:49:42,05.08.2026 15:43:15,Valor 152860278,Switzerland Index,_not defined,,
 Constellium,63,pending63,USD,Shares,USA,,Shares,Collector_YahooWeekday,CSTM,0,02.08.2026 07:05:19,05.08.2026 15:43:15,,,,,
-S&P 500 Equal Weighted,64,pending64,USD,Shares,USA,,Index,Collector_YahooWeekday,^SPXEW,0,05.08.2026 15:41:11,05.08.2026 15:43:15,,USA Index,_not defined,,
+S&P 500 EQUAL WEIGHTED (NTR),64,pending64,USD,Shares,USA,,Index,Collector_YahooWeekday,^SPXEWNTR,0,05.08.2026 15:41:11,05.08.2026 17:21:48,,USA Index,_not defined,,
