@@ -257,3 +257,132 @@ SecurityID,SecurityName,HoldingSymbol,HoldingName,HoldingPct,Source,Created_at
 36,SPDR S&P Euro Dividend Aristocrats ETF,SAN.PA,Sanofi SA,0.0327699,Yahoo Finance (Fund Data),04.08.2026 08:27:40
 36,SPDR S&P Euro Dividend Aristocrats ETF,ELISA.HE,Elisa Oyj Class A,0.0324202,Yahoo Finance (Fund Data),04.08.2026 08:27:40
 36,SPDR S&P Euro Dividend Aristocrats ETF,PST.MI,Poste Italiane SpA,0.031350803,Yahoo Finance (Fund Data),04.08.2026 08:27:40
+10,iShares Swiss Dividends,ZURN.SW,Zurich Insurance Group AG,0.1511316,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+10,iShares Swiss Dividends,NESN.SW,Nestle SA,0.1479742,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+10,iShares Swiss Dividends,NOVN.SW,Novartis AG Registered Shares,0.14734331,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+10,iShares Swiss Dividends,ROP.SW,Roche Holding AG Ordinary Shares new,0.14474261,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+10,iShares Swiss Dividends,HOLN.SW,Holcim Ltd,0.0991592,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+10,iShares Swiss Dividends,SREN.SW,Swiss Re AG,0.0983249,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+10,iShares Swiss Dividends,SLHN.SW,Swiss Life Holding AG,0.0586696,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+10,iShares Swiss Dividends,SIKA.SW,Sika AG,0.0351561,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+10,iShares Swiss Dividends,GIVN.SW,Givaudan SA,0.034526,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+10,iShares Swiss Dividends,HBAN.SW,Helvetia Baloise Holding AG,0.0312713,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+11,iShares Core MSCI EM IMI UCITS ETF (EIMI),2330.TW,Taiwan Semiconductor Manufacturing Co Ltd,0.1317987,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+11,iShares Core MSCI EM IMI UCITS ETF (EIMI),005930.KS,Samsung Electronics Co Ltd,0.071255796,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+11,iShares Core MSCI EM IMI UCITS ETF (EIMI),000660.KS,SK Hynix Inc,0.0668015,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+11,iShares Core MSCI EM IMI UCITS ETF (EIMI),0700.HK,Tencent Holdings Ltd,0.0238746,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+11,iShares Core MSCI EM IMI UCITS ETF (EIMI),9988.HK,Alibaba Group Holding Ltd Ordinary Shares,0.0140591,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+11,iShares Core MSCI EM IMI UCITS ETF (EIMI),2454.TW,MediaTek Inc,0.0136814,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+11,iShares Core MSCI EM IMI UCITS ETF (EIMI),2308.TW,Delta Electronics Inc,0.0085116,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+11,iShares Core MSCI EM IMI UCITS ETF (EIMI),005935,Samsung Electronics Co Ltd Participating Preferred,0.0077545,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+11,iShares Core MSCI EM IMI UCITS ETF (EIMI),402340.KS,SK Square,0.0071482,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+11,iShares Core MSCI EM IMI UCITS ETF (EIMI),2317.TW,Hon Hai Precision Industry Co Ltd,0.0068363,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+12,UBS ETF (CH) SMIM,GALD.SW,Galderma Group AG Registered Shares,0.1225045,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+12,UBS ETF (CH) SMIM,SDZ.SW,Sandoz Group AG Registered Shares,0.1125938,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+12,UBS ETF (CH) SMIM,VACN.SW,VAT Group AG,0.0664843,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+12,UBS ETF (CH) SMIM,SGSN.SW,SGS AG,0.0562606,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+12,UBS ETF (CH) SMIM,HBAN.SW,Helvetia Baloise Holding AG,0.0561333,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+12,UBS ETF (CH) SMIM,BAER.SW,Julius Baer Gruppe AG,0.050337803,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+12,UBS ETF (CH) SMIM,STMN.SW,Straumann Holding AG,0.0439859,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+12,UBS ETF (CH) SMIM,LISN.SW,Chocoladefabriken Lindt & Spruengli AG,0.0379754,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+12,UBS ETF (CH) SMIM,SCHP,Schindler Holding AG Non Voting,0.0375605,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+12,UBS ETF (CH) SMIM,SPSN.SW,Swiss Prime Site AG,0.0370345,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+13,Vanguard S&P 500 UCITS ETF,NVDA,NVIDIA Corp,0.0753293,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+13,Vanguard S&P 500 UCITS ETF,AAPL,Apple Inc,0.06606,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+13,Vanguard S&P 500 UCITS ETF,MSFT,Microsoft Corp,0.0430712,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+13,Vanguard S&P 500 UCITS ETF,AMZN,Amazon.com Inc,0.0362652,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+13,Vanguard S&P 500 UCITS ETF,GOOGL,Alphabet Inc Class A,0.0325825,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+13,Vanguard S&P 500 UCITS ETF,AVGO,Broadcom Inc,0.0278003,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+13,Vanguard S&P 500 UCITS ETF,GOOG,Alphabet Inc Class C,0.025947299,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+13,Vanguard S&P 500 UCITS ETF,MU,Micron Technology Inc,0.0202338,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+13,Vanguard S&P 500 UCITS ETF,META,Meta Platforms Inc Class A,0.0192278,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+13,Vanguard S&P 500 UCITS ETF,TSLA,Tesla Inc,0.0184054,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+14,Xtrackers S&P 500 Equal Weight UCITS ETF (XDEW),MRNA,Moderna Inc,0.0029530001,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+14,Xtrackers S&P 500 Equal Weight UCITS ETF (XDEW),GLW,Corning Inc,0.0029463,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+14,Xtrackers S&P 500 Equal Weight UCITS ETF (XDEW),AMAT,Applied Materials Inc,0.0028195,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+14,Xtrackers S&P 500 Equal Weight UCITS ETF (XDEW),KLAC,KLA Corp,0.0027399,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+14,Xtrackers S&P 500 Equal Weight UCITS ETF (XDEW),TER,Teradyne Inc,0.0026985,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+14,Xtrackers S&P 500 Equal Weight UCITS ETF (XDEW),SNDK,SanDisk Corp Ordinary Shares,0.002688,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+14,Xtrackers S&P 500 Equal Weight UCITS ETF (XDEW),GEV,GE Vernova Inc,0.0026301,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+14,Xtrackers S&P 500 Equal Weight UCITS ETF (XDEW),TECH,Bio-Techne Corp,0.0026125,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+14,Xtrackers S&P 500 Equal Weight UCITS ETF (XDEW),LRCX,Lam Research Corp,0.0026104,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+15,VanEck S&P Global Mining UCITS ETF (GDIG),BHP.AX,BHP Group Ltd,0.087800905,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+15,VanEck S&P Global Mining UCITS ETF (GDIG),RIO.L,Rio Tinto PLC Ordinary Shares,0.0540849,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+15,VanEck S&P Global Mining UCITS ETF (GDIG),NEM,Newmont Corp,0.0534786,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+15,VanEck S&P Global Mining UCITS ETF (GDIG),FCX,Freeport-McMoRan Inc,0.0484899,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+15,VanEck S&P Global Mining UCITS ETF (GDIG),AEM.TO,Agnico Eagle Mines Ltd,0.0423702,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+15,VanEck S&P Global Mining UCITS ETF (GDIG),GLEN.L,Glencore PLC,0.0347673,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+15,VanEck S&P Global Mining UCITS ETF (GDIG),ABX.TO,Barrick Mining Corp,0.0330323,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+15,VanEck S&P Global Mining UCITS ETF (GDIG),AAL.L,Anglo American PLC,0.031003399,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+15,VanEck S&P Global Mining UCITS ETF (GDIG),VALE,Vale SA ADR,0.028289102,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+15,VanEck S&P Global Mining UCITS ETF (GDIG),WPM.TO,Wheaton Precious Metals Corp,0.027387701,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+17,iShares Core MSCI Japan IMI UCITS ETF,8035.T,Tokyo Electron Ltd,0.0330611,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+17,iShares Core MSCI Japan IMI UCITS ETF,8306.T,Mitsubishi UFJ Financial Group Inc,0.0327551,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+17,iShares Core MSCI Japan IMI UCITS ETF,285A.T,Kioxia Holdings Corp Ordinary Shares,0.0269293,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+17,iShares Core MSCI Japan IMI UCITS ETF,7203.T,Toyota Motor Corp,0.0246946,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+17,iShares Core MSCI Japan IMI UCITS ETF,6857.T,Advantest Corp,0.022634799,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+17,iShares Core MSCI Japan IMI UCITS ETF,8316.T,Sumitomo Mitsui Financial Group Inc,0.0220653,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+17,iShares Core MSCI Japan IMI UCITS ETF,9984.T,SoftBank Group Corp,0.0211698,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+17,iShares Core MSCI Japan IMI UCITS ETF,6501.T,Hitachi Ltd,0.0189065,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+17,iShares Core MSCI Japan IMI UCITS ETF,6758.T,Sony Group Corp,0.0183293,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+17,iShares Core MSCI Japan IMI UCITS ETF,6981.T,Murata Manufacturing Co Ltd,0.0176464,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+18,iShares MSCI EMU Small Cap ETF (CSEMUS),SPIE.PA,SPIE SA,0.0143512,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+18,iShares MSCI EMU Small Cap ETF (CSEMUS),GTT.PA,Gaztransport et technigaz SA,0.012890399,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+18,iShares MSCI EMU Small Cap ETF (CSEMUS),AED.BR,Aedifica SA,0.0122063,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+18,iShares MSCI EMU Small Cap ETF (CSEMUS),MRL.MC,Merlin Properties SOCIMI SA,0.0119372,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+18,iShares MSCI EMU Small Cap ETF (CSEMUS),ACKB.BR,Ackermans & Van Haaren NV,0.0115093,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+18,iShares MSCI EMU Small Cap ETF (CSEMUS),NDX1.DE,Nordex SE Akt. nach Kapitalherabsetzung,0.0112483,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+18,iShares MSCI EMU Small Cap ETF (CSEMUS),AIXA.DE,Aixtron SE,0.010890501,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+18,iShares MSCI EMU Small Cap ETF (CSEMUS),SPM.MI,Saipem SpA,0.0106863,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+18,iShares MSCI EMU Small Cap ETF (CSEMUS),LTMC.MI,Lottomatica Group SpA,0.0105662,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+18,iShares MSCI EMU Small Cap ETF (CSEMUS),NEX.PA,Nexans,0.0100932,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+31,iShares Core MSCI Europe UCITS ETF EUR Dist,ASML.AS,ASML Holding NV,0.053951602,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+31,iShares Core MSCI Europe UCITS ETF EUR Dist,HSBA.L,HSBC Holdings PLC,0.0230467,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+31,iShares Core MSCI Europe UCITS ETF EUR Dist,ROP.SW,Roche Holding AG Ordinary Shares new,0.020472,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+31,iShares Core MSCI Europe UCITS ETF EUR Dist,NOVN.SW,Novartis AG Registered Shares,0.0202952,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+31,iShares Core MSCI Europe UCITS ETF EUR Dist,AZN.L,AstraZeneca PLC,0.0199649,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+31,iShares Core MSCI Europe UCITS ETF EUR Dist,NESN.SW,Nestle SA,0.0187418,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+31,iShares Core MSCI Europe UCITS ETF EUR Dist,SIE.DE,Siemens AG,0.016789101,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+31,iShares Core MSCI Europe UCITS ETF EUR Dist,SHEL.L,Shell PLC,0.015439499,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+31,iShares Core MSCI Europe UCITS ETF EUR Dist,SAN.MC,Banco Santander SA,0.014014,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+31,iShares Core MSCI Europe UCITS ETF EUR Dist,ALV.DE,Allianz SE,0.0127205,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+32,iShares Core MSCI Pacific ex Japan,BHP.AX,BHP Group Ltd,0.0952921,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+32,iShares Core MSCI Pacific ex Japan,CBA.AX,Commonwealth Bank of Australia,0.0869637,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+32,iShares Core MSCI Pacific ex Japan,D05.SI,DBS Group Holdings Ltd,0.0474019,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+32,iShares Core MSCI Pacific ex Japan,1299.HK,AIA Group Ltd,0.0436652,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+32,iShares Core MSCI Pacific ex Japan,WBC.AX,Westpac Banking Corp,0.0380525,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+32,iShares Core MSCI Pacific ex Japan,NAB.AX,National Australia Bank Ltd,0.036616698,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+32,iShares Core MSCI Pacific ex Japan,ANZ.AX,ANZ Group Holdings Ltd,0.0336684,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+32,iShares Core MSCI Pacific ex Japan,WES.AX,Wesfarmers Ltd,0.0324294,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+32,iShares Core MSCI Pacific ex Japan,MQG.AX,Macquarie Group Ltd,0.0287396,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+32,iShares Core MSCI Pacific ex Japan,O39.SI,Oversea-Chinese Banking Corp Ltd,0.0286128,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+33,iShares Core FTSE 100,HSBA.L,HSBC Holdings PLC,0.097781695,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+33,iShares Core FTSE 100,AZN.L,AstraZeneca PLC,0.084211305,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+33,iShares Core FTSE 100,SHEL.L,Shell PLC,0.0655963,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+33,iShares Core FTSE 100,RR.L,Rolls-Royce Holdings PLC,0.048270896,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+33,iShares Core FTSE 100,ULVR.L,Unilever PLC,0.0380183,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+33,iShares Core FTSE 100,BATS.L,British American Tobacco PLC,0.0378104,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+33,iShares Core FTSE 100,GSK.L,GSK PLC,0.031468403,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+33,iShares Core FTSE 100,RIO.L,Rio Tinto PLC Ordinary Shares,0.0293527,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+33,iShares Core FTSE 100,BP.L,BP PLC,0.029181398,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+33,iShares Core FTSE 100,BARC.L,Barclays PLC,0.0275777,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+34,iShares Core MSCI EMU UCITS ETF,ASML.AS,ASML Holding NV,0.0988286,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+34,iShares Core MSCI EMU UCITS ETF,SIE.DE,Siemens AG,0.0308938,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+34,iShares Core MSCI EMU UCITS ETF,SAN.MC,Banco Santander SA,0.0255988,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+34,iShares Core MSCI EMU UCITS ETF,ALV.DE,Allianz SE,0.0233008,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+34,iShares Core MSCI EMU UCITS ETF,SU.PA,Schneider Electric SE,0.0231446,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+34,iShares Core MSCI EMU UCITS ETF,SAP.DE,SAP SE,0.0206968,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+34,iShares Core MSCI EMU UCITS ETF,TTE.PA,TotalEnergies SE,0.0198186,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+34,iShares Core MSCI EMU UCITS ETF,IBE.MC,Iberdrola SA,0.0196866,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+34,iShares Core MSCI EMU UCITS ETF,ENR.DE,Siemens Energy AG Ordinary Shares,0.0190058,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+34,iShares Core MSCI EMU UCITS ETF,BBVA.MC,Banco Bilbao Vizcaya Argentaria SA,0.0182251,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+36,SPDR S&P Euro Dividend Aristocrats ETF,AGS.BR,Ageas SA/ NV,0.0367059,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+36,SPDR S&P Euro Dividend Aristocrats ETF,NN.AS,NN Group NV,0.0350089,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+36,SPDR S&P Euro Dividend Aristocrats ETF,TEP.PA,Teleperformance SE,0.0348126,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+36,SPDR S&P Euro Dividend Aristocrats ETF,HNR1.DE,Hannover Rueck SE Registered Shares,0.034247898,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+36,SPDR S&P Euro Dividend Aristocrats ETF,MUV2.DE,Munchener Ruckversicherungs-Gesellschaft AG,0.0341405,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+36,SPDR S&P Euro Dividend Aristocrats ETF,UPM.HE,UPM-Kymmene Oyj,0.033961,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+36,SPDR S&P Euro Dividend Aristocrats ETF,UNI.MI,Unipol Assicurazioni SpA,0.0336506,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+36,SPDR S&P Euro Dividend Aristocrats ETF,SAN.PA,Sanofi SA,0.0327699,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+36,SPDR S&P Euro Dividend Aristocrats ETF,ELISA.HE,Elisa Oyj Class A,0.0324202,Yahoo Finance (Fund Data),05.08.2026 10:48:11
+36,SPDR S&P Euro Dividend Aristocrats ETF,PST.MI,Poste Italiane SpA,0.031350803,Yahoo Finance (Fund Data),05.08.2026 10:48:11
