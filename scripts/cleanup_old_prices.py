@@ -47,16 +47,34 @@ def now_zurich_str():
     return datetime.now(ZURICH).strftime("%d.%m.%Y %H:%M:%S")
 
 
+def read_run_log_rows_positional():
+    """Liest data/collector_runs.csv NICHT anhand ihres eigenen Headers ein
+    (csv.DictReader), sondern positionell gegen die aktuelle RUN_LOG_HEADER-
+    Reihenfolge. Grund: die Datei kann noch einen älteren, kürzeren Header
+    aus der Zeit vor Trigger/RunID/RunNumber haben, während neuere Zeilen
+    schon die volle Spaltenzahl enthalten - ein Header-basiertes Einlesen
+    würde die zusätzlichen Werte an den falschen/keinen Key hängen. Da diese
+    Funktion die Datei danach mit dem korrekten Header neu schreibt, heilt
+    sich die Datei dadurch beim nächsten Cleanup-Lauf automatisch."""
+    if not os.path.exists(RUN_LOG_PATH):
+        return []
+    with open(RUN_LOG_PATH, newline="", encoding="utf-8") as f:
+        lines = list(csv.reader(f))
+    if len(lines) <= 1:
+        return []
+    rows = []
+    for line in lines[1:]:
+        rows.append({col: (line[i] if i < len(line) else "") for i, col in enumerate(RUN_LOG_HEADER)})
+    return rows
+
+
 def append_and_trim_run_log(new_row):
     """Hängt new_row an data/collector_runs.csv an und kürzt die Datei
     danach auf die letzten TRIM_KEEP_PER_TYPE Einträge PRO Collector-Typ
     (nicht nur für den Cleanup-Job selbst, sondern für ALLE Typen, die sich
     seit dem letzten Cleanup-Lauf angesammelt haben - andere Collectors
     hängen nur an, ohne selbst zu kürzen)."""
-    rows = []
-    if os.path.exists(RUN_LOG_PATH):
-        with open(RUN_LOG_PATH, newline="", encoding="utf-8") as f:
-            rows = list(csv.DictReader(f))
+    rows = read_run_log_rows_positional()
     rows.append(new_row)
 
     def parse_dt(r):
