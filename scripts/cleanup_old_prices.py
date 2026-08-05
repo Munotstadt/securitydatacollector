@@ -21,15 +21,17 @@ import os
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
+from run_log import trigger_label
+
 ZURICH = ZoneInfo("Europe/Zurich")
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PRICES_PATH = os.path.join(REPO_ROOT, "data", "security_prices.csv")
 RUN_LOG_PATH = os.path.join(REPO_ROOT, "data", "collector_runs.csv")
-RUN_LOG_HEADER = ["CollectorType", "RunAt", "Status", "DataPoints", "Detail"]
+RUN_LOG_HEADER = ["CollectorType", "RunAt", "Status", "DataPoints", "Detail", "Trigger", "RunID", "RunNumber"]
 # Wie viele Läufe PRO Collector-Typ maximal behalten werden - admin.html
 # zeigt nur die letzten 5, dieser Puffer ist grosszügiger, damit zwischen
 # zwei Cleanup-Läufen (wöchentlich) nichts vorzeitig fehlt.
-TRIM_KEEP_PER_TYPE = 20
+TRIM_KEEP_PER_TYPE = 100
 
 COMPACT_AFTER_DAYS = 11
 # 550 statt 380 Tage: der Analyser braucht für den rollierenden
@@ -155,6 +157,9 @@ def run():
         "Status": "OK",
         "DataPoints": f"-{compacted_away} compacted / -{removed} deleted",
         "Detail": f"{len(rows)} remaining",
+        "Trigger": trigger_label(),
+        "RunID": os.environ.get("GITHUB_RUN_ID", ""),
+        "RunNumber": os.environ.get("GITHUB_RUN_NUMBER", ""),
     })
 
 
