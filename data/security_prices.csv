@@ -7477,11 +7477,6 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 15,VanEck S&P Global Mining UCITS ETF (GDIG),57.6,28.02.2026 15:20:45,manual,05.08.2026 15:21:43
 15,VanEck S&P Global Mining UCITS ETF (GDIG),51.31,31.01.2026 15:20:45,manual,05.08.2026 15:21:55
 15,VanEck S&P Global Mining UCITS ETF (GDIG),45.45,31.12.2025 15:20:45,manual,05.08.2026 15:22:06
-64,S&P 500 Equal Weighted,8705.93,31.07.2026 15:44:49,manual,05.08.2026 15:45:12
-64,S&P 500 Equal Weighted,8939.85,05.08.2026 15:44:49,manual,05.08.2026 15:45:29
-64,S&P 500 Equal Weighted,8626.64,30.06.2026 15:44:49,manual,05.08.2026 15:45:48
-64,S&P 500 Equal Weighted,7763.13,31.12.2025 15:44:49,manual,05.08.2026 15:46:03
-64,S&P 500 Equal Weighted,8918.41,04.08.2026 23:46:10,manual,05.08.2026 15:46:39
 20,Apple Inc.,307.52499,05.08.2026 15:48:43,Yahoo Finance (Weekday),05.08.2026 15:48:43
 3,EUR/CHF,0.93304,05.08.2026 15:48:43,Yahoo Finance (Weekday),05.08.2026 15:48:43
 2,USD/CHF,0.80848,05.08.2026 15:48:43,Yahoo Finance (Weekday),05.08.2026 15:48:43
@@ -7532,7 +7527,6 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 61,Swiss Market Index (Price Index),14532.92969,05.08.2026 15:48:43,Yahoo Finance (Weekday),05.08.2026 15:48:43
 62,Swiss Market Index (Equal Weight Total Return),391.82001,05.08.2026 15:48:43,Yahoo Finance (Weekday),05.08.2026 15:48:43
 63,Constellium,30.23,05.08.2026 15:48:43,Yahoo Finance (Weekday),05.08.2026 15:48:43
-64,S&P 500 Equal Weighted,8926.08984,05.08.2026 15:48:43,Yahoo Finance (Weekday),05.08.2026 15:48:43
 8,BTC - Bitcoin,64433.96094,05.08.2026 16:08:17,Yahoo Finance (Daily),05.08.2026 16:08:17
 7,SOL - Solana,73.97,05.08.2026 16:08:17,Yahoo Finance (Daily),05.08.2026 16:08:17
 9,ETH - Ethereum,1879.54004,05.08.2026 16:08:17,Yahoo Finance (Daily),05.08.2026 16:08:17
@@ -7598,7 +7592,6 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 61,Swiss Market Index (Price Index),14552.42969,05.08.2026 17:16:00,Yahoo Finance (Weekday),05.08.2026 17:16:00
 62,Swiss Market Index (Equal Weight Total Return),392.79001,05.08.2026 17:16:00,Yahoo Finance (Weekday),05.08.2026 17:16:00
 63,Constellium,30.115,05.08.2026 17:16:00,Yahoo Finance (Weekday),05.08.2026 17:16:00
-64,S&P 500 Equal Weighted,8907.7002,05.08.2026 17:16:00,Yahoo Finance (Weekday),05.08.2026 17:16:00
 8,BTC - Bitcoin,64649.39062,05.08.2026 18:26:28,Yahoo Finance (Daily),05.08.2026 18:26:28
 7,SOL - Solana,74.27,05.08.2026 18:26:28,Yahoo Finance (Daily),05.08.2026 18:26:28
 9,ETH - Ethereum,1889.59998,05.08.2026 18:26:28,Yahoo Finance (Daily),05.08.2026 18:26:28
