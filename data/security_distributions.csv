@@ -57,3 +57,4 @@ SecurityID,SecurityName,DistributionAmount,Currency,ExDate,PayDate,Source,Create
 39,Alcon AG,0.28,CHF,05.05.2026,07.05.2026,manual,03.08.2026 20:18:32
 23,Lonza Group AG,4,CHF,13.05.2025,15.05.2025,manual,05.08.2026 10:10:25
 25,Vonovia,1.22,EUR,29.05.2025,25.06.2025,manual,05.08.2026 10:16:00
+20,Apple Inc.,0.27,USD,10.08.2026,13.08.2026,manual,07.08.2026 21:54:25
