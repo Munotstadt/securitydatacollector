@@ -9509,3 +9509,12 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 63,Constellium,28.61,07.08.2026 06:22:45,Yahoo Finance (Weekday),07.08.2026 06:22:45
 64,S&P 500 EQUAL WEIGHTED (NTR),12106.03027,07.08.2026 06:22:45,Yahoo Finance (Weekday),07.08.2026 06:22:45
 65,S&P 500 Equal Weight,8851.58984,07.08.2026 06:22:45,Yahoo Finance (Weekday),07.08.2026 06:22:45
+43,Rendite Bundesobligationen Eidgenossenschaft 10 Jahre (%),0.421,07.08.2026 07:55:27,SNB,07.08.2026 07:55:27
+4,STOXX Europe 600 EUR NR,1679.03,07.08.2026 07:55:27,onvista,07.08.2026 07:55:27
+41,Raiffeisen Futura II - Systematic Invest Equity B (Samantha),138.02,07.08.2026 07:55:27,Raiffeisen Börse,07.08.2026 07:55:27
+42,Raiffeisen Futura II - Systematic Invest Equity (Vorsorge),139.97,07.08.2026 07:55:27,Raiffeisen Börse,07.08.2026 07:55:27
+44,Raiffeisen Winterthur Hypothek 1 Jahr Zinssatz,1.54,07.08.2026 07:55:27,RB Winterthur,07.08.2026 07:55:27
+45,Raiffeisen Winterthur Hypothek 5 Jahr Zinssatz,1.69,07.08.2026 07:55:27,RB Winterthur,07.08.2026 07:55:27
+46,Raiffeisen Winterthur Hypothek 10 Jahr Zinssatz,2.04,07.08.2026 07:55:27,RB Winterthur,07.08.2026 07:55:27
+47,Raiffeisen Winterthur Hypothek 15 Jahr Zinssatz,2.45,07.08.2026 07:55:27,RB Winterthur,07.08.2026 07:55:27
+29,Gold Vreneli (CHF 20),637.0,07.08.2026 07:55:27,Raiffeisen Börse,07.08.2026 07:55:27
