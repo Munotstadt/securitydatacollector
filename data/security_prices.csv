@@ -10627,3 +10627,6 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 8,BTC - Bitcoin,64939.19141,08.08.2026 13:24:28,Yahoo Finance (Daily),08.08.2026 13:24:28
 7,SOL - Solana,75.23,08.08.2026 13:24:28,Yahoo Finance (Daily),08.08.2026 13:24:28
 9,ETH - Ethereum,1918.79004,08.08.2026 13:24:28,Yahoo Finance (Daily),08.08.2026 13:24:28
+8,BTC - Bitcoin,64921.19141,08.08.2026 13:51:44,Yahoo Finance (Daily),08.08.2026 13:51:44
+7,SOL - Solana,75.44,08.08.2026 13:51:44,Yahoo Finance (Daily),08.08.2026 13:51:44
+9,ETH - Ethereum,1918.89001,08.08.2026 13:51:44,Yahoo Finance (Daily),08.08.2026 13:51:44
