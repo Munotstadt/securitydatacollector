@@ -9045,3 +9045,6 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 65,S&P500 Equal Weight,6248.64,28.02.2022 23:59:59,investing.com,
 65,S&P500 Equal Weight,6313.49,31.01.2022 23:59:59,investing.com,
 65,S&P500 Equal Weight,6605.87,31.12.2021 23:59:59,investing.com,
+8,BTC - Bitcoin,64729.98828,09.08.2026 05:24:16,Yahoo Finance (Daily),09.08.2026 05:24:16
+7,SOL - Solana,75.83,09.08.2026 05:24:16,Yahoo Finance (Daily),09.08.2026 05:24:16
+9,ETH - Ethereum,1912.13,09.08.2026 05:24:16,Yahoo Finance (Daily),09.08.2026 05:24:16
