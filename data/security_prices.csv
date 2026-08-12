@@ -12100,3 +12100,6 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 46,Raiffeisen Winterthur Hypothek 10 Jahr Zinssatz,2.06,12.08.2026 19:25:35,RB Winterthur,12.08.2026 19:25:35
 47,Raiffeisen Winterthur Hypothek 15 Jahr Zinssatz,2.48,12.08.2026 19:25:35,RB Winterthur,12.08.2026 19:25:35
 29,Gold Vreneli (CHF 20),657.0,12.08.2026 19:25:35,Raiffeisen Börse,12.08.2026 19:25:35
+8,BTC - Bitcoin,63350.83984,12.08.2026 19:25:48,Yahoo Finance (Daily),12.08.2026 19:25:48
+7,SOL - Solana,75.64,12.08.2026 19:25:48,Yahoo Finance (Daily),12.08.2026 19:25:48
+9,ETH - Ethereum,1884.14001,12.08.2026 19:25:48,Yahoo Finance (Daily),12.08.2026 19:25:48
