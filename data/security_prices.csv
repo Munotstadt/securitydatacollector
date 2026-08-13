@@ -12731,3 +12731,6 @@ SecurityID,SecurityName,Price,PriceDate,Source,Created_at
 63,Constellium,29.49,13.08.2026 10:49:12,Yahoo Finance (Weekday),13.08.2026 10:49:12
 64,S&P 500 EQUAL WEIGHTED (NTR),12245.34961,13.08.2026 10:49:12,Yahoo Finance (Weekday),13.08.2026 10:49:12
 65,S&P 500 Equal Weight,8951.86035,13.08.2026 10:49:12,Yahoo Finance (Weekday),13.08.2026 10:49:12
+8,BTC - Bitcoin,63707.30078,13.08.2026 11:53:46,Yahoo Finance (Daily),13.08.2026 11:53:46
+7,SOL - Solana,76.07,13.08.2026 11:53:46,Yahoo Finance (Daily),13.08.2026 11:53:46
+9,ETH - Ethereum,1887.60999,13.08.2026 11:53:46,Yahoo Finance (Daily),13.08.2026 11:53:46
